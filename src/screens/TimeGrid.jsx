@@ -243,11 +243,7 @@ export default function TimeGrid() {
           })}
 
           {/* Right scroll strip — no data attrs so vertical drag here scrolls */}
-          <div style={{ width: SCROLL_W, flexShrink: 0, borderLeft: '1px solid #F5F5F5' }}>
-            {Array.from({ length: TOTAL }, (_, s) => (
-              <div key={s} style={{ height: SLOT_H, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0' }} />
-            ))}
-          </div>
+          <div style={{ width: SCROLL_W, flexShrink: 0 }} />
         </div>
       </div>
 
