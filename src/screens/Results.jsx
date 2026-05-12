@@ -10,7 +10,12 @@ const DAYS_PER_PAGE = 4;
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-const fmtH = h => h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h - 12}pm`;
+const fmtH = h => {
+  const hr = Math.floor(h), min = Math.round((h - hr) * 60);
+  const period = hr < 12 ? 'am' : 'pm';
+  const dh = (hr === 0 || hr === 12) ? 12 : hr % 12;
+  return min === 0 ? `${dh}${period}` : `${dh}:${String(min).padStart(2, '0')}${period}`;
+};
 
 function buildAllDays(rangeStartTs, rangeEndTs) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -104,33 +109,42 @@ export default function Results() {
 
   const slotsNeeded = Math.max(1, Math.ceil((state?.duration ?? 30) / SLOT_MIN));
 
+  const visibleWithIdx = allRespondents.map((r, i) => ({ r, i })).filter(({ i }) => selected.has(i));
+
   const bestSlot = useMemo(() => {
     if (visibleCount === 0) return null;
-    let best = null, bestCount = 0;
+    let best = null, bestScore = -1;
     for (let d = 0; d < totalDays; d++) {
-      for (let s = 0; s <= TOTAL - slotsNeeded; s++) {
-        const count = visibleRespondents.filter(r => {
-          for (let k = 0; k < slotsNeeded; k++)
-            if (r[`${d}-${s + k}`] !== 1) return false;
-          return true;
-        }).length;
-        if (count > bestCount) { bestCount = count; best = { d, s, count }; }
+      for (let s = 0; s < TOTAL; s++) {
+        const freeSet = new Set(visibleWithIdx.map((_, vi) => vi));
+        for (let len = 1; len <= slotsNeeded && s + len <= TOTAL; len++) {
+          const slotKey = `${d}-${s + len - 1}`;
+          for (const vi of [...freeSet])
+            if (visibleWithIdx[vi].r[slotKey] !== 1) freeSet.delete(vi);
+          const count = freeSet.size;
+          const score = count * 1000 + len;
+          if (count > 0 && score > bestScore) {
+            bestScore = score;
+            best = { d, s, count, len, freeNames: [...freeSet].map(vi => respondentNames[visibleWithIdx[vi].i]) };
+          }
+        }
       }
     }
     if (!best) return null;
     return {
       ...best,
-      day:     allDays[best.d],
-      time:    fmtH(G_START + best.s / SPH),
-      endTime: fmtH(G_START + (best.s + slotsNeeded) / SPH),
+      day:            allDays[best.d],
+      time:           fmtH(G_START + best.s / SPH),
+      endTime:        fmtH(G_START + (best.s + best.len) / SPH),
+      isFullDuration: best.len === slotsNeeded,
     };
-  }, [visibleRespondents, slotsNeeded]);
+  }, [visibleRespondents, visibleWithIdx, slotsNeeded]);
 
   return (
     <div className="app-container" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <StatusBar />
       <div className="app-nav">
-        <button className="nav-action" onClick={() => navigate(-1)}>← Back</button>
+        <span style={{ width: 48 }} />
         <span className="nav-title">Result</span>
         <span style={{ width: 48 }} />
       </div>
@@ -150,11 +164,25 @@ export default function Results() {
           <div style={{ marginTop: 6, fontSize: 12, color: '#E57373', fontWeight: 500 }}>請至少選擇一人</div>
         )}
         {bestSlot && visibleCount > 0 && (
-          <div style={{ marginTop: 6, padding: '5px 10px', background: 'rgba(71,128,88,0.1)', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ fontSize: 10, color: '#478058' }}>★</span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#478058' }}>
-              Best: {bestSlot.day.label} {bestSlot.day.date} · {bestSlot.time}–{bestSlot.endTime} · {bestSlot.count}/{visibleCount} free
-            </span>
+          <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(71,128,88,0.08)', borderRadius: 10, border: '1px solid rgba(71,128,88,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: 10, color: '#478058' }}>★</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#478058' }}>Best time</span>
+                {!bestSlot.isFullDuration && <span style={{ fontSize: 10, color: '#AAA', fontWeight: 400 }}>(partial)</span>}
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#478058' }}>{bestSlot.count}/{visibleCount} people</span>
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#8a9da8', marginBottom: bestSlot.freeNames.length ? 6 : 0 }}>
+              {bestSlot.day.label} {bestSlot.day.date} · {bestSlot.time}–{bestSlot.endTime}
+            </div>
+            {bestSlot.freeNames.length > 0 && (
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                {bestSlot.freeNames.map(n => (
+                  <span key={n} style={{ padding: '2px 8px', borderRadius: 10, background: '#1A1A1A', color: '#fff', fontSize: 10, fontWeight: 600 }}>{n}</span>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -166,7 +194,7 @@ export default function Results() {
           {pageDays.map((d, i) => (
             <div key={i} style={{ flex: 1, textAlign: 'center', padding: '4px 0 5px' }}>
               <div style={{ fontSize: 10, fontWeight: 600, color: '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
-              <div style={{ width: 20, height: 20, borderRadius: 10, margin: '2px auto 0', fontSize: 11, fontWeight: 700, color: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
+              <div style={{ width: 20, height: 20, borderRadius: 10, margin: '2px auto 0', fontSize: 11, fontWeight: 700, color: '#8a9da8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
             </div>
           ))}
         </div>
@@ -234,7 +262,7 @@ export default function Results() {
         </div>
 
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => navigate(-1)} style={{
+          <button onClick={() => navigate('/grid', { state })} style={{
             flex: 1, padding: '13px', borderRadius: 14, border: '1.5px solid #478058',
             background: 'transparent', color: '#478058', fontSize: 15, fontWeight: 600,
             fontFamily: 'inherit', cursor: 'pointer',

@@ -231,7 +231,7 @@ function RangePicker({ startDate, endDate, onChange }) {
       <div style={{ padding: '12px 16px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8a9da8' }}><IcChevron dir="left" size={16} /></button>
-          <span style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: '#8a9da8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8a9da8' }}><IcChevron dir="right" size={16} /></button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 2 }}>
@@ -252,7 +252,7 @@ function RangePicker({ startDate, endDate, onChange }) {
                 {inRange && <div style={{ position: 'absolute', inset: 0, background: '#e8eef1' }} />}
                 {isStart && effEnd && !isSingleDay && <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '50%', background: '#e8eef1' }} />}
                 {isEnd && effStart && !sameDay(effStart, effEnd) && <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '50%', background: '#e8eef1' }} />}
-                <div style={{ position: 'relative', zIndex: 1, width: 32, height: 32, borderRadius: 16, margin: '2px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isStart || isEnd ? '#8a9da8' : 'transparent', border: isToday && !isStart && !isEnd ? '1.5px solid #8a9da8' : 'none', fontSize: 13, fontWeight: isStart || isEnd || inRange ? 600 : 400, color: isStart || isEnd ? '#fff' : disabled ? '#DDD' : isToday ? '#8a9da8' : inRange ? '#6b8592' : '#111' }}>{d}</div>
+                <div style={{ position: 'relative', zIndex: 1, width: 32, height: 32, borderRadius: 16, margin: '2px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isStart || isEnd ? '#8a9da8' : 'transparent', border: isToday && !isStart && !isEnd ? '1.5px solid #8a9da8' : 'none', fontSize: 13, fontWeight: isStart || isEnd || inRange ? 600 : 400, color: isStart || isEnd ? '#fff' : disabled ? '#DDD' : isToday ? '#8a9da8' : inRange ? '#6b8592' : '#8a9da8' }}>{d}</div>
               </div>
             );
           })}
@@ -278,12 +278,12 @@ function DatePickerSheet({ selected, onSelect, onClose }) {
       <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
         <div className="sheet-handle" />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div style={{ fontSize: 17, fontWeight: 700, color: '#111' }}>Survey Deadline</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: '#8a9da8' }}>Survey Deadline</div>
           {selected && <div style={{ fontSize: 13, fontWeight: 600, color: '#8a9da8' }}>{formatDate(selected)}</div>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8a9da8' }}><IcChevron dir="left" size={18} /></button>
-          <span style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: '#8a9da8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8a9da8' }}><IcChevron dir="right" size={18} /></button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 4 }}>
@@ -296,7 +296,7 @@ function DatePickerSheet({ selected, onSelect, onClose }) {
             const todayMark = isToday(d);
             return (
               <div key={d} onClick={() => { onSelect(new Date(viewYear, viewMonth, d)); onClose(); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 42, cursor: 'pointer' }}>
-                <div style={{ width: 36, height: 36, borderRadius: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', background: sel ? '#8a9da8' : 'transparent', border: todayMark && !sel ? '1.5px solid #8a9da8' : 'none', fontSize: 14, fontWeight: sel || todayMark ? 700 : 400, color: sel ? '#fff' : todayMark ? '#8a9da8' : '#111' }}>{d}</div>
+                <div style={{ width: 36, height: 36, borderRadius: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', background: sel ? '#8a9da8' : 'transparent', border: todayMark && !sel ? '1.5px solid #8a9da8' : 'none', fontSize: 14, fontWeight: sel || todayMark ? 700 : 400, color: sel ? '#fff' : todayMark ? '#8a9da8' : '#8a9da8' }}>{d}</div>
               </div>
             );
           })}
@@ -367,7 +367,7 @@ export default function Home() {
           <div className="form-field">
             <label className="form-label">Survey Deadline</label>
             <div style={{ position: 'relative' }} onClick={() => setShowDeadlineSheet(true)}>
-              <div className="form-input" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: deadlineDate ? '#111' : '#BEC0C4', paddingRight: 36 }}>
+              <div className="form-input" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: deadlineDate ? '#8a9da8' : '#BEC0C4', paddingRight: 36 }}>
                 {deadlineDate ? formatDate(deadlineDate) : 'Select date'}
               </div>
               <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>

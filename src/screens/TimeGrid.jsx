@@ -12,7 +12,12 @@ const FREE_COLOR = '#478058';
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-const fmtH = h => h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h - 12}pm`;
+const fmtH = h => {
+  const hr = Math.floor(h), min = Math.round((h - hr) * 60);
+  const period = hr < 12 ? 'am' : 'pm';
+  const dh = (hr === 0 || hr === 12) ? 12 : hr % 12;
+  return min === 0 ? `${dh}${period}` : `${dh}:${String(min).padStart(2, '0')}${period}`;
+};
 
 function buildAllDays(rangeStartTs, rangeEndTs) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -88,9 +93,9 @@ export default function TimeGrid() {
 
   const [tab,  setTab]  = useState('mine'); // 'mine' | 'group'
   const [page, setPage] = useState(0);
-  const [slots, setSlots] = useState(() => initSlots(totalDays, TOTAL));
+  const [slots, setSlots] = useState(() => state?.mySlots ?? initSlots(totalDays, TOTAL));
   const [showNameModal, setShowNameModal] = useState(false);
-  const [name, setName] = useState('');
+  const [name, setName] = useState(state?.myName ?? '');
   const [hoveredCell, setHoveredCell] = useState(null); // { day, slot, cx, cy }
   const [selectedRespondents, setSelectedRespondents] = useState(() => new Set([0, 1, 2, 3]));
 
@@ -262,7 +267,7 @@ export default function TimeGrid() {
         return (
           <div key={i} style={{ flex: 1, textAlign: 'center', padding: '5px 0 6px' }}>
             <div style={{ fontSize: 10, fontWeight: 600, color: isToday ? '#8a9da8' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
-            <div style={{ width: 22, height: 22, borderRadius: 11, margin: '2px auto 0', background: isToday ? '#8a9da8' : 'transparent', color: isToday ? '#fff' : '#111', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
+            <div style={{ width: 22, height: 22, borderRadius: 11, margin: '2px auto 0', background: isToday ? '#8a9da8' : 'transparent', color: isToday ? '#fff' : '#8a9da8', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
           </div>
         );
       })}
@@ -456,7 +461,7 @@ export default function TimeGrid() {
             boxShadow: '0 6px 28px rgba(0,0,0,0.18)', zIndex: 50,
           }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 2 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#111' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#8a9da8' }}>
                 {allFree ? 'All are available' : `${avail.length} / ${people.length} available`}
               </div>
               <button onTouchEnd={e => { e.stopPropagation(); setHoveredCell(null); }}
@@ -490,7 +495,7 @@ export default function TimeGrid() {
           style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
           <div onClick={e => e.stopPropagation()}
             style={{ width: '100%', maxWidth: 360, background: '#fff', borderRadius: 20, padding: '28px 20px 24px' }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 6 }}>What's your name?</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#8a9da8', marginBottom: 6 }}>What's your name?</div>
             <div style={{ fontSize: 13, color: '#AAA', marginBottom: 20 }}>So others know whose availability this is.</div>
             <input autoFocus value={name} onChange={e => setName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && name.trim() && navigate('/results', { state: { ...state, mySlots: slotsRef.current, myName: name.trim() } })}
