@@ -5,7 +5,8 @@ import StatusBar from '../components/StatusBar';
 const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
 const SLOT_H = 28;
-const LABEL_W = 40;
+const LABEL_W = 48;
+const SCROLL_W = 24;
 const DAYS_PER_PAGE = 4;
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -190,7 +191,7 @@ export default function TimeGrid() {
         onTouchEnd={handleContainerTouchEnd}
       >
         {/* Day headers */}
-        <div style={{ display: 'flex', paddingLeft: LABEL_W, position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: '1px solid #EBEBEB' }}>
+        <div style={{ display: 'flex', paddingLeft: LABEL_W, paddingRight: SCROLL_W, position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: '1px solid #EBEBEB' }}>
           {pageDays.map((d, i) => {
             const globalIdx = pageStart + i;
             const isToday = globalIdx === todayIdx;
@@ -240,6 +241,13 @@ export default function TimeGrid() {
               </div>
             );
           })}
+
+          {/* Right scroll strip — no data attrs so vertical drag here scrolls */}
+          <div style={{ width: SCROLL_W, flexShrink: 0, borderLeft: '1px solid #F5F5F5' }}>
+            {Array.from({ length: TOTAL }, (_, s) => (
+              <div key={s} style={{ height: SLOT_H, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0' }} />
+            ))}
+          </div>
         </div>
       </div>
 
