@@ -11,32 +11,36 @@ const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct
 
 const fmtH = h => h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h - 12}pm`;
 
-function buildDays(rangeStart, rangeEnd) {
-  if (!rangeStart) {
-    return {
-      days: [
-        { label: 'Mon', date: '5' },
-        { label: 'Tue', date: '6' },
-        { label: 'Wed', date: '7' },
-        { label: 'Thu', date: '8' },
-      ],
-      todayIdx: -1,
-      navLabel: 'Select dates',
-      count: 4,
-    };
-  }
-  const start = new Date(rangeStart); start.setHours(0, 0, 0, 0);
-  const end = rangeEnd ? new Date(rangeEnd) : new Date(start);
-  end.setHours(0, 0, 0, 0);
+function buildDays(rangeStartTs, rangeEndTs) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+
+  // fallback: today + next 3 days
+  const fallback = () => {
+    const days = [];
+    let todayIdx = -1;
+    for (let i = 0; i < 4; i++) {
+      const d = new Date(today); d.setDate(today.getDate() + i);
+      if (i === 0) todayIdx = 0;
+      days.push({ label: DOW[d.getDay()], date: String(d.getDate()) });
+    }
+    const last = new Date(today); last.setDate(today.getDate() + 3);
+    const navLabel = today.getMonth() === last.getMonth()
+      ? `${MON[today.getMonth()]} ${today.getDate()}–${last.getDate()}`
+      : `${MON[today.getMonth()]} ${today.getDate()} – ${MON[last.getMonth()]} ${last.getDate()}`;
+    return { days, todayIdx, navLabel, count: 4 };
+  };
+
+  if (!rangeStartTs) return fallback();
+
+  const start = new Date(rangeStartTs); start.setHours(0, 0, 0, 0);
+  const end = rangeEndTs ? new Date(rangeEndTs) : new Date(start); end.setHours(0, 0, 0, 0);
   const totalDays = Math.round((end - start) / 86400000) + 1;
   const count = Math.min(4, totalDays);
 
-  const today = new Date(); today.setHours(0, 0, 0, 0);
   let todayIdx = -1;
   const days = [];
   for (let i = 0; i < count; i++) {
-    const d = new Date(start);
-    d.setDate(start.getDate() + i);
+    const d = new Date(start); d.setDate(start.getDate() + i);
     if (d.getTime() === today.getTime()) todayIdx = i;
     days.push({ label: DOW[d.getDay()], date: String(d.getDate()) });
   }
@@ -100,8 +104,6 @@ export default function TimeGrid() {
       moveDrag(+el.dataset.day, +el.dataset.slot);
     }
   };
-
-  const freeCount = Object.values(slots).filter(v => v === 1).length;
 
   return (
     <div className="app-container" style={{ height: '100vh', overflow: 'hidden' }}>
@@ -174,12 +176,6 @@ export default function TimeGrid() {
 
       {/* Bottom */}
       <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
-        {freeCount > 0 && (
-          <div style={{ background: '#478058', borderRadius: 8, padding: '6px 12px', textAlign: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>{freeCount}</span>
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', marginLeft: 6 }}>slots marked as available</span>
-          </div>
-        )}
         <div style={{ fontSize: 11, color: '#AAA', textAlign: 'center', marginBottom: 8 }}>Tap a slot to toggle · Drag to paint</div>
         <button className="btn-primary" onClick={() => navigate('/results')} style={{ padding: '13px' }}>
           Submit availability
