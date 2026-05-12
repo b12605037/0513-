@@ -268,11 +268,11 @@ export default function TimeGrid() {
       {showNameModal && (
         <div
           onClick={() => setShowNameModal(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'flex-end' }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
         >
           <div
             onClick={e => e.stopPropagation()}
-            style={{ width: '100%', background: '#fff', borderRadius: '20px 20px 0 0', padding: '24px 20px 36px' }}
+            style={{ width: '100%', maxWidth: 480, background: '#fff', borderRadius: '20px 20px 0 0', padding: '24px 20px 36px' }}
           >
             <div style={{ width: 36, height: 4, borderRadius: 2, background: '#E0E0E0', margin: '0 auto 20px' }} />
             <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 6 }}>What's your name?</div>
