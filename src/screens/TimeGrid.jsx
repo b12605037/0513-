@@ -92,6 +92,7 @@ export default function TimeGrid() {
   const [showNameModal, setShowNameModal] = useState(false);
   const [name, setName] = useState('');
   const [hoveredCell, setHoveredCell] = useState(null); // { day, slot, cx, cy }
+  const [selectedRespondents, setSelectedRespondents] = useState(() => new Set([0, 1, 2, 3]));
 
   const pageRef  = useRef(page);
   const slotsRef = useRef(slots);
@@ -101,15 +102,25 @@ export default function TimeGrid() {
   const dragRef         = useRef({ active: false, target: 0, lastKey: null });
   const gestureRef      = useRef({ phase: 'idle', startX: 0, startY: 0, startDay: null, startSlot: null });
   const scrollContainerRef  = useRef(null);
-  const groupGestureRef = useRef({ startX: 0, startY: 0, startDay: null, startSlot: null });
 
   // Mock respondents for group view
   const mockSlots = useMemo(() =>
     MOCK_NAMES.map((_, i) => makeMockSlots(totalDays, TOTAL, 42 + i * 17)),
   [totalDays, TOTAL]);
 
-  const allRespondents   = [slots, ...mockSlots];
-  const respondentCount  = allRespondents.length;
+  const allRespondents  = [slots, ...mockSlots];
+  const respondentCount = allRespondents.length;
+  const visibleRespondents = allRespondents.filter((_, i) => selectedRespondents.has(i));
+  const visibleCount = visibleRespondents.length;
+
+  const toggleRespondent = (i) => {
+    setSelectedRespondents(prev => {
+      const next = new Set(prev);
+      if (next.has(i)) { if (next.size > 1) next.delete(i); }
+      else next.add(i);
+      return next;
+    });
+  };
 
   // ── Paint logic ───────────────────────────────────────────────────────────────
   const paintSlot = (key, val) => {
@@ -224,44 +235,9 @@ export default function TimeGrid() {
     setSlots(newSlots);
   };
 
-  const handleGroupTouchStart = (e) => {
-    const t = e.touches[0];
-    if (!t) return;
-    const el = document.elementFromPoint(t.clientX, t.clientY);
-    groupGestureRef.current = {
-      startX: t.clientX, startY: t.clientY, moved: false,
-      day:  el?.dataset?.day  !== undefined ? +el.dataset.day  : null,
-      slot: el?.dataset?.slot !== undefined ? +el.dataset.slot : null,
-    };
-  };
-
-  const handleGroupTouchMove = (e) => {
-    const t = e.touches[0];
-    if (!t) return;
-    const g = groupGestureRef.current;
-    if (!g.moved && (Math.abs(t.clientX - g.startX) > 8 || Math.abs(t.clientY - g.startY) > 8)) {
-      g.moved = true;
-      setHoveredCell(null);
-    }
-  };
-
-  const handleGroupTouchEnd = (e) => {
-    const g = groupGestureRef.current;
-    if (g.moved) return;
-    const t = e.changedTouches[0];
-    if (g.day !== null && g.slot !== null) {
-      // Toggle own slot
-      const key    = `${g.day}-${g.slot}`;
-      const newVal = slotsRef.current[key] === 1 ? 0 : 1;
-      slotsRef.current[key] = newVal;
-      const domEl = document.getElementById(`sl-${g.day}-${g.slot}`);
-      if (domEl) domEl.style.background = newVal === 1 ? FREE_COLOR : 'transparent';
-      setSlots({ ...slotsRef.current });
-      // Show tooltip (persists until tap elsewhere or outside)
-      setHoveredCell({ day: g.day, slot: g.slot, cx: t.clientX, cy: t.clientY });
-    } else {
-      setHoveredCell(null);
-    }
+  const showGroupCell = (e, day, slot) => {
+    e.stopPropagation();
+    setHoveredCell({ day, slot, cx: e.clientX, cy: e.clientY });
   };
 
   const pageStart = page * DAYS_PER_PAGE;
@@ -385,9 +361,8 @@ export default function TimeGrid() {
       {tab === 'group' && (
         <div
           style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
-          onTouchStart={handleGroupTouchStart}
-          onTouchMove={handleGroupTouchMove}
-          onTouchEnd={handleGroupTouchEnd}
+          onClick={() => setHoveredCell(null)}
+          onScroll={() => setHoveredCell(null)}
         >
           <DayHeader />
           <div style={{ display: 'flex', userSelect: 'none' }}>
@@ -404,9 +379,11 @@ export default function TimeGrid() {
                 <div key={globalIdx} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
                   {Array.from({ length: TOTAL }, (_, slot) => {
                     const key   = `${globalIdx}-${slot}`;
-                    const count = allRespondents.filter(r => r[key] === 1).length;
+                    const count = visibleRespondents.filter(r => r[key] === 1).length;
                     return (
-                      <div key={slot} data-day={globalIdx} data-slot={slot} style={{ height: SLOT_H, background: heatColor(count, respondentCount), borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent' }} />
+                      <div key={slot} data-day={globalIdx} data-slot={slot}
+                        onClick={e => showGroupCell(e, globalIdx, slot)}
+                        style={{ height: SLOT_H, background: heatColor(count, visibleCount), borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent', cursor: 'pointer' }} />
                     );
                   })}
                 </div>
@@ -434,13 +411,23 @@ export default function TimeGrid() {
             <div style={{ fontSize: 11, color: '#AAA', textAlign: 'center' }}>Tap · Drag to paint · Swipe to change days</div>
           </>
         ) : (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            {[['You', FREE_COLOR], ['Alex', '#8a9da8'], ['Sam', '#26A69A'], ['Jamie', '#4DB6AC']].map(([n, c]) => (
-              <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#F5F5F5', borderRadius: 20, padding: '4px 10px' }}>
-                <div style={{ width: 16, height: 16, borderRadius: 8, background: c, color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n[0]}</div>
-                <span style={{ fontSize: 11, fontWeight: 500, color: '#444' }}>{n}</span>
-              </div>
-            ))}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+            {allRespondents.map((_, i) => {
+              const n = i === 0 ? (name || 'You') : MOCK_NAMES[i - 1];
+              const c = [FREE_COLOR, '#8a9da8', '#26A69A', '#4DB6AC'][i];
+              const sel = selectedRespondents.has(i);
+              return (
+                <div key={i} onClick={() => toggleRespondent(i)} style={{
+                  display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer',
+                  background: sel ? '#F0F7F2' : '#F5F5F5',
+                  border: `1.5px solid ${sel ? c : '#E5E5E5'}`,
+                  borderRadius: 20, padding: '5px 10px', transition: 'all 0.15s',
+                }}>
+                  <div style={{ width: 16, height: 16, borderRadius: 8, background: sel ? c : '#CCC', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n[0]}</div>
+                  <span style={{ fontSize: 11, fontWeight: sel ? 600 : 400, color: sel ? '#333' : '#AAA' }}>{n}</span>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -460,7 +447,8 @@ export default function TimeGrid() {
 
         const TW = 190;
         const left = Math.max(8, Math.min(hoveredCell.cx - TW / 2, window.innerWidth - TW - 8));
-        const top  = Math.max(56, hoveredCell.cy - 160);
+        const aboveY = hoveredCell.cy - 160;
+        const top  = aboveY < 140 ? hoveredCell.cy + 16 : aboveY;
         return (
           <div key="group-tip" style={{
             position: 'absolute', left, top, width: TW,

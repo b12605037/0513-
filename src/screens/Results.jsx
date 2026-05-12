@@ -95,18 +95,29 @@ export default function Results() {
   const pageDays  = allDays.slice(pageStart, pageStart + DAYS_PER_PAGE);
   const navLabel  = pageNavLabel(pageDays);
 
-  // Find best slot (most respondents free)
+  const slotsNeeded = Math.max(1, Math.ceil((state?.duration ?? 30) / SLOT_MIN));
+
+  // Find best consecutive block of slotsNeeded slots where most people are free throughout
   const bestSlot = useMemo(() => {
     let best = null, bestCount = 0;
     for (let d = 0; d < totalDays; d++) {
-      for (let s = 0; s < TOTAL; s++) {
-        const key = `${d}-${s}`;
-        const count = allRespondents.filter(r => r[key] === 1).length;
+      for (let s = 0; s <= TOTAL - slotsNeeded; s++) {
+        const count = allRespondents.filter(r => {
+          for (let k = 0; k < slotsNeeded; k++)
+            if (r[`${d}-${s + k}`] !== 1) return false;
+          return true;
+        }).length;
         if (count > bestCount) { bestCount = count; best = { d, s, count }; }
       }
     }
-    return best ? { ...best, day: allDays[best.d], time: fmtH(G_START + best.s / SPH) } : null;
-  }, [allRespondents]);
+    if (!best) return null;
+    return {
+      ...best,
+      day:     allDays[best.d],
+      time:    fmtH(G_START + best.s / SPH),
+      endTime: fmtH(G_START + (best.s + slotsNeeded) / SPH),
+    };
+  }, [allRespondents, slotsNeeded]);
 
   return (
     <div className="app-container" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -132,7 +143,7 @@ export default function Results() {
           <div style={{ marginTop: 6, padding: '5px 10px', background: 'rgba(71,128,88,0.1)', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
             <span style={{ fontSize: 10, color: '#478058' }}>★</span>
             <span style={{ fontSize: 11, fontWeight: 600, color: '#478058' }}>
-              Best: {bestSlot.day.label} {bestSlot.day.date} {bestSlot.time} · {bestSlot.count}/{respondentCount} free
+              Best: {bestSlot.day.label} {bestSlot.day.date} · {bestSlot.time}–{bestSlot.endTime} · {bestSlot.count}/{respondentCount} free
             </span>
           </div>
         )}
@@ -203,9 +214,18 @@ export default function Results() {
           ))}
         </div>
 
-        <button className="btn-primary" onClick={() => navigate(-1)} style={{ padding: '13px' }}>
-          Edit
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={() => navigate(-1)} style={{
+            flex: 1, padding: '13px', borderRadius: 14, border: '1.5px solid #478058',
+            background: 'transparent', color: '#478058', fontSize: 15, fontWeight: 600,
+            fontFamily: 'inherit', cursor: 'pointer',
+          }}>
+            Edit
+          </button>
+          <button className="btn-primary" onClick={() => navigate('/')} style={{ flex: 1, padding: '13px' }}>
+            Done
+          </button>
+        </div>
       </div>
     </div>
   );

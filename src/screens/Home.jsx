@@ -381,7 +381,7 @@ export default function Home() {
         </div>
 
         <div style={{ padding: '4px 16px 32px' }}>
-          <button className="btn-primary" onClick={() => navigate('/grid', { state: { rangeStart: rangeStart?.getTime() ?? null, rangeEnd: rangeEnd?.getTime() ?? null, startSlot, endSlot, allDay } })}>
+          <button className="btn-primary" onClick={() => navigate('/grid', { state: { rangeStart: rangeStart?.getTime() ?? null, rangeEnd: rangeEnd?.getTime() ?? null, startSlot, endSlot, allDay, duration } })}>
             Submit
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
