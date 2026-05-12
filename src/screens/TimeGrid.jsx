@@ -6,56 +6,51 @@ const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
 const SLOT_H = 28;
 const LABEL_W = 40;
+const DAYS_PER_PAGE = 4;
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const fmtH = h => h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h - 12}pm`;
 
-function buildDays(rangeStartTs, rangeEndTs) {
+function buildAllDays(rangeStartTs, rangeEndTs) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
-  // fallback: today + next 3 days
-  const fallback = () => {
+  if (!rangeStartTs) {
     const days = [];
-    let todayIdx = -1;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 7; i++) {
       const d = new Date(today); d.setDate(today.getDate() + i);
-      if (i === 0) todayIdx = 0;
-      days.push({ label: DOW[d.getDay()], date: String(d.getDate()) });
+      days.push({ label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth(), ts: d.getTime() });
     }
-    const last = new Date(today); last.setDate(today.getDate() + 3);
-    const navLabel = today.getMonth() === last.getMonth()
-      ? `${MON[today.getMonth()]} ${today.getDate()}–${last.getDate()}`
-      : `${MON[today.getMonth()]} ${today.getDate()} – ${MON[last.getMonth()]} ${last.getDate()}`;
-    return { days, todayIdx, navLabel, count: 4 };
-  };
-
-  if (!rangeStartTs) return fallback();
+    return { days, todayIdx: 0 };
+  }
 
   const start = new Date(rangeStartTs); start.setHours(0, 0, 0, 0);
   const end = rangeEndTs ? new Date(rangeEndTs) : new Date(start); end.setHours(0, 0, 0, 0);
   const totalDays = Math.round((end - start) / 86400000) + 1;
-  const count = Math.min(4, totalDays);
 
   let todayIdx = -1;
   const days = [];
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < totalDays; i++) {
     const d = new Date(start); d.setDate(start.getDate() + i);
     if (d.getTime() === today.getTime()) todayIdx = i;
-    days.push({ label: DOW[d.getDay()], date: String(d.getDate()) });
+    days.push({ label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth(), ts: d.getTime() });
   }
 
-  const last = new Date(start); last.setDate(start.getDate() + count - 1);
-  const navLabel = start.getMonth() === last.getMonth()
-    ? `${MON[start.getMonth()]} ${start.getDate()}–${last.getDate()}`
-    : `${MON[start.getMonth()]} ${start.getDate()} – ${MON[last.getMonth()]} ${last.getDate()}`;
-
-  return { days, todayIdx, navLabel, count };
+  return { days, todayIdx };
 }
 
-function initSlots(count, total) {
+function pageNavLabel(pageDays) {
+  if (!pageDays.length) return '';
+  const first = pageDays[0];
+  const last = pageDays[pageDays.length - 1];
+  if (first.month === last.month)
+    return `${MON[first.month]} ${first.date}–${last.date}`;
+  return `${MON[first.month]} ${first.date} – ${MON[last.month]} ${last.date}`;
+}
+
+function initSlots(totalDays, total) {
   const g = {};
-  for (let d = 0; d < count; d++)
+  for (let d = 0; d < totalDays; d++)
     for (let s = 0; s < total; s++)
       g[`${d}-${s}`] = 0;
   return g;
@@ -64,31 +59,38 @@ function initSlots(count, total) {
 export default function TimeGrid() {
   const navigate = useNavigate();
   const { state } = useLocation();
-  const { days, todayIdx, navLabel, count } = buildDays(state?.rangeStart, state?.rangeEnd);
 
-  // Derive time window from home's slider (each slot = 30 min from midnight)
-  const G_START = state?.allDay ? 0 : Math.floor((state?.startSlot ?? 16) / 2);
+  const { days: allDays, todayIdx } = buildAllDays(state?.rangeStart, state?.rangeEnd);
+  const totalDays = allDays.length;
+  const totalPages = Math.ceil(totalDays / DAYS_PER_PAGE);
+
+  const G_START = state?.allDay ? 0  : Math.floor((state?.startSlot ?? 16) / 2);
   const G_END   = state?.allDay ? 24 : Math.ceil((state?.endSlot   ?? 36) / 2);
   const TOTAL   = (G_END - G_START) * SPH;
 
-  const [slots, setSlots] = useState(() => initSlots(count, TOTAL));
+  const [page, setPage] = useState(0);
+  const [slots, setSlots] = useState(() => initSlots(totalDays, TOTAL));
   const dragRef = useRef({ active: false, target: null, lastKey: null });
+
+  const pageStart = page * DAYS_PER_PAGE;
+  const pageDays = allDays.slice(pageStart, pageStart + DAYS_PER_PAGE);
+  const navLabel = pageNavLabel(pageDays);
 
   const toggle = (cur) => (cur === 0 ? 1 : 0);
 
   const applySlot = (key, val) =>
     setSlots(prev => ({ ...prev, [key]: val }));
 
-  const startDrag = (day, slot) => {
-    const key = `${day}-${slot}`;
+  const startDrag = (dayIdx, slot) => {
+    const key = `${dayIdx}-${slot}`;
     const target = toggle(slots[key]);
     dragRef.current = { active: true, target, lastKey: key };
     applySlot(key, target);
   };
 
-  const moveDrag = (day, slot) => {
+  const moveDrag = (dayIdx, slot) => {
     if (!dragRef.current.active) return;
-    const key = `${day}-${slot}`;
+    const key = `${dayIdx}-${slot}`;
     if (key === dragRef.current.lastKey) return;
     dragRef.current.lastKey = key;
     applySlot(key, dragRef.current.target);
@@ -109,14 +111,24 @@ export default function TimeGrid() {
     <div className="app-container" style={{ height: '100vh', overflow: 'hidden' }}>
       <StatusBar />
       <div className="app-nav">
-        <span style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>{navLabel}</span>
-        <span className="nav-title">Your availability</span>
-        <button className="nav-action" onClick={() => navigate('/results')}>Done</button>
+        <button
+          className="nav-action"
+          onClick={() => setPage(p => Math.max(0, p - 1))}
+          style={{ visibility: page === 0 ? 'hidden' : 'visible' }}
+        >‹</button>
+        <span className="nav-title" style={{ fontSize: 14 }}>{navLabel}</span>
+        <button
+          className="nav-action"
+          onClick={() => page < totalPages - 1 ? setPage(p => p + 1) : navigate('/results')}
+        >{page < totalPages - 1 ? '›' : 'Done'}</button>
       </div>
 
       <div style={{ padding: '6px 16px', display: 'flex', alignItems: 'center', gap: 6, background: '#fff', borderBottom: '1px solid #F5F5F5', flexShrink: 0 }}>
         <div style={{ width: 10, height: 10, borderRadius: 2, background: '#478058' }} />
         <span style={{ fontSize: 11, color: '#666' }}>Tap or drag to mark your available times</span>
+        {totalPages > 1 && (
+          <span style={{ marginLeft: 'auto', fontSize: 11, color: '#BBB' }}>{page + 1} / {totalPages}</span>
+        )}
       </div>
 
       <div
@@ -128,12 +140,16 @@ export default function TimeGrid() {
       >
         {/* Day headers */}
         <div style={{ display: 'flex', paddingLeft: LABEL_W, position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: '1px solid #EBEBEB' }}>
-          {days.map((d, i) => (
-            <div key={i} style={{ flex: 1, textAlign: 'center', padding: '5px 0 6px' }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: i === todayIdx ? '#8a9da8' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
-              <div style={{ width: 22, height: 22, borderRadius: 11, margin: '2px auto 0', background: i === todayIdx ? '#8a9da8' : 'transparent', color: i === todayIdx ? '#fff' : '#111', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
-            </div>
-          ))}
+          {pageDays.map((d, i) => {
+            const globalIdx = pageStart + i;
+            const isToday = globalIdx === todayIdx;
+            return (
+              <div key={globalIdx} style={{ flex: 1, textAlign: 'center', padding: '5px 0 6px' }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: isToday ? '#8a9da8' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
+                <div style={{ width: 22, height: 22, borderRadius: 11, margin: '2px auto 0', background: isToday ? '#8a9da8' : 'transparent', color: isToday ? '#fff' : '#111', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Grid */}
@@ -147,30 +163,33 @@ export default function TimeGrid() {
             ))}
           </div>
 
-          {/* Day columns */}
-          {Array.from({ length: count }, (_, day) => (
-            <div key={day} style={{ flex: 1, borderLeft: day > 0 ? '1px solid #EBEBEB' : 'none' }}>
-              {Array.from({ length: TOTAL }, (_, slot) => {
-                const key = `${day}-${slot}`;
-                const free = slots[key] === 1;
-                return (
-                  <div key={slot}
-                    data-day={day} data-slot={slot}
-                    onMouseDown={() => startDrag(day, slot)}
-                    onMouseEnter={() => moveDrag(day, slot)}
-                    onTouchStart={(e) => { e.stopPropagation(); startDrag(day, slot); }}
-                    style={{
-                      height: SLOT_H,
-                      background: free ? '#478058' : 'transparent',
-                      borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0',
-                      cursor: 'pointer',
-                      transition: 'background 0.08s',
-                    }}
-                  />
-                );
-              })}
-            </div>
-          ))}
+          {/* Day columns — keyed by global day index */}
+          {pageDays.map((_, i) => {
+            const globalIdx = pageStart + i;
+            return (
+              <div key={globalIdx} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
+                {Array.from({ length: TOTAL }, (_, slot) => {
+                  const key = `${globalIdx}-${slot}`;
+                  const free = slots[key] === 1;
+                  return (
+                    <div key={slot}
+                      data-day={globalIdx} data-slot={slot}
+                      onMouseDown={() => startDrag(globalIdx, slot)}
+                      onMouseEnter={() => moveDrag(globalIdx, slot)}
+                      onTouchStart={(e) => { e.stopPropagation(); startDrag(globalIdx, slot); }}
+                      style={{
+                        height: SLOT_H,
+                        background: free ? '#478058' : 'transparent',
+                        borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0',
+                        cursor: 'pointer',
+                        transition: 'background 0.08s',
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       </div>
 
