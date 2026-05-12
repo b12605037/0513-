@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import StatusBar from '../components/StatusBar';
 
@@ -14,7 +14,6 @@ const fmtH = h => h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h - 12}pm`;
 
 function buildAllDays(rangeStartTs, rangeEndTs) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
-
   if (!rangeStartTs) {
     const days = [];
     for (let i = 0; i < 7; i++) {
@@ -23,11 +22,9 @@ function buildAllDays(rangeStartTs, rangeEndTs) {
     }
     return { days, todayIdx: 0 };
   }
-
   const start = new Date(rangeStartTs); start.setHours(0, 0, 0, 0);
   const end = rangeEndTs ? new Date(rangeEndTs) : new Date(start); end.setHours(0, 0, 0, 0);
   const totalDays = Math.round((end - start) / 86400000) + 1;
-
   let todayIdx = -1;
   const days = [];
   for (let i = 0; i < totalDays; i++) {
@@ -35,7 +32,6 @@ function buildAllDays(rangeStartTs, rangeEndTs) {
     if (d.getTime() === today.getTime()) todayIdx = i;
     days.push({ label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth(), ts: d.getTime() });
   }
-
   return { days, todayIdx };
 }
 
@@ -43,9 +39,9 @@ function pageNavLabel(pageDays) {
   if (!pageDays.length) return '';
   const first = pageDays[0];
   const last = pageDays[pageDays.length - 1];
-  if (first.month === last.month)
-    return `${MON[first.month]} ${first.date}–${last.date}`;
-  return `${MON[first.month]} ${first.date} – ${MON[last.month]} ${last.date}`;
+  return first.month === last.month
+    ? `${MON[first.month]} ${first.date}–${last.date}`
+    : `${MON[first.month]} ${first.date} – ${MON[last.month]} ${last.date}`;
 }
 
 function initSlots(totalDays, total) {
@@ -70,20 +66,23 @@ export default function TimeGrid() {
 
   const [page, setPage] = useState(0);
   const [slots, setSlots] = useState(() => initSlots(totalDays, TOTAL));
-  const dragRef = useRef({ active: false, target: null, lastKey: null });
 
-  const pageStart = page * DAYS_PER_PAGE;
-  const pageDays = allDays.slice(pageStart, pageStart + DAYS_PER_PAGE);
-  const navLabel = pageNavLabel(pageDays);
+  const pageRef = useRef(page);
+  useEffect(() => { pageRef.current = page; }, [page]);
 
-  const toggle = (cur) => (cur === 0 ? 1 : 0);
+  const slotsRef = useRef(slots);
+  useEffect(() => { slotsRef.current = slots; }, [slots]);
 
-  const applySlot = (key, val) =>
-    setSlots(prev => ({ ...prev, [key]: val }));
+  const dragRef = useRef({ active: false, target: 0, lastKey: null });
+  // gesture: phase = 'idle' | 'pending' | 'paint' | 'scroll' | 'swipe'
+  const gestureRef = useRef({ phase: 'idle', startX: 0, startY: 0, startDay: null, startSlot: null });
+  const scrollContainerRef = useRef(null);
+
+  const applySlot = (key, val) => setSlots(prev => ({ ...prev, [key]: val }));
 
   const startDrag = (dayIdx, slot) => {
     const key = `${dayIdx}-${slot}`;
-    const target = toggle(slots[key]);
+    const target = slotsRef.current[key] === 0 ? 1 : 0;
     dragRef.current = { active: true, target, lastKey: key };
     applySlot(key, target);
   };
@@ -96,16 +95,76 @@ export default function TimeGrid() {
     applySlot(key, dragRef.current.target);
   };
 
-  const endDrag = () => { dragRef.current.active = false; };
+  // Non-passive touchmove to allow preventDefault (React's synthetic events are passive)
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-  const handleTouchMoveGrid = (e) => {
-    if (!dragRef.current.active) return;
-    const t = e.changedTouches[0];
-    const el = document.elementFromPoint(t.clientX, t.clientY);
-    if (el?.dataset.slot !== undefined && el?.dataset.day !== undefined) {
-      moveDrag(+el.dataset.day, +el.dataset.slot);
-    }
+    const onMove = (e) => {
+      const g = gestureRef.current;
+      if (g.phase === 'idle') return;
+      const t = e.touches[0];
+
+      if (g.phase === 'pending') {
+        const dx = Math.abs(t.clientX - g.startX);
+        const dy = Math.abs(t.clientY - g.startY);
+        if (dx < 6 && dy < 6) return;
+        if (dx > dy) {
+          g.phase = 'swipe';
+        } else if (g.startDay !== null) {
+          g.phase = 'paint';
+          startDrag(g.startDay, g.startSlot);
+        } else {
+          g.phase = 'scroll';
+        }
+      }
+
+      if (g.phase === 'paint') {
+        e.preventDefault();
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        if (el?.dataset.slot !== undefined && el?.dataset.day !== undefined) {
+          moveDrag(+el.dataset.day, +el.dataset.slot);
+        }
+      } else if (g.phase === 'swipe') {
+        e.preventDefault();
+      }
+    };
+
+    container.addEventListener('touchmove', onMove, { passive: false });
+    return () => container.removeEventListener('touchmove', onMove);
+  }, []); // refs keep functions fresh; no stale closure issues
+
+  const handleContainerTouchStart = (e) => {
+    const t = e.touches[0];
+    const el = e.target;
+    const startDay  = el?.dataset?.day  !== undefined ? +el.dataset.day  : null;
+    const startSlot = el?.dataset?.slot !== undefined ? +el.dataset.slot : null;
+    gestureRef.current = { phase: 'pending', startX: t.clientX, startY: t.clientY, startDay, startSlot };
   };
+
+  const handleContainerTouchEnd = (e) => {
+    const g = gestureRef.current;
+    if (g.phase === 'pending' && g.startDay !== null) {
+      // Tap — toggle slot
+      startDrag(g.startDay, g.startSlot);
+    } else if (g.phase === 'swipe') {
+      const dx = e.changedTouches[0].clientX - g.startX;
+      const cur = pageRef.current;
+      if (dx < -50 && cur < totalPages - 1) setPage(cur + 1);
+      if (dx >  50 && cur > 0)             setPage(cur - 1);
+    }
+    g.phase = 'idle';
+    dragRef.current.active = false;
+  };
+
+  // Mouse support (desktop)
+  const handleMouseDown = (dayIdx, slot) => startDrag(dayIdx, slot);
+  const handleMouseEnter = (dayIdx, slot) => moveDrag(dayIdx, slot);
+  const handleMouseUp = () => { dragRef.current.active = false; };
+
+  const pageStart = page * DAYS_PER_PAGE;
+  const pageDays  = allDays.slice(pageStart, pageStart + DAYS_PER_PAGE);
+  const navLabel  = pageNavLabel(pageDays);
 
   return (
     <div className="app-container" style={{ height: '100vh', overflow: 'hidden' }}>
@@ -121,12 +180,14 @@ export default function TimeGrid() {
         <span style={{ fontSize: 11, color: '#666' }}>Tap or drag to mark your available times</span>
       </div>
 
+      {/* Scrollable grid — touchmove handled via non-passive listener */}
       <div
+        ref={scrollContainerRef}
         style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
-        onMouseUp={endDrag}
-        onTouchEnd={endDrag}
-        onTouchMove={handleTouchMoveGrid}
-        onMouseLeave={endDrag}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleContainerTouchStart}
+        onTouchEnd={handleContainerTouchEnd}
       >
         {/* Day headers */}
         <div style={{ display: 'flex', paddingLeft: LABEL_W, position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: '1px solid #EBEBEB' }}>
@@ -153,7 +214,7 @@ export default function TimeGrid() {
             ))}
           </div>
 
-          {/* Day columns — keyed by global day index */}
+          {/* Day columns */}
           {pageDays.map((_, i) => {
             const globalIdx = pageStart + i;
             return (
@@ -164,9 +225,8 @@ export default function TimeGrid() {
                   return (
                     <div key={slot}
                       data-day={globalIdx} data-slot={slot}
-                      onMouseDown={() => startDrag(globalIdx, slot)}
-                      onMouseEnter={() => moveDrag(globalIdx, slot)}
-                      onTouchStart={(e) => { e.stopPropagation(); startDrag(globalIdx, slot); }}
+                      onMouseDown={() => handleMouseDown(globalIdx, slot)}
+                      onMouseEnter={() => handleMouseEnter(globalIdx, slot)}
                       style={{
                         height: SLOT_H,
                         background: free ? '#478058' : 'transparent',
@@ -185,34 +245,14 @@ export default function TimeGrid() {
 
       {/* Bottom */}
       <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
-        {/* Page navigation */}
         {totalPages > 1 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <button
-              onClick={() => setPage(p => p - 1)}
-              disabled={page === 0}
-              style={{ flex: 1, padding: '11px 0', borderRadius: 10, border: 'none', background: page === 0 ? '#F5F5F5' : '#F0F4F2', color: page === 0 ? '#CCC' : '#478058', fontSize: 15, fontWeight: 700, cursor: page === 0 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-            >
-              <span style={{ fontSize: 18, lineHeight: 1 }}>←</span> Prev
-            </button>
-
-            {/* Dot indicators */}
-            <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <div key={i} onClick={() => setPage(i)} style={{ width: i === page ? 16 : 6, height: 6, borderRadius: 3, background: i === page ? '#478058' : '#E0E0E0', cursor: 'pointer', transition: 'all 0.2s' }} />
-              ))}
-            </div>
-
-            <button
-              onClick={() => setPage(p => p + 1)}
-              disabled={page === totalPages - 1}
-              style={{ flex: 1, padding: '11px 0', borderRadius: 10, border: 'none', background: page === totalPages - 1 ? '#F5F5F5' : '#478058', color: page === totalPages - 1 ? '#CCC' : '#fff', fontSize: 15, fontWeight: 700, cursor: page === totalPages - 1 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-            >
-              Next <span style={{ fontSize: 18, lineHeight: 1 }}>→</span>
-            </button>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginBottom: 12 }}>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <div key={i} style={{ width: i === page ? 16 : 6, height: 6, borderRadius: 3, background: i === page ? '#478058' : '#E0E0E0', transition: 'all 0.2s' }} />
+            ))}
           </div>
         )}
-
+        <div style={{ fontSize: 11, color: '#AAA', textAlign: 'center', marginBottom: 8 }}>Tap · Drag to paint · Swipe left/right to change days</div>
         <button className="btn-primary" onClick={() => navigate('/results')} style={{ padding: '13px' }}>
           Submit availability
         </button>
