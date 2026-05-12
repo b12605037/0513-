@@ -25,7 +25,6 @@ const DURATION_TOTAL = 47;
 const dSlotToMins = (slot) => 30 + slot * 30;
 const dMinsToSlot = (mins) => Math.round(Math.max(0, Math.min(DURATION_TOTAL, (mins - 30) / 30)));
 const DURATION_TICKS = [
-  { label: '30m', slot: 0 },
   { label: '2h',  slot: 3 },
   { label: '4h',  slot: 7 },
   { label: '8h',  slot: 15 },
