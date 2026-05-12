@@ -2,11 +2,8 @@ import { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import StatusBar from '../components/StatusBar';
 
-const G_START = 8;
-const G_END = 20;
 const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
-const TOTAL = (G_END - G_START) * SPH;
 const SLOT_H = 28;
 const LABEL_W = 40;
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -52,10 +49,10 @@ function buildDays(rangeStart, rangeEnd) {
   return { days, todayIdx, navLabel, count };
 }
 
-function initSlots(count) {
+function initSlots(count, total) {
   const g = {};
   for (let d = 0; d < count; d++)
-    for (let s = 0; s < TOTAL; s++)
+    for (let s = 0; s < total; s++)
       g[`${d}-${s}`] = 0;
   return g;
 }
@@ -65,7 +62,12 @@ export default function TimeGrid() {
   const { state } = useLocation();
   const { days, todayIdx, navLabel, count } = buildDays(state?.rangeStart, state?.rangeEnd);
 
-  const [slots, setSlots] = useState(() => initSlots(count));
+  // Derive time window from home's slider (each slot = 30 min from midnight)
+  const G_START = state?.allDay ? 0 : Math.floor((state?.startSlot ?? 16) / 2);
+  const G_END   = state?.allDay ? 24 : Math.ceil((state?.endSlot   ?? 36) / 2);
+  const TOTAL   = (G_END - G_START) * SPH;
+
+  const [slots, setSlots] = useState(() => initSlots(count, TOTAL));
   const dragRef = useRef({ active: false, target: null, lastKey: null });
 
   const toggle = (cur) => (cur === 0 ? 1 : 0);
