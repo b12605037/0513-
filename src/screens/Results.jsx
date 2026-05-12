@@ -86,23 +86,30 @@ export default function Results() {
     makeMockSlots(totalDays, TOTAL, 42 + i * 17)
   ), [totalDays, TOTAL]);
 
-  const allRespondents = [mySlots, ...mockSlots];
-  const respondentCount = allRespondents.length;
+  const allRespondents  = [mySlots, ...mockSlots];
   const respondentNames = [myName, ...MOCK_NAMES];
+  const COLORS = ['#478058', '#8a9da8', '#26A69A', '#4DB6AC'];
 
   const [page, setPage] = useState(0);
+  const [selected, setSelected] = useState(() => new Set(allRespondents.map((_, i) => i)));
+
   const pageStart = page * DAYS_PER_PAGE;
   const pageDays  = allDays.slice(pageStart, pageStart + DAYS_PER_PAGE);
-  const navLabel  = pageNavLabel(pageDays);
+
+  const toggleRespondent = (i) =>
+    setSelected(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s; });
+
+  const visibleRespondents = allRespondents.filter((_, i) => selected.has(i));
+  const visibleCount = visibleRespondents.length;
 
   const slotsNeeded = Math.max(1, Math.ceil((state?.duration ?? 30) / SLOT_MIN));
 
-  // Find best consecutive block of slotsNeeded slots where most people are free throughout
   const bestSlot = useMemo(() => {
+    if (visibleCount === 0) return null;
     let best = null, bestCount = 0;
     for (let d = 0; d < totalDays; d++) {
       for (let s = 0; s <= TOTAL - slotsNeeded; s++) {
-        const count = allRespondents.filter(r => {
+        const count = visibleRespondents.filter(r => {
           for (let k = 0; k < slotsNeeded; k++)
             if (r[`${d}-${s + k}`] !== 1) return false;
           return true;
@@ -117,7 +124,7 @@ export default function Results() {
       time:    fmtH(G_START + best.s / SPH),
       endTime: fmtH(G_START + (best.s + slotsNeeded) / SPH),
     };
-  }, [allRespondents, slotsNeeded]);
+  }, [visibleRespondents, slotsNeeded]);
 
   return (
     <div className="app-container" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -137,13 +144,16 @@ export default function Results() {
             ))}
             <span style={{ fontSize: 10, color: '#AAA', marginLeft: 2 }}>Fewer → More available</span>
           </div>
-          <span style={{ fontSize: 11, color: '#888', fontWeight: 500 }}>{respondentCount} responded</span>
+          <span style={{ fontSize: 11, color: '#888', fontWeight: 500 }}>{visibleCount} selected</span>
         </div>
-        {bestSlot && (
+        {visibleCount === 0 && (
+          <div style={{ marginTop: 6, fontSize: 12, color: '#E57373', fontWeight: 500 }}>請至少選擇一人</div>
+        )}
+        {bestSlot && visibleCount > 0 && (
           <div style={{ marginTop: 6, padding: '5px 10px', background: 'rgba(71,128,88,0.1)', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
             <span style={{ fontSize: 10, color: '#478058' }}>★</span>
             <span style={{ fontSize: 11, fontWeight: 600, color: '#478058' }}>
-              Best: {bestSlot.day.label} {bestSlot.day.date} · {bestSlot.time}–{bestSlot.endTime} · {bestSlot.count}/{respondentCount} free
+              Best: {bestSlot.day.label} {bestSlot.day.date} · {bestSlot.time}–{bestSlot.endTime} · {bestSlot.count}/{visibleCount} free
             </span>
           </div>
         )}
@@ -179,11 +189,11 @@ export default function Results() {
               <div key={globalIdx} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
                 {Array.from({ length: TOTAL }, (_, slot) => {
                   const key   = `${globalIdx}-${slot}`;
-                  const count = allRespondents.filter(r => r[key] === 1).length;
+                  const count = visibleRespondents.filter(r => r[key] === 1).length;
                   return (
                     <div key={slot} style={{
                       height: SLOT_H,
-                      background: heatColor(count, respondentCount),
+                      background: heatColor(count, visibleCount),
                       borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent',
                     }} />
                   );
@@ -204,14 +214,23 @@ export default function Results() {
           </div>
         )}
 
-        {/* Respondents */}
+        {/* Respondents — selectable filter chips */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-          {respondentNames.map((n, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#F5F5F5', borderRadius: 20, padding: '4px 10px' }}>
-              <div style={{ width: 18, height: 18, borderRadius: 9, background: ['#478058','#8a9da8','#26A69A','#4DB6AC'][i % 4], color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n[0]}</div>
-              <span style={{ fontSize: 11, fontWeight: 500, color: '#444' }}>{n}</span>
-            </div>
-          ))}
+          {respondentNames.map((n, i) => {
+            const sel = selected.has(i);
+            const color = COLORS[i % 4];
+            return (
+              <div key={i} onClick={() => toggleRespondent(i)} style={{
+                display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer',
+                background: sel ? '#F0F7F2' : '#F5F5F5',
+                border: `1.5px solid ${sel ? color : '#E5E5E5'}`,
+                borderRadius: 20, padding: '4px 10px', transition: 'all 0.15s',
+              }}>
+                <div style={{ width: 18, height: 18, borderRadius: 9, background: sel ? color : '#CCC', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n[0]}</div>
+                <span style={{ fontSize: 11, fontWeight: sel ? 600 : 400, color: sel ? '#333' : '#AAA' }}>{n}</span>
+              </div>
+            );
+          })}
         </div>
 
         <div style={{ display: 'flex', gap: 10 }}>
