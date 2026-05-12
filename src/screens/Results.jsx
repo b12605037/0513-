@@ -113,7 +113,7 @@ export default function Results() {
       <StatusBar />
       <div className="app-nav">
         <button className="nav-action" onClick={() => navigate(-1)}>← Back</button>
-        <span className="nav-title">Availability</span>
+        <span className="nav-title">Result</span>
         <span style={{ width: 48 }} />
       </div>
 
@@ -203,8 +203,8 @@ export default function Results() {
           ))}
         </div>
 
-        <button className="btn-primary" onClick={() => navigate('/')} style={{ padding: '13px' }}>
-          Done
+        <button className="btn-primary" onClick={() => navigate(-1)} style={{ padding: '13px' }}>
+          Edit
         </button>
       </div>
     </div>
