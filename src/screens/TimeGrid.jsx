@@ -67,6 +67,8 @@ export default function TimeGrid() {
 
   const [page, setPage] = useState(0);
   const [slots, setSlots] = useState(() => initSlots(totalDays, TOTAL));
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [name, setName] = useState('');
 
   const pageRef = useRef(page);
   useEffect(() => { pageRef.current = page; }, [page]);
@@ -257,10 +259,43 @@ export default function TimeGrid() {
           </div>
         )}
         <div style={{ fontSize: 11, color: '#AAA', textAlign: 'center', marginBottom: 8 }}>Tap · Drag to paint · Swipe left/right to change days</div>
-        <button className="btn-primary" onClick={() => navigate('/results')} style={{ padding: '13px' }}>
+        <button className="btn-primary" onClick={() => setShowNameModal(true)} style={{ padding: '13px' }}>
           Submit availability
         </button>
       </div>
+
+      {/* Name modal */}
+      {showNameModal && (
+        <div
+          onClick={() => setShowNameModal(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'flex-end' }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ width: '100%', background: '#fff', borderRadius: '20px 20px 0 0', padding: '24px 20px 36px' }}
+          >
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: '#E0E0E0', margin: '0 auto 20px' }} />
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 6 }}>What's your name?</div>
+            <div style={{ fontSize: 13, color: '#AAA', marginBottom: 20 }}>So others know whose availability this is.</div>
+            <input
+              autoFocus
+              value={name}
+              onChange={e => setName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && name.trim() && navigate('/results')}
+              placeholder="Your name"
+              style={{ width: '100%', padding: '13px 14px', borderRadius: 12, border: '1.5px solid #E0E0E0', fontSize: 16, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', marginBottom: 14 }}
+            />
+            <button
+              className="btn-primary"
+              disabled={!name.trim()}
+              onClick={() => name.trim() && navigate('/results')}
+              style={{ padding: '13px', opacity: name.trim() ? 1 : 0.4 }}
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
