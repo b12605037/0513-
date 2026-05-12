@@ -186,7 +186,7 @@ export default function TimeGrid() {
       <div className="app-nav">
         <span style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>{navLabel}</span>
         <span className="nav-title">Your availability</span>
-        <button className="nav-action" onClick={() => navigate('/results')}>Done</button>
+        <span style={{ width: 48 }} />
       </div>
 
       <div style={{ padding: '6px 16px', display: 'flex', alignItems: 'center', gap: 6, background: '#fff', borderBottom: '1px solid #F5F5F5', flexShrink: 0 }}>
@@ -291,14 +291,14 @@ export default function TimeGrid() {
               autoFocus
               value={name}
               onChange={e => setName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && name.trim() && navigate('/results')}
+              onKeyDown={e => e.key === 'Enter' && name.trim() && navigate('/results', { state: { ...state, mySlots: slotsRef.current, myName: name.trim() } })}
               placeholder="Your name"
               style={{ width: '100%', padding: '13px 14px', borderRadius: 12, border: '1.5px solid #E0E0E0', fontSize: 16, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', marginBottom: 14 }}
             />
             <button
               className="btn-primary"
               disabled={!name.trim()}
-              onClick={() => name.trim() && navigate('/results')}
+              onClick={() => name.trim() && navigate('/results', { state: { ...state, mySlots: slotsRef.current, myName: name.trim() } })}
               style={{ padding: '13px', opacity: name.trim() ? 1 : 0.4 }}
             >
               Confirm
