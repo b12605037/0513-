@@ -85,15 +85,15 @@ function DurationSlider({ value, onChange }) {
 
   return (
     <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0' }}>
-      <div style={{ background: '#E8F8F6', borderRadius: 8, padding: '12px', textAlign: 'center', marginBottom: 20 }}>
-        <div style={{ fontSize: 28, fontWeight: 800, color: '#00BFA5', letterSpacing: '-0.02em' }}>{fmtDuration(value)}</div>
+      <div style={{ background: '#e8eef1', borderRadius: 8, padding: '12px', textAlign: 'center', marginBottom: 20 }}>
+        <div style={{ fontSize: 28, fontWeight: 800, color: '#8a9da8', letterSpacing: '-0.02em' }}>{fmtDuration(value)}</div>
       </div>
       <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
-        <div style={{ position: 'absolute', left: 0, width: `${pct}%`, top: 0, bottom: 0, background: '#00BFA5', borderRadius: 3 }} />
+        <div style={{ position: 'absolute', left: 0, width: `${pct}%`, top: 0, bottom: 0, background: '#8a9da8', borderRadius: 3 }} />
         <div
           onMouseDown={startDrag}
           onTouchStart={startDrag}
-          style={{ position: 'absolute', left: `calc(${pct}% - 11px)`, top: -8, width: 22, height: 22, borderRadius: 11, background: '#00BFA5', border: '3px solid #fff', boxShadow: '0 1px 6px rgba(0,191,165,0.45)', cursor: 'grab', zIndex: 2, touchAction: 'none' }}
+          style={{ position: 'absolute', left: `calc(${pct}% - 11px)`, top: -8, width: 22, height: 22, borderRadius: 11, background: '#8a9da8', border: '3px solid #fff', boxShadow: '0 1px 6px rgba(138,157,168,0.45)', cursor: 'grab', zIndex: 2, touchAction: 'none' }}
         />
       </div>
       <div style={{ position: 'relative', height: 16 }}>
@@ -153,26 +153,26 @@ function TimeRangeSlider({ startSlot, endSlot, onChange }) {
   return (
     <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-        <div style={{ flex: 1, background: '#E8F8F6', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#00BFA5', letterSpacing: '-0.02em' }}>{fmtSlot(startSlot)} <span style={{ fontSize: 13, fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
+        <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#8a9da8', letterSpacing: '-0.02em' }}>{fmtSlot(startSlot)} <span style={{ fontSize: 13, fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
         </div>
         <div style={{ color: '#CCC', fontSize: 20 }}>→</div>
-        <div style={{ flex: 1, background: '#E8F8F6', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#00BFA5', letterSpacing: '-0.02em' }}>{fmtSlot(endSlot)} <span style={{ fontSize: 13, fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
+        <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#8a9da8', letterSpacing: '-0.02em' }}>{fmtSlot(endSlot)} <span style={{ fontSize: 13, fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
         </div>
       </div>
 
       <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
-        <div style={{ position: 'absolute', left: `${sPct}%`, width: `${ePct - sPct}%`, top: 0, bottom: 0, background: '#00BFA5', borderRadius: 3 }} />
+        <div style={{ position: 'absolute', left: `${sPct}%`, width: `${ePct - sPct}%`, top: 0, bottom: 0, background: '#8a9da8', borderRadius: 3 }} />
         <div
           onMouseDown={startDrag('start')}
           onTouchStart={startDrag('start')}
-          style={{ position: 'absolute', left: `calc(${sPct}% - 11px)`, top: -8, width: 22, height: 22, borderRadius: 11, background: '#00BFA5', border: '3px solid #fff', boxShadow: '0 1px 6px rgba(0,191,165,0.45)', cursor: 'grab', zIndex: 2, touchAction: 'none' }}
+          style={{ position: 'absolute', left: `calc(${sPct}% - 11px)`, top: -8, width: 22, height: 22, borderRadius: 11, background: '#8a9da8', border: '3px solid #fff', boxShadow: '0 1px 6px rgba(138,157,168,0.45)', cursor: 'grab', zIndex: 2, touchAction: 'none' }}
         />
         <div
           onMouseDown={startDrag('end')}
           onTouchStart={startDrag('end')}
-          style={{ position: 'absolute', left: `calc(${ePct}% - 11px)`, top: -8, width: 22, height: 22, borderRadius: 11, background: '#00BFA5', border: '3px solid #fff', boxShadow: '0 1px 6px rgba(0,191,165,0.45)', cursor: 'grab', zIndex: 2, touchAction: 'none' }}
+          style={{ position: 'absolute', left: `calc(${ePct}% - 11px)`, top: -8, width: 22, height: 22, borderRadius: 11, background: '#8a9da8', border: '3px solid #fff', boxShadow: '0 1px 6px rgba(138,157,168,0.45)', cursor: 'grab', zIndex: 2, touchAction: 'none' }}
         />
       </div>
 
@@ -305,8 +305,8 @@ function RangePicker({ startDate, endDate, onChange }) {
   return (
     <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16 }}>
       <div style={{ padding: '10px 16px 8px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0', display: 'flex', alignItems: 'center', gap: 6 }}>
-        <div style={{ width: 6, height: 6, borderRadius: 3, background: phase === 'done' ? '#00BFA5' : phase === 'dragging' ? '#00BFA5' : '#FFB300', flexShrink: 0 }} />
-        <span style={{ fontSize: 12, fontWeight: 600, color: phase === 'done' || phase === 'dragging' ? '#00897B' : '#F57F17' }}>{phaseLabel}</span>
+        <div style={{ width: 6, height: 6, borderRadius: 3, background: phase === 'done' ? '#8a9da8' : phase === 'dragging' ? '#8a9da8' : '#FFB300', flexShrink: 0 }} />
+        <span style={{ fontSize: 12, fontWeight: 600, color: phase === 'done' || phase === 'dragging' ? '#6b8592' : '#F57F17' }}>{phaseLabel}</span>
         {phase === 'done' && (
           <button onClick={() => onChange(null, null)} style={{ marginLeft: 'auto', fontSize: 11, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Reset</button>
         )}
@@ -314,11 +314,11 @@ function RangePicker({ startDate, endDate, onChange }) {
 
       <div style={{ padding: '12px 16px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#00BFA5' }}>
+          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8a9da8' }}>
             <IcChevron dir="left" size={16} />
           </button>
           <span style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
-          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#00BFA5' }}>
+          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8a9da8' }}>
             <IcChevron dir="right" size={16} />
           </button>
         </div>
@@ -346,18 +346,18 @@ function RangePicker({ startDate, endDate, onChange }) {
                 onTouchStart={() => handleMouseDown(d)}
                 style={{ position: 'relative', height: 36, cursor: disabled ? 'default' : 'pointer' }}
               >
-                {inRange && <div style={{ position: 'absolute', inset: 0, background: '#E8F8F6' }} />}
-                {isStart && effEnd && !isSingleDay && <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '50%', background: '#E8F8F6' }} />}
-                {isEnd && effStart && !sameDay(effStart, effEnd) && <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '50%', background: '#E8F8F6' }} />}
+                {inRange && <div style={{ position: 'absolute', inset: 0, background: '#e8eef1' }} />}
+                {isStart && effEnd && !isSingleDay && <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '50%', background: '#e8eef1' }} />}
+                {isEnd && effStart && !sameDay(effStart, effEnd) && <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '50%', background: '#e8eef1' }} />}
                 <div style={{
                   position: 'relative', zIndex: 1,
                   width: 32, height: 32, borderRadius: 16, margin: '2px auto 0',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: isStart || isEnd ? '#00BFA5' : 'transparent',
-                  border: isToday && !isStart && !isEnd ? '1.5px solid #00BFA5' : 'none',
+                  background: isStart || isEnd ? '#8a9da8' : 'transparent',
+                  border: isToday && !isStart && !isEnd ? '1.5px solid #8a9da8' : 'none',
                   fontSize: 13,
                   fontWeight: isStart || isEnd || inRange ? 600 : 400,
-                  color: isStart || isEnd ? '#fff' : disabled ? '#DDD' : isToday ? '#00BFA5' : inRange ? '#00897B' : '#111',
+                  color: isStart || isEnd ? '#fff' : disabled ? '#DDD' : isToday ? '#8a9da8' : inRange ? '#6b8592' : '#111',
                   transition: 'background 0.1s',
                 }}>
                   {d}
@@ -403,15 +403,15 @@ function DatePickerSheet({ selected, onSelect, onClose }) {
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ fontSize: 17, fontWeight: 700, color: '#111' }}>Survey Deadline</div>
-          {selected && <div style={{ fontSize: 13, fontWeight: 600, color: '#00BFA5' }}>{formatDate(selected)}</div>}
+          {selected && <div style={{ fontSize: 13, fontWeight: 600, color: '#8a9da8' }}>{formatDate(selected)}</div>}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#00BFA5' }}>
+          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8a9da8' }}>
             <IcChevron dir="left" size={18} />
           </button>
           <span style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
-          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#00BFA5' }}>
+          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8a9da8' }}>
             <IcChevron dir="right" size={18} />
           </button>
         </div>
@@ -433,10 +433,10 @@ function DatePickerSheet({ selected, onSelect, onClose }) {
                 <div style={{
                   width: 36, height: 36, borderRadius: 18,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: sel ? '#00BFA5' : 'transparent',
-                  border: todayMark && !sel ? '1.5px solid #00BFA5' : 'none',
+                  background: sel ? '#8a9da8' : 'transparent',
+                  border: todayMark && !sel ? '1.5px solid #8a9da8' : 'none',
                   fontSize: 14, fontWeight: sel || todayMark ? 700 : 400,
-                  color: sel ? '#fff' : todayMark ? '#00BFA5' : '#111',
+                  color: sel ? '#fff' : todayMark ? '#8a9da8' : '#111',
                   transition: 'background 0.12s',
                 }}>
                   {d}
@@ -527,13 +527,13 @@ function TimezoneSheet({ current, onSelect, onClose }) {
                 return (
                   <div key={tz.value} onClick={() => onSelect(tz)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 0', borderBottom: '1px solid #F5F5F5', cursor: 'pointer' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: isSelected ? 700 : 500, color: isSelected ? '#00BFA5' : '#111', fontFamily: 'monospace' }}>{tz.label}</div>
+                      <div style={{ fontSize: 13, fontWeight: isSelected ? 700 : 500, color: isSelected ? '#8a9da8' : '#111', fontFamily: 'monospace' }}>{tz.label}</div>
                       <div style={{ fontSize: 12, color: '#AAA', marginTop: 2 }}>{tz.sub}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, marginLeft: 8 }}>
                       {tz.offset && <span style={{ fontSize: 12, fontWeight: 500, color: '#BBB' }}>{tz.offset}</span>}
                       {isSelected && (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00BFA5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a9da8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
                       )}
@@ -651,7 +651,7 @@ export default function CreateEvent() {
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>All Day</div>
                 </div>
-                <div onClick={() => up('allDay', !form.allDay)} style={{ width: 44, height: 26, borderRadius: 13, background: form.allDay ? '#00BFA5' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+                <div onClick={() => up('allDay', !form.allDay)} style={{ width: 44, height: 26, borderRadius: 13, background: form.allDay ? '#8a9da8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
                   <div style={{ position: 'absolute', top: 3, left: form.allDay ? 20 : 3, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
                 </div>
               </div>

@@ -95,13 +95,13 @@ export default function Results() {
           <div style={{ margin: '12px 16px 0', background: '#fff', borderRadius: 14, padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#AAA', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Responses</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#00BFA5' }}>3 of 4</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#8a9da8' }}>3 of 4</div>
             </div>
             <div style={{ height: 5, background: '#F0F0F0', borderRadius: 3, overflow: 'hidden', marginBottom: 14 }}>
-              <div style={{ width: '75%', height: '100%', background: '#00BFA5', borderRadius: 3 }} />
+              <div style={{ width: '75%', height: '100%', background: '#8a9da8', borderRadius: 3 }} />
             </div>
             {[
-              { name: 'Alex Morgan',  status: 'Responded · 12 slots', done: true,  color: '#00BFA5' },
+              { name: 'Alex Morgan',  status: 'Responded · 12 slots', done: true,  color: '#8a9da8' },
               { name: 'Sam Chen',     status: 'Responded · 9 slots',  done: true,  color: '#26A69A' },
               { name: 'Jamie Park',   status: 'Responded · 7 slots',  done: true,  color: '#4DB6AC' },
               { name: 'Riley Torres', status: 'Waiting…',             done: false, color: '#80CBC4' },
@@ -112,8 +112,8 @@ export default function Results() {
                   <div style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{p.name}</div>
                   <div style={{ fontSize: 11, color: p.done ? '#888' : '#FFB300', marginTop: 1, fontWeight: p.done ? 400 : 600 }}>{p.status}</div>
                 </div>
-                <div style={{ width: 22, height: 22, borderRadius: 11, flexShrink: 0, background: p.done ? '#E8F8F6' : '#FFF8E1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {p.done ? <IcCheck size={12} color="#00BFA5" /> : <span style={{ fontSize: 11 }}>⏳</span>}
+                <div style={{ width: 22, height: 22, borderRadius: 11, flexShrink: 0, background: p.done ? '#e8eef1' : '#FFF8E1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {p.done ? <IcCheck size={12} color="#8a9da8" /> : <span style={{ fontSize: 11 }}>⏳</span>}
                 </div>
               </div>
             ))}
@@ -130,14 +130,14 @@ export default function Results() {
               { icon: <IcUsers />,    label: '4 participants · PST' },
             ].map((row, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', borderBottom: i < 2 ? '1px solid #F8F8F8' : 'none' }}>
-                <div style={{ color: '#00BFA5', flexShrink: 0 }}>{row.icon}</div>
+                <div style={{ color: '#8a9da8', flexShrink: 0 }}>{row.icon}</div>
                 <span style={{ fontSize: 13, color: '#444', fontWeight: 500 }}>{row.label}</span>
               </div>
             ))}
           </div>
 
           <div style={{ padding: '16px 16px 32px' }}>
-            <button onClick={doFastForward} disabled={fastForwarding} style={{ width: '100%', padding: '14px', borderRadius: 12, background: fastForwarding ? '#F0F0F0' : '#00BFA5', color: fastForwarding ? '#AAA' : '#fff', border: 'none', cursor: fastForwarding ? 'default' : 'pointer', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}>
+            <button onClick={doFastForward} disabled={fastForwarding} style={{ width: '100%', padding: '14px', borderRadius: 12, background: fastForwarding ? '#F0F0F0' : '#8a9da8', color: fastForwarding ? '#AAA' : '#fff', border: 'none', cursor: fastForwarding ? 'default' : 'pointer', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}>
               {fastForwarding
                 ? <><div style={{ width: 16, height: 16, border: '2px solid #CCC', borderTopColor: '#888', borderRadius: 8, animation: 'spin 0.6s linear infinite' }} /> Jumping to deadline…</>
                 : <>⏭ Fast-forward to deadline</>
@@ -164,7 +164,7 @@ export default function Results() {
               { label: 'Finding 1-hour overlaps', done: false },
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < 2 ? '1px solid #F5F5F5' : 'none' }}>
-                <div style={{ width: 22, height: 22, borderRadius: 11, background: item.done ? '#00BFA5' : '#F0F0F0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 22, height: 22, borderRadius: 11, background: item.done ? '#8a9da8' : '#F0F0F0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   {item.done ? <IcCheck size={12} /> : <div style={{ width: 8, height: 8, borderRadius: 4, background: '#CCC' }} />}
                 </div>
                 <span style={{ fontSize: 13, fontWeight: 500, color: item.done ? '#111' : '#BBB' }}>{item.label}</span>
@@ -205,24 +205,24 @@ export default function Results() {
           </div>
 
           {RESULT_SLOTS.map((s, i) => (
-            <div key={i} style={{ background: '#fff', borderRadius: 12, margin: '0 16px 8px', padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: 12, border: i === 0 ? '1.5px solid #B2DFDB' : '1.5px solid transparent' }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: i === 0 ? '#E8F8F6' : '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div key={i} style={{ background: '#fff', borderRadius: 12, margin: '0 16px 8px', padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: 12, border: i === 0 ? '1.5px solid #c5d2d8' : '1.5px solid transparent' }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: i === 0 ? '#e8eef1' : '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <IcCalendar />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>{s.day} · {s.time}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                   <div style={{ flex: 1, height: 4, background: '#F0F0F0', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ width: `${s.pct}%`, height: '100%', background: s.pct === 100 ? '#00BFA5' : '#B2DFDB', borderRadius: 2 }} />
+                    <div style={{ width: `${s.pct}%`, height: '100%', background: s.pct === 100 ? '#8a9da8' : '#c5d2d8', borderRadius: 2 }} />
                   </div>
                   <span style={{ fontSize: 11, color: '#888', fontWeight: 500, flexShrink: 0 }}>{s.score}</span>
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                {s.badge && <div style={{ background: '#E8F8F6', borderRadius: 6, padding: '3px 8px', fontSize: 11, fontWeight: 700, color: '#00897B' }}>{s.badge}</div>}
+                {s.badge && <div style={{ background: '#e8eef1', borderRadius: 6, padding: '3px 8px', fontSize: 11, fontWeight: 700, color: '#6b8592' }}>{s.badge}</div>}
                 <div style={{ display: 'flex' }}>
                   {(s.people || []).map((name, pi) => (
-                    <div key={pi} title={name} style={{ width: 20, height: 20, borderRadius: 10, background: ['#00BFA5', '#26A69A', '#4DB6AC', '#80CBC4'][pi % 4], color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #fff', marginLeft: pi > 0 ? -5 : 0 }}>{name[0]}</div>
+                    <div key={pi} title={name} style={{ width: 20, height: 20, borderRadius: 10, background: ['#8a9da8', '#26A69A', '#4DB6AC', '#80CBC4'][pi % 4], color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #fff', marginLeft: pi > 0 ? -5 : 0 }}>{name[0]}</div>
                   ))}
                 </div>
               </div>
@@ -232,11 +232,11 @@ export default function Results() {
           <div className="card" style={{ margin: '12px 16px' }}>
             <div className="card-title">Responses</div>
             {[
-              { name: 'Alex Morgan',    status: 'Responded · 8 slots', done: true,  color: '#00BFA5' },
+              { name: 'Alex Morgan',    status: 'Responded · 8 slots', done: true,  color: '#8a9da8' },
               { name: 'Sam Chen',       status: 'Responded · 6 slots', done: true,  color: '#26A69A' },
               { name: 'Jamie Park',     status: 'Responded · 5 slots', done: true,  color: '#4DB6AC' },
               { name: 'Riley Torres',   status: 'Waiting…',            done: false, color: '#80CBC4' },
-              { name: 'You (organizer)',status: 'Responded',            done: true,  color: '#00897B' },
+              { name: 'You (organizer)',status: 'Responded',            done: true,  color: '#6b8592' },
             ].map((p, i) => (
               <div key={i} className="participant-row">
                 <div className="avatar" style={{ background: p.color, margin: 0, width: 28, height: 28, fontSize: 11 }}>{p.name[0]}</div>

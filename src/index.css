@@ -42,11 +42,11 @@ body {
 .nav-title { font-size: 17px; font-weight: 700; color: #111; letter-spacing: -0.02em; }
 .nav-back {
   display: flex; align-items: center; gap: 4px;
-  font-size: 15px; font-weight: 500; color: #00BFA5;
+  font-size: 15px; font-weight: 500; color: #8a9da8;
   cursor: pointer; background: none; border: none; font-family: inherit;
 }
 .nav-action {
-  font-size: 15px; font-weight: 600; color: #00BFA5;
+  font-size: 15px; font-weight: 600; color: #8a9da8;
   background: none; border: none; cursor: pointer; font-family: inherit;
 }
 
@@ -93,7 +93,7 @@ body {
   color: #111; background: #fff; outline: none;
   transition: border-color 0.15s;
 }
-.form-input:focus { border-color: #00BFA5; }
+.form-input:focus { border-color: #8a9da8; }
 .form-input::placeholder { color: #BEC0C4; }
 .form-row { display: flex; gap: 10px; }
 .form-row .form-field { flex: 1; }
@@ -101,7 +101,7 @@ body {
 /* ── BUTTONS ── */
 .btn-primary {
   width: 100%; padding: 15px; border-radius: 12px;
-  background: #00BFA5; color: #fff; font-size: 16px;
+  background: #8a9da8; color: #fff; font-size: 16px;
   font-weight: 700; border: none; cursor: pointer;
   font-family: inherit; letter-spacing: -0.01em;
   transition: opacity 0.15s, transform 0.1s;
@@ -110,8 +110,8 @@ body {
 .btn-primary:active { opacity: 0.85; transform: scale(0.98); }
 .btn-secondary {
   width: 100%; padding: 14px; border-radius: 12px;
-  background: #F0F9F8; color: #00BFA5; font-size: 15px;
-  font-weight: 600; border: 1.5px solid #B2DFDB; cursor: pointer;
+  background: #F0F9F8; color: #8a9da8; font-size: 15px;
+  font-weight: 600; border: 1.5px solid #c5d2d8; cursor: pointer;
   font-family: inherit; transition: all 0.15s;
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
@@ -130,20 +130,20 @@ body {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 5px 12px; border-radius: 20px;
   font-size: 13px; font-weight: 500;
-  background: #E8F8F6; color: #00897B;
+  background: #e8eef1; color: #6b8592;
 }
 .tag-row { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 16px 12px; }
 .tag {
   padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
   background: #F5F5F5; color: #666;
 }
-.tag.teal { background: #E8F8F6; color: #00897B; }
+.tag.teal { background: #e8eef1; color: #6b8592; }
 
 /* ── AVATARS ── */
 .avatar-stack { display: flex; }
 .avatar {
   width: 32px; height: 32px; border-radius: 50%;
-  background: #00BFA5; color: #fff;
+  background: #8a9da8; color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700;
   border: 2px solid #fff; margin-left: -8px;
@@ -155,7 +155,7 @@ body {
 
 /* ── RESULT CARD ── */
 .result-card {
-  background: linear-gradient(135deg, #00BFA5 0%, #00897B 100%);
+  background: linear-gradient(135deg, #8a9da8 0%, #6b8592 100%);
   border-radius: 16px; padding: 20px; margin: 0 16px 12px; color: #fff;
 }
 .result-label { font-size: 12px; font-weight: 600; opacity: 0.75; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
@@ -169,8 +169,8 @@ body {
 /* ── PROGRESS STEPS ── */
 .steps { display: flex; justify-content: center; gap: 6px; padding: 12px 0 4px; }
 .step-dot { width: 6px; height: 6px; border-radius: 3px; background: #E0E0E0; transition: all 0.3s; }
-.step-dot.active { width: 18px; background: #00BFA5; }
-.step-dot.done { background: #B2DFDB; }
+.step-dot.active { width: 18px; background: #8a9da8; }
+.step-dot.done { background: #c5d2d8; }
 
 /* ── BOTTOM SHEET ── */
 .bottom-sheet-overlay {
@@ -192,7 +192,7 @@ body {
 /* ── SUCCESS ── */
 .success-icon {
   width: 72px; height: 72px; border-radius: 50%;
-  background: #E8F8F6; display: flex; align-items: center; justify-content: center;
+  background: #e8eef1; display: flex; align-items: center; justify-content: center;
   margin: 0 auto 16px;
 }
 
@@ -200,7 +200,7 @@ body {
 .spinner {
   width: 40px; height: 40px;
   border: 3px solid #E8F5F4;
-  border-top-color: #00BFA5;
+  border-top-color: #8a9da8;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto;
@@ -218,7 +218,7 @@ body {
   margin-left: auto; font-size: 11px; font-weight: 600;
   padding: 3px 8px; border-radius: 10px;
 }
-.p-badge.done { background: #E8F8F6; color: #00897B; }
+.p-badge.done { background: #e8eef1; color: #6b8592; }
 .p-badge.pending { background: #F5F5F5; color: #AAA; }
 
 /* ── SECTION HEAD ── */
@@ -238,8 +238,8 @@ body {
 .tl-item { display: flex; gap: 12px; padding-bottom: 20px; position: relative; }
 .tl-item::before { content: ''; position: absolute; left: 15px; top: 28px; bottom: 0; width: 2px; background: #F0F0F0; }
 .tl-item:last-child::before { display: none; }
-.tl-dot { width: 30px; height: 30px; border-radius: 50%; background: #E8F8F6; border: 2px solid #B2DFDB; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; }
-.tl-dot.done { background: #00BFA5; border-color: #00BFA5; }
+.tl-dot { width: 30px; height: 30px; border-radius: 50%; background: #e8eef1; border: 2px solid #c5d2d8; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; }
+.tl-dot.done { background: #8a9da8; border-color: #8a9da8; }
 .tl-label { font-size: 14px; font-weight: 600; color: #111; padding-top: 5px; }
 .tl-time { font-size: 12px; color: #AAA; margin-top: 2px; }
 
@@ -254,13 +254,13 @@ body {
   border: none; background: none; font-family: inherit;
   color: #888; transition: all 0.2s;
 }
-.seg-btn.active { background: #fff; color: #00BFA5; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.seg-btn.active { background: #fff; color: #8a9da8; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 
 /* ── COUNT BADGE ── */
 .count-badge {
   display: inline-flex; align-items: center; justify-content: center;
   width: 20px; height: 20px; border-radius: 10px;
-  background: #00BFA5; color: #fff; font-size: 11px; font-weight: 700;
+  background: #8a9da8; color: #fff; font-size: 11px; font-weight: 700;
 }
 
 /* ── ANIMATIONS ── */

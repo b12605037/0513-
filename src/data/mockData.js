@@ -25,10 +25,10 @@ export const GCAL_EVENTS = [
 ];
 
 export const BOOKED_EVENTS = [
-  { day:0, startHour:9,  startMin:0,  durationMins:30,  title:'Design Sync',          people:['A','S'],        color:'#00BFA5', status:'booked' },
-  { day:1, startHour:11, startMin:0,  durationMins:60,  title:'Q2 Planning Kickoff',  people:['A','S','J','R'], color:'#00897B', status:'booked' },
+  { day:0, startHour:9,  startMin:0,  durationMins:30,  title:'Design Sync',          people:['A','S'],        color:'#8a9da8', status:'booked' },
+  { day:1, startHour:11, startMin:0,  durationMins:60,  title:'Q2 Planning Kickoff',  people:['A','S','J','R'], color:'#6b8592', status:'booked' },
   { day:2, startHour:14, startMin:0,  durationMins:60,  title:'Product Review',       people:['A','J'],        color:'#26A69A', status:'booked' },
-  { day:3, startHour:10, startMin:0,  durationMins:60,  title:'Q2 Planning Kickoff',  people:['A','S','J','R'], color:'#00897B', status:'booked' },
+  { day:3, startHour:10, startMin:0,  durationMins:60,  title:'Q2 Planning Kickoff',  people:['A','S','J','R'], color:'#6b8592', status:'booked' },
   { day:3, startHour:15, startMin:30, durationMins:30,  title:'1:1 w/ Manager',       people:['A','M'],        color:'#4DB6AC', status:'booked' },
   { day:4, startHour:9,  startMin:30, durationMins:90,  title:'Eng All-Hands',        people:['A','S','J'],    color:'#80CBC4', status:'pending' },
 ];

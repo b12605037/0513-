@@ -129,10 +129,10 @@ export default function TimeGrid() {
         <div style={{ display: 'flex', paddingLeft: LABEL_W, position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: '1px solid #EBEBEB' }}>
           {DAYS_LBL.map((d, i) => (
             <div key={i} style={{ flex: 1, textAlign: 'center', padding: '5px 0 6px' }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: i === 3 ? '#00BFA5' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d}</div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: i === 3 ? '#8a9da8' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d}</div>
               <div style={{
                 width: 22, height: 22, borderRadius: 11, margin: '2px auto 0',
-                background: i === 3 ? '#00BFA5' : 'transparent',
+                background: i === 3 ? '#8a9da8' : 'transparent',
                 color: i === 3 ? '#fff' : '#111',
                 fontSize: 12, fontWeight: 700,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',

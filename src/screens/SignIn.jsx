@@ -40,7 +40,7 @@ export default function SignIn() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 24px 40px' }}>
 
         {/* Invite card */}
-        <div style={{ background: 'linear-gradient(135deg,#00BFA5,#00897B)', borderRadius: 20, padding: 24, marginTop: 24, marginBottom: 28, color: '#fff', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ background: 'linear-gradient(135deg,#8a9da8,#6b8592)', borderRadius: 20, padding: 24, marginTop: 24, marginBottom: 28, color: '#fff', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', right: -20, top: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
           <div style={{ position: 'absolute', right: 30, bottom: -30, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
@@ -69,7 +69,7 @@ export default function SignIn() {
         <div style={{ background: '#F8FFFE', border: '1.5px solid #E0F5F2', borderRadius: 14, padding: '16px 18px' }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#111', marginBottom: 4 }}>
             Auto-detect free slots
-            <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 600, color: '#00BFA5', background: '#E0F5F2', borderRadius: 6, padding: '2px 7px' }}>Optional</span>
+            <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 600, color: '#8a9da8', background: '#E0F5F2', borderRadius: 6, padding: '2px 7px' }}>Optional</span>
           </div>
           <div style={{ fontSize: 12, color: '#888', lineHeight: 1.5, marginBottom: 14 }}>
             Connect Google Calendar to automatically highlight your available times.
