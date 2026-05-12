@@ -170,7 +170,7 @@ export default function TimeGrid() {
   const navLabel  = pageNavLabel(pageDays);
 
   return (
-    <div className="app-container" style={{ height: '100vh', overflow: 'hidden' }}>
+    <div className="app-container" style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
       <StatusBar />
       <div className="app-nav">
         <span style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>{navLabel}</span>
@@ -268,13 +268,13 @@ export default function TimeGrid() {
       {showNameModal && (
         <div
           onClick={() => setShowNameModal(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+          style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}
         >
           <div
             onClick={e => e.stopPropagation()}
-            style={{ width: '100%', maxWidth: 480, background: '#fff', borderRadius: '20px 20px 0 0', padding: '24px 20px 36px' }}
+            style={{ width: '100%', maxWidth: 360, background: '#fff', borderRadius: 20, padding: '28px 20px 24px' }}
           >
-            <div style={{ width: 36, height: 4, borderRadius: 2, background: '#E0E0E0', margin: '0 auto 20px' }} />
+            <div style={{ display: 'none' }} />
             <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 6 }}>What's your name?</div>
             <div style={{ fontSize: 13, color: '#AAA', marginBottom: 20 }}>So others know whose availability this is.</div>
             <input
