@@ -8,6 +8,7 @@ const SLOT_H = 28;
 const LABEL_W = 48;
 const SCROLL_W = 24;
 const DAYS_PER_PAGE = 4;
+const FREE_COLOR = '#478058';
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -19,7 +20,7 @@ function buildAllDays(rangeStartTs, rangeEndTs) {
     const days = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(today); d.setDate(today.getDate() + i);
-      days.push({ label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth(), ts: d.getTime() });
+      days.push({ label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth() });
     }
     return { days, todayIdx: 0 };
   }
@@ -31,7 +32,7 @@ function buildAllDays(rangeStartTs, rangeEndTs) {
   for (let i = 0; i < totalDays; i++) {
     const d = new Date(start); d.setDate(start.getDate() + i);
     if (d.getTime() === today.getTime()) todayIdx = i;
-    days.push({ label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth(), ts: d.getTime() });
+    days.push({ label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth() });
   }
   return { days, todayIdx };
 }
@@ -39,7 +40,7 @@ function buildAllDays(rangeStartTs, rangeEndTs) {
 function pageNavLabel(pageDays) {
   if (!pageDays.length) return '';
   const first = pageDays[0];
-  const last = pageDays[pageDays.length - 1];
+  const last  = pageDays[pageDays.length - 1];
   return first.month === last.month
     ? `${MON[first.month]} ${first.date}–${last.date}`
     : `${MON[first.month]} ${first.date} – ${MON[last.month]} ${last.date}`;
@@ -58,7 +59,7 @@ export default function TimeGrid() {
   const { state } = useLocation();
 
   const { days: allDays, todayIdx } = buildAllDays(state?.rangeStart, state?.rangeEnd);
-  const totalDays = allDays.length;
+  const totalDays  = allDays.length;
   const totalPages = Math.ceil(totalDays / DAYS_PER_PAGE);
 
   const G_START = state?.allDay ? 0  : Math.floor((state?.startSlot ?? 16) / 2);
@@ -70,24 +71,33 @@ export default function TimeGrid() {
   const [showNameModal, setShowNameModal] = useState(false);
   const [name, setName] = useState('');
 
-  const pageRef = useRef(page);
+  // Keep refs so non-passive event listeners never go stale
+  const pageRef   = useRef(page);
+  const slotsRef  = useRef(slots);          // single source of truth during drag
   useEffect(() => { pageRef.current = page; }, [page]);
+  // After React flush, re-sync ref so next drag starts fresh
+  useEffect(() => { slotsRef.current = { ...slots }; }, [slots]);
 
-  const slotsRef = useRef(slots);
-  useEffect(() => { slotsRef.current = slots; }, [slots]);
-
-  const dragRef = useRef({ active: false, target: 0, lastKey: null });
-  // gesture: phase = 'idle' | 'pending' | 'paint' | 'scroll' | 'swipe'
+  const dragRef    = useRef({ active: false, target: 0, lastKey: null });
   const gestureRef = useRef({ phase: 'idle', startX: 0, startY: 0, startDay: null, startSlot: null });
   const scrollContainerRef = useRef(null);
 
-  const applySlot = (key, val) => setSlots(prev => ({ ...prev, [key]: val }));
+  // Direct DOM update — no React re-render during drag
+  const paintSlot = (key, val) => {
+    slotsRef.current[key] = val;
+    const [d, s] = key.split('-');
+    const el = document.getElementById(`sl-${d}-${s}`);
+    if (el) el.style.background = val === 1 ? FREE_COLOR : 'transparent';
+  };
+
+  // Flush accumulated changes to React state (called once on drag/tap end)
+  const flushSlots = () => setSlots({ ...slotsRef.current });
 
   const startDrag = (dayIdx, slot) => {
     const key = `${dayIdx}-${slot}`;
     const target = slotsRef.current[key] === 0 ? 1 : 0;
     dragRef.current = { active: true, target, lastKey: key };
-    applySlot(key, target);
+    paintSlot(key, target);
   };
 
   const moveDrag = (dayIdx, slot) => {
@@ -95,10 +105,10 @@ export default function TimeGrid() {
     const key = `${dayIdx}-${slot}`;
     if (key === dragRef.current.lastKey) return;
     dragRef.current.lastKey = key;
-    applySlot(key, dragRef.current.target);
+    paintSlot(key, dragRef.current.target);
   };
 
-  // Non-passive touchmove to allow preventDefault (React's synthetic events are passive)
+  // Non-passive touchmove — must be added via addEventListener
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -125,9 +135,8 @@ export default function TimeGrid() {
       if (g.phase === 'paint') {
         e.preventDefault();
         const el = document.elementFromPoint(t.clientX, t.clientY);
-        if (el?.dataset.slot !== undefined && el?.dataset.day !== undefined) {
+        if (el?.dataset.slot !== undefined && el?.dataset.day !== undefined)
           moveDrag(+el.dataset.day, +el.dataset.slot);
-        }
       } else if (g.phase === 'swipe') {
         e.preventDefault();
       }
@@ -135,11 +144,11 @@ export default function TimeGrid() {
 
     container.addEventListener('touchmove', onMove, { passive: false });
     return () => container.removeEventListener('touchmove', onMove);
-  }, []); // refs keep functions fresh; no stale closure issues
+  }, []);
 
   const handleContainerTouchStart = (e) => {
-    const t = e.touches[0];
-    const el = e.target;
+    const t   = e.touches[0];
+    const el  = e.target;
     const startDay  = el?.dataset?.day  !== undefined ? +el.dataset.day  : null;
     const startSlot = el?.dataset?.slot !== undefined ? +el.dataset.slot : null;
     gestureRef.current = { phase: 'pending', startX: t.clientX, startY: t.clientY, startDay, startSlot };
@@ -148,10 +157,12 @@ export default function TimeGrid() {
   const handleContainerTouchEnd = (e) => {
     const g = gestureRef.current;
     if (g.phase === 'pending' && g.startDay !== null) {
-      // Tap — toggle slot
       startDrag(g.startDay, g.startSlot);
+      flushSlots();
+    } else if (g.phase === 'paint') {
+      flushSlots();
     } else if (g.phase === 'swipe') {
-      const dx = e.changedTouches[0].clientX - g.startX;
+      const dx  = e.changedTouches[0].clientX - g.startX;
       const cur = pageRef.current;
       if (dx < -50 && cur < totalPages - 1) setPage(cur + 1);
       if (dx >  50 && cur > 0)             setPage(cur - 1);
@@ -160,10 +171,10 @@ export default function TimeGrid() {
     dragRef.current.active = false;
   };
 
-  // Mouse support (desktop)
-  const handleMouseDown = (dayIdx, slot) => startDrag(dayIdx, slot);
-  const handleMouseEnter = (dayIdx, slot) => moveDrag(dayIdx, slot);
-  const handleMouseUp = () => { dragRef.current.active = false; };
+  // Mouse (desktop)
+  const handleMouseDown  = (d, s) => startDrag(d, s);
+  const handleMouseEnter = (d, s) => moveDrag(d, s);
+  const handleMouseUp    = () => { dragRef.current.active = false; flushSlots(); };
 
   const pageStart = page * DAYS_PER_PAGE;
   const pageDays  = allDays.slice(pageStart, pageStart + DAYS_PER_PAGE);
@@ -179,11 +190,10 @@ export default function TimeGrid() {
       </div>
 
       <div style={{ padding: '6px 16px', display: 'flex', alignItems: 'center', gap: 6, background: '#fff', borderBottom: '1px solid #F5F5F5', flexShrink: 0 }}>
-        <div style={{ width: 10, height: 10, borderRadius: 2, background: '#478058' }} />
+        <div style={{ width: 10, height: 10, borderRadius: 2, background: FREE_COLOR }} />
         <span style={{ fontSize: 11, color: '#666' }}>Tap or drag to mark your available times</span>
       </div>
 
-      {/* Scrollable grid — touchmove handled via non-passive listener */}
       <div
         ref={scrollContainerRef}
         style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
@@ -196,7 +206,7 @@ export default function TimeGrid() {
         <div style={{ display: 'flex', paddingLeft: LABEL_W, paddingRight: SCROLL_W, position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: '1px solid #EBEBEB' }}>
           {pageDays.map((d, i) => {
             const globalIdx = pageStart + i;
-            const isToday = globalIdx === todayIdx;
+            const isToday   = globalIdx === todayIdx;
             return (
               <div key={globalIdx} style={{ flex: 1, textAlign: 'center', padding: '5px 0 6px' }}>
                 <div style={{ fontSize: 10, fontWeight: 600, color: isToday ? '#8a9da8' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
@@ -223,19 +233,20 @@ export default function TimeGrid() {
             return (
               <div key={globalIdx} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
                 {Array.from({ length: TOTAL }, (_, slot) => {
-                  const key = `${globalIdx}-${slot}`;
+                  const key  = `${globalIdx}-${slot}`;
                   const free = slots[key] === 1;
                   return (
-                    <div key={slot}
+                    <div
+                      key={slot}
+                      id={`sl-${globalIdx}-${slot}`}
                       data-day={globalIdx} data-slot={slot}
                       onMouseDown={() => handleMouseDown(globalIdx, slot)}
                       onMouseEnter={() => handleMouseEnter(globalIdx, slot)}
                       style={{
                         height: SLOT_H,
-                        background: free ? '#478058' : 'transparent',
+                        background: free ? FREE_COLOR : 'transparent',
                         borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0',
                         cursor: 'pointer',
-                        transition: 'background 0.08s',
                       }}
                     />
                   );
@@ -244,7 +255,7 @@ export default function TimeGrid() {
             );
           })}
 
-          {/* Right scroll strip — no data attrs so vertical drag here scrolls */}
+          {/* Right scroll strip */}
           <div style={{ width: SCROLL_W, flexShrink: 0 }} />
         </div>
       </div>
@@ -254,7 +265,7 @@ export default function TimeGrid() {
         {totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginBottom: 12 }}>
             {Array.from({ length: totalPages }, (_, i) => (
-              <div key={i} style={{ width: i === page ? 16 : 6, height: 6, borderRadius: 3, background: i === page ? '#478058' : '#E0E0E0', transition: 'all 0.2s' }} />
+              <div key={i} style={{ width: i === page ? 16 : 6, height: 6, borderRadius: 3, background: i === page ? FREE_COLOR : '#E0E0E0', transition: 'all 0.2s' }} />
             ))}
           </div>
         )}
@@ -274,7 +285,6 @@ export default function TimeGrid() {
             onClick={e => e.stopPropagation()}
             style={{ width: '100%', maxWidth: 360, background: '#fff', borderRadius: 20, padding: '28px 20px 24px' }}
           >
-            <div style={{ display: 'none' }} />
             <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 6 }}>What's your name?</div>
             <div style={{ fontSize: 13, color: '#AAA', marginBottom: 20 }}>So others know whose availability this is.</div>
             <input
