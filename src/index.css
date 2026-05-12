@@ -39,7 +39,7 @@ body {
   top: 0;
   z-index: 50;
 }
-.nav-title { font-size: 17px; font-weight: 700; color: #8a9da8; letter-spacing: -0.02em; }
+.nav-title { font-size: 17px; font-weight: 700; color: #8a9da8; letter-spacing: -0.02em; position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; }
 .nav-back {
   display: flex; align-items: center; gap: 4px;
   font-size: 15px; font-weight: 500; color: #8a9da8;
