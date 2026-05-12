@@ -111,24 +111,14 @@ export default function TimeGrid() {
     <div className="app-container" style={{ height: '100vh', overflow: 'hidden' }}>
       <StatusBar />
       <div className="app-nav">
-        <button
-          className="nav-action"
-          onClick={() => setPage(p => Math.max(0, p - 1))}
-          style={{ visibility: page === 0 ? 'hidden' : 'visible' }}
-        >‹</button>
-        <span className="nav-title" style={{ fontSize: 14 }}>{navLabel}</span>
-        <button
-          className="nav-action"
-          onClick={() => page < totalPages - 1 ? setPage(p => p + 1) : navigate('/results')}
-        >{page < totalPages - 1 ? '›' : 'Done'}</button>
+        <span style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>{navLabel}</span>
+        <span className="nav-title">Your availability</span>
+        <button className="nav-action" onClick={() => navigate('/results')}>Done</button>
       </div>
 
       <div style={{ padding: '6px 16px', display: 'flex', alignItems: 'center', gap: 6, background: '#fff', borderBottom: '1px solid #F5F5F5', flexShrink: 0 }}>
         <div style={{ width: 10, height: 10, borderRadius: 2, background: '#478058' }} />
         <span style={{ fontSize: 11, color: '#666' }}>Tap or drag to mark your available times</span>
-        {totalPages > 1 && (
-          <span style={{ marginLeft: 'auto', fontSize: 11, color: '#BBB' }}>{page + 1} / {totalPages}</span>
-        )}
       </div>
 
       <div
@@ -195,7 +185,34 @@ export default function TimeGrid() {
 
       {/* Bottom */}
       <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
-        <div style={{ fontSize: 11, color: '#AAA', textAlign: 'center', marginBottom: 8 }}>Tap a slot to toggle · Drag to paint</div>
+        {/* Page navigation */}
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <button
+              onClick={() => setPage(p => p - 1)}
+              disabled={page === 0}
+              style={{ flex: 1, padding: '11px 0', borderRadius: 10, border: 'none', background: page === 0 ? '#F5F5F5' : '#F0F4F2', color: page === 0 ? '#CCC' : '#478058', fontSize: 15, fontWeight: 700, cursor: page === 0 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+            >
+              <span style={{ fontSize: 18, lineHeight: 1 }}>←</span> Prev
+            </button>
+
+            {/* Dot indicators */}
+            <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <div key={i} onClick={() => setPage(i)} style={{ width: i === page ? 16 : 6, height: 6, borderRadius: 3, background: i === page ? '#478058' : '#E0E0E0', cursor: 'pointer', transition: 'all 0.2s' }} />
+              ))}
+            </div>
+
+            <button
+              onClick={() => setPage(p => p + 1)}
+              disabled={page === totalPages - 1}
+              style={{ flex: 1, padding: '11px 0', borderRadius: 10, border: 'none', background: page === totalPages - 1 ? '#F5F5F5' : '#478058', color: page === totalPages - 1 ? '#CCC' : '#fff', fontSize: 15, fontWeight: 700, cursor: page === totalPages - 1 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+            >
+              Next <span style={{ fontSize: 18, lineHeight: 1 }}>→</span>
+            </button>
+          </div>
+        )}
+
         <button className="btn-primary" onClick={() => navigate('/results')} style={{ padding: '13px' }}>
           Submit availability
         </button>
