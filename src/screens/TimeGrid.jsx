@@ -62,17 +62,17 @@ export default function TimeGrid() {
   const freeCount = Object.values(slots).filter(v => v === 1).length;
 
   return (
-    <div className="app-container" style={{ height: '100vh', overflow: 'hidden', background: '#5a5d65' }}>
+    <div className="app-container" style={{ height: '100vh', overflow: 'hidden' }}>
       <StatusBar />
-      <div className="app-nav" style={{ background: '#5a5d65', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>May 5–8</span>
-        <span className="nav-title" style={{ color: '#fff' }}>Your availability</span>
-        <button className="nav-action" onClick={() => navigate('/results')} style={{ color: '#8a9da8' }}>Done</button>
+      <div className="app-nav">
+        <span style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>May 5–8</span>
+        <span className="nav-title">Your availability</span>
+        <button className="nav-action" onClick={() => navigate('/results')}>Done</button>
       </div>
 
-      <div style={{ padding: '6px 16px', display: 'flex', alignItems: 'center', gap: 6, background: '#5a5d65', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
-        <div style={{ width: 10, height: 10, borderRadius: 2, background: '#A5D6A7', border: '1px solid #66BB6A' }} />
-        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>Tap or drag to mark your available times</span>
+      <div style={{ padding: '6px 16px', display: 'flex', alignItems: 'center', gap: 6, background: '#fff', borderBottom: '1px solid #F5F5F5', flexShrink: 0 }}>
+        <div style={{ width: 10, height: 10, borderRadius: 2, background: '#5a5d65' }} />
+        <span style={{ fontSize: 11, color: '#666' }}>Tap or drag to mark your available times</span>
       </div>
 
       <div
@@ -83,11 +83,11 @@ export default function TimeGrid() {
         onMouseLeave={endDrag}
       >
         {/* Day headers */}
-        <div style={{ display: 'flex', paddingLeft: LABEL_W, position: 'sticky', top: 0, background: '#5a5d65', zIndex: 20, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        <div style={{ display: 'flex', paddingLeft: LABEL_W, position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: '1px solid #EBEBEB' }}>
           {DAYS_LBL.map((d, i) => (
             <div key={i} style={{ flex: 1, textAlign: 'center', padding: '5px 0 6px' }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: i === TODAY_IDX ? '#8a9da8' : 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d}</div>
-              <div style={{ width: 22, height: 22, borderRadius: 11, margin: '2px auto 0', background: i === TODAY_IDX ? '#8a9da8' : 'transparent', color: i === TODAY_IDX ? '#fff' : 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{DATES[i]}</div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: i === TODAY_IDX ? '#8a9da8' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d}</div>
+              <div style={{ width: 22, height: 22, borderRadius: 11, margin: '2px auto 0', background: i === TODAY_IDX ? '#8a9da8' : 'transparent', color: i === TODAY_IDX ? '#fff' : '#111', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{DATES[i]}</div>
             </div>
           ))}
         </div>
@@ -97,15 +97,15 @@ export default function TimeGrid() {
           {/* Hour labels */}
           <div style={{ width: LABEL_W, flexShrink: 0 }}>
             {Array.from({ length: TOTAL }, (_, s) => (
-              <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid rgba(255,255,255,0.12)' : '1px dashed rgba(255,255,255,0.06)' }}>
-                {s % SPH === 0 && <span style={{ fontSize: 9, fontWeight: 600, color: 'rgba(255,255,255,0.35)' }}>{fmtH(G_START + s / SPH)}</span>}
+              <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0' }}>
+                {s % SPH === 0 && <span style={{ fontSize: 9, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
               </div>
             ))}
           </div>
 
           {/* Day columns */}
           {[0, 1, 2, 3].map(day => (
-            <div key={day} style={{ flex: 1, borderLeft: day > 0 ? '1px solid rgba(255,255,255,0.12)' : 'none' }}>
+            <div key={day} style={{ flex: 1, borderLeft: day > 0 ? '1px solid #EBEBEB' : 'none' }}>
               {Array.from({ length: TOTAL }, (_, slot) => {
                 const key = `${day}-${slot}`;
                 const free = slots[key] === 1;
@@ -117,9 +117,8 @@ export default function TimeGrid() {
                     onTouchStart={(e) => { e.stopPropagation(); startDrag(day, slot); }}
                     style={{
                       height: SLOT_H,
-                      background: free ? '#A5D6A7' : 'transparent',
-                      borderTop: slot % SPH === 0 ? '1px solid rgba(255,255,255,0.12)' : '1px dashed rgba(255,255,255,0.06)',
-                      borderBottom: free ? '1px solid #66BB6A' : 'none',
+                      background: free ? '#5a5d65' : 'transparent',
+                      borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0',
                       cursor: 'pointer',
                       transition: 'background 0.08s',
                     }}
@@ -132,14 +131,14 @@ export default function TimeGrid() {
       </div>
 
       {/* Bottom */}
-      <div style={{ padding: '10px 16px 16px', background: '#5a5d65', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+      <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
         {freeCount > 0 && (
-          <div style={{ background: '#A5D6A7', borderRadius: 8, padding: '6px 12px', textAlign: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: 14, fontWeight: 800, color: '#2E7D32' }}>{freeCount}</span>
-            <span style={{ fontSize: 11, color: '#2E7D32', marginLeft: 6 }}>slots marked as available</span>
+          <div style={{ background: '#5a5d65', borderRadius: 8, padding: '6px 12px', textAlign: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>{freeCount}</span>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', marginLeft: 6 }}>slots marked as available</span>
           </div>
         )}
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginBottom: 8 }}>Tap a slot to toggle · Drag to paint</div>
+        <div style={{ fontSize: 11, color: '#AAA', textAlign: 'center', marginBottom: 8 }}>Tap a slot to toggle · Drag to paint</div>
         <button className="btn-primary" onClick={() => navigate('/results')} style={{ padding: '13px' }}>
           Submit availability
         </button>
