@@ -184,7 +184,7 @@ export default function TimeGrid() {
     <div className="app-container" style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
       <StatusBar />
       <div className="app-nav">
-        <span style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>{navLabel}</span>
+        <span key={page} style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>{navLabel}</span>
         <span className="nav-title">Your availability</span>
         <span style={{ width: 48 }} />
       </div>
@@ -203,7 +203,15 @@ export default function TimeGrid() {
         onTouchEnd={handleContainerTouchEnd}
       >
         {/* Day headers */}
-        <div style={{ display: 'flex', paddingLeft: LABEL_W, paddingRight: SCROLL_W, position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: '1px solid #EBEBEB' }}>
+        <div style={{ display: 'flex', position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: '1px solid #EBEBEB' }}>
+          {/* Left arrow */}
+          <div style={{ width: LABEL_W, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {page > 0 && (
+              <button onMouseDown={e => e.stopPropagation()} onClick={() => setPage(p => p - 1)}
+                style={{ background: 'none', border: 'none', fontSize: 20, color: '#478058', cursor: 'pointer', padding: '2px 6px', lineHeight: 1 }}>‹</button>
+            )}
+          </div>
+
           {pageDays.map((d, i) => {
             const globalIdx = pageStart + i;
             const isToday   = globalIdx === todayIdx;
@@ -214,6 +222,14 @@ export default function TimeGrid() {
               </div>
             );
           })}
+
+          {/* Right arrow */}
+          <div style={{ width: SCROLL_W, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {page < totalPages - 1 && (
+              <button onMouseDown={e => e.stopPropagation()} onClick={() => setPage(p => p + 1)}
+                style={{ background: 'none', border: 'none', fontSize: 20, color: '#478058', cursor: 'pointer', padding: '2px 4px', lineHeight: 1 }}>›</button>
+            )}
+          </div>
         </div>
 
         {/* Grid */}
