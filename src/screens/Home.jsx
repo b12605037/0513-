@@ -310,7 +310,7 @@ function DatePickerSheet({ selected, onSelect, onClose }) {
 export default function Home() {
   const navigate = useNavigate();
   const [showDeadlineSheet, setShowDeadlineSheet] = useState(false);
-  const [deadlineDate, setDeadlineDate] = useState(new Date(2026, 4, 9));
+  const [deadlineDate, setDeadlineDate] = useState(() => { const d = new Date(); d.setHours(0,0,0,0); return d; });
   const [rangeStart, setRangeStart] = useState(null);
   const [rangeEnd, setRangeEnd] = useState(null);
   const [startSlot, setStartSlot] = useState(18);
