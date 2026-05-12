@@ -5,7 +5,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
-      const saved = localStorage.getItem('timeful_user');
+      const saved = localStorage.getItem('meetime_user');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -14,12 +14,12 @@ export function AuthProvider({ children }) {
 
   const signIn = (userInfo) => {
     setUser(userInfo);
-    localStorage.setItem('timeful_user', JSON.stringify(userInfo));
+    localStorage.setItem('meetime_user', JSON.stringify(userInfo));
   };
 
   const signOut = () => {
     setUser(null);
-    localStorage.removeItem('timeful_user');
+    localStorage.removeItem('meetime_user');
   };
 
   return (

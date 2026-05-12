@@ -78,8 +78,8 @@ export default function Confirm() {
           <div style={{ margin: '16px 16px 12px', background: '#fff', borderRadius: 12, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             <div style={{ fontSize: 11, color: '#AAA', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Gmail notification preview</div>
             <div style={{ borderLeft: '3px solid #00BFA5', paddingLeft: 12 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#111', marginBottom: 2 }}>📅 Timeful: Best time found!</div>
-              <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>from: noreply@timeful.app · to: you</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#111', marginBottom: 2 }}>📅 meetime: Best time found!</div>
+              <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>from: noreply@meetime.app · to: you</div>
               <div style={{ fontSize: 13, color: '#555', lineHeight: 1.6 }}>
                 Hi Alex,<br />
                 A best time has been found for <strong>Q2 Planning Kickoff</strong>: <span style={{ color: '#00BFA5', fontWeight: 600 }}>Thursday May 8, 10–11 AM PST</span>. All 4 participants are available.

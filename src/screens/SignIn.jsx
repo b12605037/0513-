@@ -84,7 +84,7 @@ export default function SignIn() {
         </div>
 
         <div style={{ fontSize: 11, color: '#CCC', textAlign: 'center', lineHeight: 1.6, marginTop: 16 }}>
-          Timeful reads your calendar availability only — never event details.
+          meetime reads your calendar availability only — never event details.
         </div>
       </div>
     </div>

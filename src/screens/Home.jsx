@@ -95,7 +95,7 @@ export default function Home() {
 
       <div style={{ background: '#fff', borderBottom: '1px solid #F0F0F0', padding: '56px 16px 12px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <span style={{ fontSize: 20, fontWeight: 800, color: '#111', letterSpacing: '-0.03em' }}>Timeful</span>
+          <span style={{ fontSize: 20, fontWeight: 800, color: '#111', letterSpacing: '-0.03em' }}>meetime</span>
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               {user.picture
@@ -232,7 +232,7 @@ export default function Home() {
               <div style={{ width: 12, height: 12, borderRadius: 3, background: selectedEvent.color, marginTop: 4, flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <div className="sheet-title" style={{ marginBottom: 4 }}>{selectedEvent.title}</div>
-                <div style={{ fontSize: 13, color: '#00897B', fontWeight: 600, background: '#E8F8F6', display: 'inline-block', padding: '2px 8px', borderRadius: 6 }}>Booked via Timeful</div>
+                <div style={{ fontSize: 13, color: '#00897B', fontWeight: 600, background: '#E8F8F6', display: 'inline-block', padding: '2px 8px', borderRadius: 6 }}>Booked via meetime</div>
               </div>
             </div>
             {[
