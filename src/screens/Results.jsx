@@ -187,6 +187,25 @@ export default function Results() {
         )}
       </div>
 
+      {/* Page navigation */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', alignItems: 'center', background: '#FAFAFA', borderBottom: '1px solid #F0F0F0', flexShrink: 0, padding: '0 4px' }}>
+          <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{
+            background: 'none', border: 'none', fontSize: 22, fontFamily: 'inherit',
+            color: page > 0 ? '#478058' : '#DDD', padding: '8px 12px', minWidth: 44,
+            cursor: page > 0 ? 'pointer' : 'default',
+          }}>‹</button>
+          <span style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#888' }}>
+            {pageNavLabel(pageDays)}
+          </span>
+          <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{
+            background: 'none', border: 'none', fontSize: 22, fontFamily: 'inherit',
+            color: page < totalPages - 1 ? '#478058' : '#DDD', padding: '8px 12px', minWidth: 44,
+            cursor: page < totalPages - 1 ? 'pointer' : 'default',
+          }}>›</button>
+        </div>
+      )}
+
       {/* Heatmap grid */}
       <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none' }}>
         {/* Day headers */}
@@ -234,14 +253,6 @@ export default function Results() {
 
       {/* Bottom */}
       <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
-        {totalPages > 1 && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginBottom: 12 }}>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <div key={i} onClick={() => setPage(i)} style={{ width: i === page ? 16 : 6, height: 6, borderRadius: 3, background: i === page ? '#478058' : '#E0E0E0', cursor: 'pointer', transition: 'all 0.2s' }} />
-            ))}
-          </div>
-        )}
-
         {/* Respondents — selectable filter chips */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
           {respondentNames.map((n, i) => {
