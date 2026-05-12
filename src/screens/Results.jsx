@@ -84,7 +84,7 @@ export default function Results() {
   const totalPages = Math.ceil(totalDays / DAYS_PER_PAGE);
 
   const mySlots = state?.mySlots ?? {};
-  const myName  = state?.myName  ?? 'You';
+  const myName  = state?.myName  ?? '你';
 
   // Generate 3 deterministic mock respondents
   const mockSlots = useMemo(() => MOCK_NAMES.map((_, i) =>
@@ -145,7 +145,7 @@ export default function Results() {
       <StatusBar />
       <div className="app-nav">
         <span style={{ width: 48 }} />
-        <span className="nav-title">Result</span>
+        <span className="nav-title">結果</span>
         <span style={{ width: 48 }} />
       </div>
 
@@ -156,9 +156,9 @@ export default function Results() {
             {[1, 2, 3, 4].map(n => (
               <div key={n} style={{ width: 14, height: 14, borderRadius: 3, background: heatColor(n, 4), border: '1px solid rgba(71,128,88,0.15)' }} />
             ))}
-            <span style={{ fontSize: 10, color: '#AAA', marginLeft: 2 }}>Fewer → More available</span>
+            <span style={{ fontSize: 10, color: '#AAA', marginLeft: 2 }}>少 → 多可用</span>
           </div>
-          <span style={{ fontSize: 11, color: '#888', fontWeight: 500 }}>{visibleCount} selected</span>
+          <span style={{ fontSize: 11, color: '#888', fontWeight: 500 }}>{visibleCount} 人已選</span>
         </div>
         {visibleCount === 0 && (
           <div style={{ marginTop: 6, fontSize: 12, color: '#E57373', fontWeight: 500 }}>請至少選擇一人</div>
@@ -168,10 +168,10 @@ export default function Results() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span style={{ fontSize: 10, color: '#478058' }}>★</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#478058' }}>Best time</span>
-                {!bestSlot.isFullDuration && <span style={{ fontSize: 10, color: '#AAA', fontWeight: 400 }}>(partial)</span>}
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#478058' }}>最佳時段</span>
+                {!bestSlot.isFullDuration && <span style={{ fontSize: 10, color: '#AAA', fontWeight: 400 }}>(部分)</span>}
               </div>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#478058' }}>{bestSlot.count}/{visibleCount} people</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#478058' }}>{bestSlot.count}/{visibleCount} 人可以</span>
             </div>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#8a9da8', marginBottom: bestSlot.freeNames.length ? 6 : 0 }}>
               {bestSlot.day.label} {bestSlot.day.date} · {bestSlot.time}–{bestSlot.endTime}
@@ -278,10 +278,10 @@ export default function Results() {
             background: 'transparent', color: '#478058', fontSize: 15, fontWeight: 600,
             fontFamily: 'inherit', cursor: 'pointer',
           }}>
-            Edit
+            編輯
           </button>
           <button className="btn-primary" onClick={() => navigate('/')} style={{ flex: 1, padding: '13px' }}>
-            Done
+            完成
           </button>
         </div>
       </div>

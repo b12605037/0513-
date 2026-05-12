@@ -217,7 +217,7 @@ function RangePicker({ startDate, endDate, onChange }) {
   const phase = isDragging ? 'dragging' : !startDate ? 'empty' : 'done';
   const phaseLabel = isDragging
     ? (effStart && effEnd && !sameDay(effStart, effEnd) ? `${SHORT_MONTHS[effStart.getMonth()]} ${effStart.getDate()} – ${SHORT_MONTHS[effEnd.getMonth()]} ${effEnd.getDate()}` : `${SHORT_MONTHS[effStart.getMonth()]} ${effStart.getDate()}`)
-    : phase === 'empty' ? 'Click and drag to select dates'
+    : phase === 'empty' ? '點選並拖曳以選擇日期'
     : (startDate && endDate && !sameDay(startDate, endDate))
       ? `${SHORT_MONTHS[startDate.getMonth()]} ${startDate.getDate()} – ${SHORT_MONTHS[endDate.getMonth()]} ${endDate.getDate()}, ${endDate.getFullYear()}`
       : startDate ? `${SHORT_MONTHS[startDate.getMonth()]} ${startDate.getDate()}, ${startDate.getFullYear()}` : 'Click and drag to select dates';
@@ -226,7 +226,7 @@ function RangePicker({ startDate, endDate, onChange }) {
       <div style={{ padding: '10px 16px 8px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0', display: 'flex', alignItems: 'center', gap: 6 }}>
         <div style={{ width: 6, height: 6, borderRadius: 3, background: phase === 'done' || phase === 'dragging' ? '#8a9da8' : '#FFB300', flexShrink: 0 }} />
         <span style={{ fontSize: 12, fontWeight: 600, color: phase === 'done' || phase === 'dragging' ? '#6b8592' : '#F57F17' }}>{phaseLabel}</span>
-        {phase === 'done' && <button onClick={() => onChange(null, null)} style={{ marginLeft: 'auto', fontSize: 11, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Reset</button>}
+        {phase === 'done' && <button onClick={() => onChange(null, null)} style={{ marginLeft: 'auto', fontSize: 11, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>重置</button>}
       </div>
       <div style={{ padding: '12px 16px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -278,7 +278,7 @@ function DatePickerSheet({ selected, onSelect, onClose }) {
       <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
         <div className="sheet-handle" />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div style={{ fontSize: 17, fontWeight: 700, color: '#8a9da8' }}>Survey Deadline</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: '#8a9da8' }}>問卷截止日</div>
           {selected && <div style={{ fontSize: 13, fontWeight: 600, color: '#8a9da8' }}>{formatDate(selected)}</div>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -332,7 +332,7 @@ export default function Home() {
         <div style={{ padding: '16px 16px 0' }}>
 
           <div className="form-field">
-            <label className="form-label">Select Date Range</label>
+            <label className="form-label">選擇日期範圍</label>
             <RangePicker
               startDate={rangeStart}
               endDate={rangeEnd}
@@ -342,9 +342,9 @@ export default function Home() {
 
           <div className="form-field">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <label className="form-label" style={{ marginBottom: 0 }}>Available Time Window</label>
+              <label className="form-label" style={{ marginBottom: 0 }}>可用時間段</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 500, color: '#888' }}>All Day</span>
+                <span style={{ fontSize: 13, fontWeight: 500, color: '#888' }}>全天</span>
                 <div onClick={() => setAllDay(v => !v)} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8a9da8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
                   <div style={{ position: 'absolute', top: 2, left: allDay ? 18 : 2, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
                 </div>
@@ -360,15 +360,15 @@ export default function Home() {
           </div>
 
           <div className="form-field">
-            <label className="form-label">Duration</label>
+            <label className="form-label">持續時長</label>
             <DurationSlider value={duration} onChange={setDuration} />
           </div>
 
           <div className="form-field">
-            <label className="form-label">Survey Deadline</label>
+            <label className="form-label">問卷截止日</label>
             <div style={{ position: 'relative' }} onClick={() => setShowDeadlineSheet(true)}>
               <div className="form-input" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: deadlineDate ? '#8a9da8' : '#BEC0C4', paddingRight: 36 }}>
-                {deadlineDate ? formatDate(deadlineDate) : 'Select date'}
+                {deadlineDate ? formatDate(deadlineDate) : '選擇日期'}
               </div>
               <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#BBB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -382,7 +382,7 @@ export default function Home() {
 
         <div style={{ padding: '4px 16px 32px' }}>
           <button className="btn-primary" onClick={() => navigate('/grid', { state: { rangeStart: rangeStart?.getTime() ?? null, rangeEnd: rangeEnd?.getTime() ?? null, startSlot, endSlot, allDay, duration } })}>
-            Submit
+            送出
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
             </svg>
