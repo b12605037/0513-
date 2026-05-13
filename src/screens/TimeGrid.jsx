@@ -218,6 +218,20 @@ export default function TimeGrid() {
   const handleMouseEnter = (d, s) => moveDrag(d, s);
   const handleMouseUp    = () => { dragRef.current.active = false; flushSlots(); };
 
+  const fillDay = (dayIdx) => {
+    const allFilled = Array.from({ length: TOTAL }, (_, s) => slotsRef.current[`${dayIdx}-${s}`] === 1).every(Boolean);
+    const target = allFilled ? 0 : 1;
+    const newSlots = { ...slotsRef.current };
+    for (let s = 0; s < TOTAL; s++) {
+      const key = `${dayIdx}-${s}`;
+      newSlots[key] = target;
+      const el = document.getElementById(`sl-${dayIdx}-${s}`);
+      if (el) el.style.background = target === 1 ? FREE_COLOR : 'transparent';
+    }
+    slotsRef.current = newSlots;
+    setSlots(newSlots);
+  };
+
   const autofillBestTime = () => {
     let maxCount = 0;
     for (let d = 0; d < totalDays; d++)
@@ -259,13 +273,15 @@ export default function TimeGrid() {
   }, [state]);
 
   // ── Shared day-header + grid skeleton ────────────────────────────────────────
-  const DayHeader = () => (
+  const DayHeader = ({ onDayClick } = {}) => (
     <div style={{ display: 'flex', position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: '1px solid #EBEBEB' }}>
       <div style={{ width: LABEL_W, flexShrink: 0 }} />
       {pageDays.map((d, i) => {
         const isToday = (pageStart + i) === todayIdx;
+        const globalIdx = pageStart + i;
         return (
-          <div key={i} style={{ flex: 1, textAlign: 'center', padding: '5px 0 6px' }}>
+          <div key={i} onClick={() => onDayClick?.(globalIdx)}
+            style={{ flex: 1, textAlign: 'center', padding: '5px 0 6px', cursor: onDayClick ? 'pointer' : 'default' }}>
             <div style={{ fontSize: 10, fontWeight: 600, color: isToday ? '#8a9da8' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
             <div style={{ width: 22, height: 22, borderRadius: 11, margin: '2px auto 0', background: isToday ? '#8a9da8' : 'transparent', color: isToday ? '#fff' : '#8a9da8', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
           </div>
@@ -328,7 +344,7 @@ export default function TimeGrid() {
           onTouchStart={handleContainerTouchStart}
           onTouchEnd={handleContainerTouchEnd}
         >
-          <DayHeader />
+          {DayHeader({ onDayClick: fillDay })}
           <div style={{ display: 'flex', userSelect: 'none', WebkitUserSelect: 'none' }}>
             <div style={{ width: LABEL_W, flexShrink: 0 }}>
               {Array.from({ length: TOTAL }, (_, s) => (
@@ -369,7 +385,7 @@ export default function TimeGrid() {
           onClick={() => setHoveredCell(null)}
           onScroll={() => setHoveredCell(null)}
         >
-          <DayHeader />
+          {DayHeader({})}
           <div style={{ display: 'flex', userSelect: 'none' }}>
             <div style={{ width: LABEL_W, flexShrink: 0 }}>
               {Array.from({ length: TOTAL }, (_, s) => (
