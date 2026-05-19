@@ -156,12 +156,12 @@ export default function Results() {
             {[1, 2, 3, 4].map(n => (
               <div key={n} style={{ width: 14, height: 14, borderRadius: 3, background: heatColor(n, 4), border: '1px solid rgba(71,128,88,0.15)' }} />
             ))}
-            <span style={{ fontSize: 10, color: '#AAA', marginLeft: 2 }}>少 → 多可用</span>
+            <span style={{ fontSize: 10, color: '#AAA', marginLeft: 2 }}>有空人數：少 → 多</span>
           </div>
-          <span style={{ fontSize: 11, color: '#888', fontWeight: 500 }}>{visibleCount} 人已選</span>
+          <span style={{ fontSize: 11, color: '#888', fontWeight: 500 }}>已選取 {visibleCount} 人</span>
         </div>
         {visibleCount === 0 && (
-          <div style={{ marginTop: 6, fontSize: 12, color: '#E57373', fontWeight: 500 }}>請至少選擇一人</div>
+          <div style={{ marginTop: 6, fontSize: 12, color: '#E57373', fontWeight: 500 }}>請至少選取一位</div>
         )}
         {bestSlot && visibleCount > 0 && (
           <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(71,128,88,0.08)', borderRadius: 10, border: '1px solid rgba(71,128,88,0.2)' }}>
@@ -169,9 +169,9 @@ export default function Results() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span style={{ fontSize: 10, color: '#478058' }}>★</span>
                 <span style={{ fontSize: 11, fontWeight: 700, color: '#478058' }}>最佳時段</span>
-                {!bestSlot.isFullDuration && <span style={{ fontSize: 10, color: '#AAA', fontWeight: 400 }}>(部分)</span>}
+                {!bestSlot.isFullDuration && <span style={{ fontSize: 10, color: '#AAA', fontWeight: 400 }}>(時段不足)</span>}
               </div>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#478058' }}>{bestSlot.count}/{visibleCount} 人可以</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#478058' }}>{bestSlot.count}/{visibleCount} 人有空</span>
             </div>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#8a9da8', marginBottom: bestSlot.freeNames.length ? 6 : 0 }}>
               {bestSlot.day.label} {bestSlot.day.date} · {bestSlot.time}–{bestSlot.endTime}
@@ -278,7 +278,7 @@ export default function Results() {
             background: 'transparent', color: '#478058', fontSize: 15, fontWeight: 600,
             fontFamily: 'inherit', cursor: 'pointer',
           }}>
-            編輯
+            重新填寫
           </button>
           <button className="btn-primary" onClick={() => navigate('/')} style={{ flex: 1, padding: '13px' }}>
             完成

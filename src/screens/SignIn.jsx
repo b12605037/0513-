@@ -44,14 +44,14 @@ export default function SignIn() {
           <div style={{ position: 'absolute', right: -20, top: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
           <div style={{ position: 'absolute', right: 30, bottom: -30, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 600 }}>You're invited</div>
+            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 600 }}>你收到邀請</div>
           </div>
           <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 6 }}>Q2 Planning Kickoff</div>
           <div style={{ display: 'flex', gap: 16, fontSize: 13, opacity: 0.85 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><IcClock /> 60 min</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><IcUsers /> 5 people</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><IcClock /> 60 分鐘</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><IcUsers /> 5 人</span>
           </div>
-          <div style={{ marginTop: 12, fontSize: 13, opacity: 0.75 }}>Respond by May 9 · PST</div>
+          <div style={{ marginTop: 12, fontSize: 13, opacity: 0.75 }}>請在 5/9 前回覆 · PST</div>
           <div className="avatar-stack" style={{ marginTop: 14 }}>
             {['A', 'S', 'J', 'R'].map((l, i) => (
               <div key={i} className="avatar" style={{ background: 'rgba(255,255,255,0.3)', color: '#fff', border: '2px solid rgba(255,255,255,0.5)', width: 28, height: 28, fontSize: 11 }}>{l}</div>
@@ -62,29 +62,29 @@ export default function SignIn() {
 
         {/* Primary action */}
         <button className="btn-primary" onClick={() => navigate('/grid')} style={{ marginBottom: 16 }}>
-          Fill in My Availability
+          填寫我的可用時間
         </button>
 
         {/* Optional Google Calendar */}
         <div style={{ background: '#F8FFFE', border: '1.5px solid #E0F5F2', borderRadius: 14, padding: '16px 18px' }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#111', marginBottom: 4 }}>
-            Auto-detect free slots
-            <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 600, color: '#8a9da8', background: '#E0F5F2', borderRadius: 6, padding: '2px 7px' }}>Optional</span>
+            自動偵測空閒時段
+            <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 600, color: '#8a9da8', background: '#E0F5F2', borderRadius: 6, padding: '2px 7px' }}>選填</span>
           </div>
           <div style={{ fontSize: 12, color: '#888', lineHeight: 1.5, marginBottom: 14 }}>
-            Connect Google Calendar to automatically highlight your available times.
+            連結 Google 日曆，自動標記你的空閒時段。
           </div>
           <button className="btn-google" onClick={() => { setLoading(true); handleGoogle(); }} style={{ width: '100%' }} disabled={loading}>
             {loading
               ? <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
-              : <><IcGoogle /> Continue with Google</>
+              : <><IcGoogle /> 以 Google 帳號繼續</>
             }
           </button>
           {error && <div style={{ fontSize: 12, color: '#E53935', marginTop: 10, textAlign: 'center' }}>{error}</div>}
         </div>
 
         <div style={{ fontSize: 11, color: '#CCC', textAlign: 'center', lineHeight: 1.6, marginTop: 16 }}>
-          meetime reads your calendar availability only — never event details.
+          meetime 僅讀取你的行事曆空閒狀態，不會存取任何活動內容。
         </div>
       </div>
     </div>

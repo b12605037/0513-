@@ -217,7 +217,7 @@ function RangePicker({ startDate, endDate, onChange }) {
   const phase = isDragging ? 'dragging' : !startDate ? 'empty' : 'done';
   const phaseLabel = isDragging
     ? (effStart && effEnd && !sameDay(effStart, effEnd) ? `${SHORT_MONTHS[effStart.getMonth()]} ${effStart.getDate()} – ${SHORT_MONTHS[effEnd.getMonth()]} ${effEnd.getDate()}` : `${SHORT_MONTHS[effStart.getMonth()]} ${effStart.getDate()}`)
-    : phase === 'empty' ? '點選並拖曳以選擇日期'
+    : phase === 'empty' ? '點按並拖曳以選取日期'
     : (startDate && endDate && !sameDay(startDate, endDate))
       ? `${SHORT_MONTHS[startDate.getMonth()]} ${startDate.getDate()} – ${SHORT_MONTHS[endDate.getMonth()]} ${endDate.getDate()}, ${endDate.getFullYear()}`
       : startDate ? `${SHORT_MONTHS[startDate.getMonth()]} ${startDate.getDate()}, ${startDate.getFullYear()}` : 'Click and drag to select dates';
@@ -226,7 +226,7 @@ function RangePicker({ startDate, endDate, onChange }) {
       <div style={{ padding: '10px 16px 8px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0', display: 'flex', alignItems: 'center', gap: 6 }}>
         <div style={{ width: 6, height: 6, borderRadius: 3, background: phase === 'done' || phase === 'dragging' ? '#8a9da8' : '#FFB300', flexShrink: 0 }} />
         <span style={{ fontSize: 12, fontWeight: 600, color: phase === 'done' || phase === 'dragging' ? '#6b8592' : '#F57F17' }}>{phaseLabel}</span>
-        {phase === 'done' && <button onClick={() => onChange(null, null)} style={{ marginLeft: 'auto', fontSize: 11, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>重置</button>}
+        {phase === 'done' && <button onClick={() => onChange(null, null)} style={{ marginLeft: 'auto', fontSize: 11, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>}
       </div>
       <div style={{ padding: '12px 16px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -278,7 +278,7 @@ function DatePickerSheet({ selected, onSelect, onClose }) {
       <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
         <div className="sheet-handle" />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div style={{ fontSize: 17, fontWeight: 700, color: '#8a9da8' }}>問卷截止日</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: '#8a9da8' }}>回覆截止日</div>
           {selected && <div style={{ fontSize: 13, fontWeight: 600, color: '#8a9da8' }}>{formatDate(selected)}</div>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -332,7 +332,7 @@ export default function Home() {
         <div style={{ padding: '16px 16px 0' }}>
 
           <div className="form-field">
-            <label className="form-label">選擇日期範圍</label>
+            <label className="form-label">候選日期範圍</label>
             <RangePicker
               startDate={rangeStart}
               endDate={rangeEnd}
@@ -342,7 +342,7 @@ export default function Home() {
 
           <div className="form-field">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <label className="form-label" style={{ marginBottom: 0 }}>可用時間段</label>
+              <label className="form-label" style={{ marginBottom: 0 }}>可用時段</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 13, fontWeight: 500, color: '#888' }}>全天</span>
                 <div onClick={() => setAllDay(v => !v)} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8a9da8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
@@ -360,15 +360,15 @@ export default function Home() {
           </div>
 
           <div className="form-field">
-            <label className="form-label">持續時長</label>
+            <label className="form-label">會議時長</label>
             <DurationSlider value={duration} onChange={setDuration} />
           </div>
 
           <div className="form-field">
-            <label className="form-label">問卷截止日</label>
+            <label className="form-label">回覆截止日</label>
             <div style={{ position: 'relative' }} onClick={() => setShowDeadlineSheet(true)}>
               <div className="form-input" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: deadlineDate ? '#8a9da8' : '#BEC0C4', paddingRight: 36 }}>
-                {deadlineDate ? formatDate(deadlineDate) : '選擇日期'}
+                {deadlineDate ? formatDate(deadlineDate) : '選取日期'}
               </div>
               <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#BBB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

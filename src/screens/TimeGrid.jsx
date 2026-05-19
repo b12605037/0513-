@@ -296,7 +296,7 @@ export default function TimeGrid() {
       <StatusBar />
       <div className="app-nav">
         <span style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>{surveyLabel}</span>
-        <span className="nav-title">我的可用時間</span>
+        <span className="nav-title">填寫我的時間</span>
         <span style={{ width: 48 }} />
       </div>
 
@@ -424,12 +424,12 @@ export default function TimeGrid() {
                 flex: 1, padding: '12px 0', borderRadius: 12, border: `1.5px solid ${FREE_COLOR}`,
                 background: 'transparent', color: FREE_COLOR, fontSize: 13, fontWeight: 600,
                 fontFamily: 'inherit', cursor: 'pointer',
-              }}>最佳時段</button>
+              }}>自動填入</button>
               <button className="btn-primary" onClick={() => setShowNameModal(true)} style={{ flex: 2, padding: '12px' }}>
-                提交
+                送出
               </button>
             </div>
-            <div style={{ fontSize: 11, color: '#AAA', textAlign: 'center' }}>點擊・拖曳塗色・滑動切換日期</div>
+            <div style={{ fontSize: 11, color: '#AAA', textAlign: 'center' }}>點按・拖曳塗色・左右滑動換頁</div>
           </>
         ) : (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -478,7 +478,7 @@ export default function TimeGrid() {
           }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 2 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#8a9da8' }}>
-                {allFree ? '所有人都可以' : `${avail.length} / ${people.length} 人可以`}
+                {allFree ? '所有人都有空' : `${avail.length} / ${people.length} 人有空`}
               </div>
               <button onTouchEnd={e => { e.stopPropagation(); setHoveredCell(null); }}
                 onClick={() => setHoveredCell(null)}
@@ -511,16 +511,16 @@ export default function TimeGrid() {
           style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
           <div onClick={e => e.stopPropagation()}
             style={{ width: '100%', maxWidth: 360, background: '#fff', borderRadius: 20, padding: '28px 20px 24px' }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#8a9da8', marginBottom: 6 }}>你叫什麼名字？</div>
-            <div style={{ fontSize: 13, color: '#AAA', marginBottom: 20 }}>讓其他人知道這是誰的可用時間。</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#8a9da8', marginBottom: 6 }}>請問你叫什麼名字？</div>
+            <div style={{ fontSize: 13, color: '#AAA', marginBottom: 20 }}>讓大家知道這份時間表是誰填的。</div>
             <input autoFocus value={name} onChange={e => setName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && name.trim() && navigate('/results', { state: { ...state, mySlots: slotsRef.current, myName: name.trim() } })}
-              placeholder="你的名字"
+              placeholder="輸入你的名字"
               style={{ width: '100%', padding: '13px 14px', borderRadius: 12, border: '1.5px solid #E0E0E0', fontSize: 16, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', marginBottom: 14 }} />
             <button className="btn-primary" disabled={!name.trim()}
               onClick={() => name.trim() && navigate('/results', { state: { ...state, mySlots: slotsRef.current, myName: name.trim() } })}
               style={{ padding: '13px', opacity: name.trim() ? 1 : 0.4 }}>
-              確認
+              送出
             </button>
           </div>
         </div>

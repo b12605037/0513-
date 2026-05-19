@@ -295,12 +295,12 @@ function RangePicker({ startDate, endDate, onChange }) {
         ? `${SHORT_MONTHS[effStart.getMonth()]} ${effStart.getDate()} – ${SHORT_MONTHS[effEnd.getMonth()]} ${effEnd.getDate()}`
         : `${SHORT_MONTHS[effStart.getMonth()]} ${effStart.getDate()}`)
     : phase === 'empty'
-    ? 'Click and drag to select dates'
+    ? '點按並拖曳以選取日期'
     : (startDate && endDate && !sameDay(startDate, endDate))
       ? `${SHORT_MONTHS[startDate.getMonth()]} ${startDate.getDate()} – ${SHORT_MONTHS[endDate.getMonth()]} ${endDate.getDate()}, ${endDate.getFullYear()}`
       : startDate
       ? `${SHORT_MONTHS[startDate.getMonth()]} ${startDate.getDate()}, ${startDate.getFullYear()}`
-      : 'Click and drag to select dates';
+      : '點按並拖曳以選取日期';
 
   return (
     <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16 }}>
@@ -308,7 +308,7 @@ function RangePicker({ startDate, endDate, onChange }) {
         <div style={{ width: 6, height: 6, borderRadius: 3, background: phase === 'done' ? '#8a9da8' : phase === 'dragging' ? '#8a9da8' : '#FFB300', flexShrink: 0 }} />
         <span style={{ fontSize: 12, fontWeight: 600, color: phase === 'done' || phase === 'dragging' ? '#6b8592' : '#F57F17' }}>{phaseLabel}</span>
         {phase === 'done' && (
-          <button onClick={() => onChange(null, null)} style={{ marginLeft: 'auto', fontSize: 11, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Reset</button>
+          <button onClick={() => onChange(null, null)} style={{ marginLeft: 'auto', fontSize: 11, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
         )}
       </div>
 
@@ -402,7 +402,7 @@ function DatePickerSheet({ selected, onSelect, onClose }) {
         <div className="sheet-handle" />
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div style={{ fontSize: 17, fontWeight: 700, color: '#111' }}>Survey Deadline</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: '#111' }}>回覆截止日</div>
           {selected && <div style={{ fontSize: 13, fontWeight: 600, color: '#8a9da8' }}>{formatDate(selected)}</div>}
         </div>
 
@@ -452,39 +452,39 @@ function DatePickerSheet({ selected, onSelect, onClose }) {
 
 // ── Timezone picker (bottom sheet) ────────────────────────────────────────────
 const TIMEZONES = [
-  { region: 'Auto-detect', zones: [
-    { label: 'Local', sub: 'Use device timezone', value: 'local', offset: '' },
+  { region: '自動偵測', zones: [
+    { label: 'Local', sub: '使用裝置時區', value: 'local', offset: '' },
   ]},
-  { region: 'Americas', zones: [
-    { label: 'America/Los_Angeles', sub: 'Pacific Time — Los Angeles',  value: 'America/Los_Angeles', offset: 'UTC−8' },
-    { label: 'America/Denver',      sub: 'Mountain Time — Denver',      value: 'America/Denver',       offset: 'UTC−7' },
-    { label: 'America/Chicago',     sub: 'Central Time — Chicago',      value: 'America/Chicago',      offset: 'UTC−6' },
-    { label: 'America/New_York',    sub: 'Eastern Time — New York',     value: 'America/New_York',     offset: 'UTC−5' },
-    { label: 'America/Halifax',     sub: 'Atlantic Time — Halifax',     value: 'America/Halifax',      offset: 'UTC−4' },
-    { label: 'America/Sao_Paulo',   sub: 'Brasília — São Paulo',        value: 'America/Sao_Paulo',    offset: 'UTC−3' },
+  { region: '美洲', zones: [
+    { label: 'America/Los_Angeles', sub: '太平洋時間 — 洛杉磯',  value: 'America/Los_Angeles', offset: 'UTC−8' },
+    { label: 'America/Denver',      sub: '山地時間 — 丹佛',      value: 'America/Denver',       offset: 'UTC−7' },
+    { label: 'America/Chicago',     sub: '中部時間 — 芝加哥',    value: 'America/Chicago',      offset: 'UTC−6' },
+    { label: 'America/New_York',    sub: '東部時間 — 紐約',      value: 'America/New_York',     offset: 'UTC−5' },
+    { label: 'America/Halifax',     sub: '大西洋時間 — 哈利法克斯', value: 'America/Halifax',   offset: 'UTC−4' },
+    { label: 'America/Sao_Paulo',   sub: '巴西利亞 — 聖保羅',   value: 'America/Sao_Paulo',    offset: 'UTC−3' },
   ]},
-  { region: 'Europe & Africa', zones: [
-    { label: 'UTC',                 sub: 'Coordinated Universal Time',  value: 'UTC',                  offset: 'UTC+0' },
-    { label: 'Europe/London',       sub: 'London, Dublin',              value: 'Europe/London',        offset: 'UTC+0' },
-    { label: 'Europe/Paris',        sub: 'Paris, Berlin, Rome',         value: 'Europe/Paris',         offset: 'UTC+1' },
-    { label: 'Europe/Helsinki',     sub: 'Helsinki, Kyiv, Cairo',       value: 'Europe/Helsinki',      offset: 'UTC+2' },
-    { label: 'Europe/Moscow',       sub: 'Moscow, St. Petersburg',      value: 'Europe/Moscow',        offset: 'UTC+3' },
+  { region: '歐洲與非洲', zones: [
+    { label: 'UTC',                 sub: '世界協調時間',         value: 'UTC',                  offset: 'UTC+0' },
+    { label: 'Europe/London',       sub: '倫敦、都柏林',         value: 'Europe/London',        offset: 'UTC+0' },
+    { label: 'Europe/Paris',        sub: '巴黎、柏林、羅馬',    value: 'Europe/Paris',         offset: 'UTC+1' },
+    { label: 'Europe/Helsinki',     sub: '赫爾辛基、基輔、開羅', value: 'Europe/Helsinki',      offset: 'UTC+2' },
+    { label: 'Europe/Moscow',       sub: '莫斯科、聖彼得堡',    value: 'Europe/Moscow',        offset: 'UTC+3' },
   ]},
-  { region: 'Middle East & Asia', zones: [
-    { label: 'Asia/Dubai',          sub: 'Dubai, Abu Dhabi',            value: 'Asia/Dubai',           offset: 'UTC+4' },
-    { label: 'Asia/Kolkata',        sub: 'Mumbai, Kolkata, Chennai',    value: 'Asia/Kolkata',         offset: 'UTC+5:30' },
-    { label: 'Asia/Dhaka',          sub: 'Dhaka, Bangladesh',           value: 'Asia/Dhaka',           offset: 'UTC+6' },
-    { label: 'Asia/Bangkok',        sub: 'Bangkok, Hanoi, Jakarta',     value: 'Asia/Bangkok',         offset: 'UTC+7' },
-    { label: 'Asia/Shanghai',       sub: 'Beijing, Shanghai, Chongqing',value: 'Asia/Shanghai',        offset: 'UTC+8' },
-    { label: 'Asia/Taipei',         sub: 'Taipei, Taiwan',              value: 'Asia/Taipei',          offset: 'UTC+8' },
-    { label: 'Asia/Hong_Kong',      sub: 'Hong Kong',                   value: 'Asia/Hong_Kong',       offset: 'UTC+8' },
-    { label: 'Asia/Singapore',      sub: 'Singapore, Kuala Lumpur',     value: 'Asia/Singapore',       offset: 'UTC+8' },
-    { label: 'Asia/Seoul',          sub: 'Seoul, South Korea',          value: 'Asia/Seoul',           offset: 'UTC+9' },
-    { label: 'Asia/Tokyo',          sub: 'Tokyo, Osaka, Sapporo',       value: 'Asia/Tokyo',           offset: 'UTC+9' },
+  { region: '中東與亞洲', zones: [
+    { label: 'Asia/Dubai',          sub: '杜拜、阿布達比',       value: 'Asia/Dubai',           offset: 'UTC+4' },
+    { label: 'Asia/Kolkata',        sub: '孟買、加爾各答、欽奈', value: 'Asia/Kolkata',         offset: 'UTC+5:30' },
+    { label: 'Asia/Dhaka',          sub: '達卡、孟加拉',         value: 'Asia/Dhaka',           offset: 'UTC+6' },
+    { label: 'Asia/Bangkok',        sub: '曼谷、河內、雅加達',   value: 'Asia/Bangkok',         offset: 'UTC+7' },
+    { label: 'Asia/Shanghai',       sub: '北京、上海、重慶',     value: 'Asia/Shanghai',        offset: 'UTC+8' },
+    { label: 'Asia/Taipei',         sub: '台北、台灣',           value: 'Asia/Taipei',          offset: 'UTC+8' },
+    { label: 'Asia/Hong_Kong',      sub: '香港',                 value: 'Asia/Hong_Kong',       offset: 'UTC+8' },
+    { label: 'Asia/Singapore',      sub: '新加坡、吉隆坡',       value: 'Asia/Singapore',       offset: 'UTC+8' },
+    { label: 'Asia/Seoul',          sub: '首爾、韓國',           value: 'Asia/Seoul',           offset: 'UTC+9' },
+    { label: 'Asia/Tokyo',          sub: '東京、大阪、札幌',     value: 'Asia/Tokyo',           offset: 'UTC+9' },
   ]},
-  { region: 'Pacific', zones: [
-    { label: 'Australia/Sydney',    sub: 'Sydney, Melbourne',           value: 'Australia/Sydney',     offset: 'UTC+10' },
-    { label: 'Pacific/Auckland',    sub: 'Auckland, Wellington',        value: 'Pacific/Auckland',     offset: 'UTC+12' },
+  { region: '太平洋地區', zones: [
+    { label: 'Australia/Sydney',    sub: '雪梨、墨爾本',         value: 'Australia/Sydney',     offset: 'UTC+10' },
+    { label: 'Pacific/Auckland',    sub: '奧克蘭、威靈頓',       value: 'Pacific/Auckland',     offset: 'UTC+12' },
   ]},
 ];
 
@@ -509,13 +509,13 @@ function TimezoneSheet({ current, onSelect, onClose }) {
     <div className="bottom-sheet-overlay" onClick={onClose}>
       <div className="bottom-sheet" style={{ maxHeight: '80vh', display: 'flex', flexDirection: 'column', paddingBottom: 0 }} onClick={e => e.stopPropagation()}>
         <div className="sheet-handle" />
-        <div style={{ fontSize: 17, fontWeight: 700, color: '#111', marginBottom: 14 }}>Select Timezone</div>
+        <div style={{ fontSize: 17, fontWeight: 700, color: '#111', marginBottom: 14 }}>選擇時區</div>
 
         <div style={{ position: 'relative', marginBottom: 12 }}>
           <svg style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#BBB' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input autoFocus className="form-input" placeholder="Search timezones…" value={query} onChange={e => setQuery(e.target.value)} style={{ paddingLeft: 36, paddingTop: 10, paddingBottom: 10 }} />
+          <input autoFocus className="form-input" placeholder="搜尋時區…" value={query} onChange={e => setQuery(e.target.value)} style={{ paddingLeft: 36, paddingTop: 10, paddingBottom: 10 }} />
         </div>
 
         <div style={{ overflowY: 'auto', flex: 1, marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20, paddingBottom: 34 }}>
@@ -555,6 +555,10 @@ export default function CreateEvent() {
   const [step, setStep] = useState(1);
   const [showTzSheet, setShowTzSheet] = useState(false);
   const [showDeadlineSheet, setShowDeadlineSheet] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [meetingId, setMeetingId] = useState(null);
+  const [modalName, setModalName] = useState('');
+  const [copied, setCopied] = useState(false);
   const [deadlineDate, setDeadlineDate] = useState(new Date(2026, 4, 9));
   const [rangeStart, setRangeStart] = useState(new Date(2026, 4, 5));
   const [rangeEnd, setRangeEnd] = useState(new Date(2026, 4, 9));
@@ -575,18 +579,48 @@ export default function CreateEvent() {
     setShowTzSheet(false);
   };
 
+  const handleSendInvite = () => {
+    const id = Math.random().toString(36).slice(2, 10);
+    const data = {
+      id,
+      name: form.name,
+      rangeStart: rangeStart?.getTime() ?? null,
+      rangeEnd: rangeEnd?.getTime() ?? null,
+      startSlot,
+      endSlot,
+      allDay: form.allDay,
+      duration: form.duration,
+      timezone: form.timezone,
+      timezoneOffset: form.timezoneOffset,
+      deadline: deadlineDate?.getTime() ?? null,
+    };
+    localStorage.setItem(`meeting_${id}`, JSON.stringify(data));
+    setMeetingId(id);
+    setModalName(form.name || '');
+    setShowShareModal(true);
+  };
+
+  const shareLink = meetingId ? `${window.location.origin}/join/${meetingId}` : '';
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(shareLink).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    });
+  };
+
   return (
     <div className="app-container" style={{ position: 'relative' }}>
       <StatusBar />
       <div className="app-nav">
         {step > 1
           ? <button className="nav-back" onClick={() => setStep(s => s - 1)}>
-              <IcChevron dir="left" /> Back
+              <IcChevron dir="left" /> 返回
             </button>
           : <span style={{ width: 60 }} />
         }
-        <span className="nav-title">New Event</span>
-        <button className="nav-action" onClick={() => navigate('/')}>Cancel</button>
+        <span className="nav-title">新增活動</span>
+        <button className="nav-action" onClick={() => navigate('/')}>取消</button>
       </div>
 
       <div className="steps">
@@ -599,20 +633,20 @@ export default function CreateEvent() {
         {step === 1 && (
           <div>
             <div className="section-head" style={{ paddingTop: 16 }}>
-              <h2>Event Details</h2>
-              <p>What meeting are you scheduling?</p>
+              <h2>活動資訊</h2>
+              <p>這次要安排什麼會議？</p>
             </div>
             <div style={{ padding: '0 16px' }}>
               <div className="form-field">
-                <label className="form-label">Event Name</label>
-                <input className="form-input" value={form.name} onChange={e => up('name', e.target.value)} placeholder="e.g. Weekly Standup" />
+                <label className="form-label">活動名稱</label>
+                <input className="form-input" value={form.name} onChange={e => up('name', e.target.value)} placeholder="例：週會、團隊討論" />
               </div>
               <div className="form-field">
-                <label className="form-label">Duration</label>
+                <label className="form-label">會議時長</label>
                 <DurationSlider value={form.duration} onChange={(v) => up('duration', v)} />
               </div>
               <div className="form-field">
-                <label className="form-label">Timezone</label>
+                <label className="form-label">時區</label>
                 <div style={{ position: 'relative' }} onClick={() => setShowTzSheet(true)}>
                   <div className="form-input" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', paddingRight: 36 }}>
                     <span style={{ color: '#111' }}>{form.timezone}</span>
@@ -624,10 +658,10 @@ export default function CreateEvent() {
                 </div>
               </div>
               <div className="form-field">
-                <label className="form-label">Survey Deadline</label>
+                <label className="form-label">回覆截止日</label>
                 <div style={{ position: 'relative' }} onClick={() => setShowDeadlineSheet(true)}>
                   <div className="form-input" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: deadlineDate ? '#111' : '#BEC0C4', paddingRight: 36 }}>
-                    {deadlineDate ? formatDate(deadlineDate) : 'Select date'}
+                    {deadlineDate ? formatDate(deadlineDate) : '選取日期'}
                   </div>
                   <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#BBB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -643,13 +677,13 @@ export default function CreateEvent() {
         {step === 2 && (
           <div>
             <div className="section-head" style={{ paddingTop: 16 }}>
-              <h2>Date Range</h2>
-              <p>Which days could the meeting happen?</p>
+              <h2>候選日期</h2>
+              <p>會議可能在哪幾天進行？</p>
             </div>
             <div style={{ padding: '0 16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', borderRadius: 10, padding: '12px 14px', marginBottom: 14, border: '1.5px solid #F0F0F0' }}>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>All Day</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>全天</div>
                 </div>
                 <div onClick={() => up('allDay', !form.allDay)} style={{ width: 44, height: 26, borderRadius: 13, background: form.allDay ? '#8a9da8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
                   <div style={{ position: 'absolute', top: 3, left: form.allDay ? 20 : 3, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
@@ -658,7 +692,7 @@ export default function CreateEvent() {
 
               {!form.allDay && (
                 <div className="form-field">
-                  <label className="form-label">Available Time Window</label>
+                  <label className="form-label">可用時段</label>
                   <TimeRangeSlider
                     startSlot={startSlot}
                     endSlot={endSlot}
@@ -667,7 +701,7 @@ export default function CreateEvent() {
                 </div>
               )}
 
-              <label className="form-label" style={{ display: 'block', marginBottom: 8 }}>Select Date Range</label>
+              <label className="form-label" style={{ display: 'block', marginBottom: 8 }}>候選日期範圍</label>
               <RangePicker
                 startDate={rangeStart}
                 endDate={rangeEnd}
@@ -680,10 +714,10 @@ export default function CreateEvent() {
         <div style={{ padding: '8px 16px 32px' }}>
           {step < 2
             ? <button className="btn-primary" onClick={() => setStep(s => s + 1)}>
-                Next <IcChevron dir="right" size={16} />
+                下一步 <IcChevron dir="right" size={16} />
               </button>
-            : <button className="btn-primary" onClick={() => navigate('/')}>
-                Send Invite
+            : <button className="btn-primary" onClick={handleSendInvite}>
+                送出邀請
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
                 </svg>
@@ -697,6 +731,49 @@ export default function CreateEvent() {
       )}
       {showDeadlineSheet && (
         <DatePickerSheet selected={deadlineDate} onSelect={setDeadlineDate} onClose={() => setShowDeadlineSheet(false)} />
+      )}
+
+      {showShareModal && (
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
+          <div style={{ width: '100%', background: '#fff', borderRadius: 24, padding: '28px 20px 22px', boxShadow: '0 12px 48px rgba(0,0,0,0.18)' }}>
+
+            <div style={{ width: 48, height: 48, borderRadius: 24, background: '#f0f7f2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#478058" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+
+            <div style={{ textAlign: 'center', marginBottom: 18 }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: '#111', marginBottom: 4 }}>邀請連結已建立！</div>
+              <div style={{ fontSize: 13, color: '#AAA' }}>取個名稱後，複製連結分享給大家填寫</div>
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <input
+                value={modalName}
+                onChange={e => setModalName(e.target.value)}
+                placeholder="活動名稱（可留空）"
+                style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1.5px solid #E0E0E0', fontSize: 15, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', color: '#111' }}
+              />
+            </div>
+
+            <div style={{ background: '#F8F8F8', borderRadius: 12, padding: '10px 12px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ flex: 1, fontSize: 11, color: '#666', wordBreak: 'break-all', fontFamily: 'monospace', lineHeight: 1.4 }}>
+                {shareLink}
+              </div>
+              <button onClick={handleCopy} style={{
+                flexShrink: 0, padding: '7px 12px', borderRadius: 10, border: 'none',
+                background: copied ? '#478058' : '#1A1A1A',
+                color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap',
+              }}>
+                {copied ? '已複製 ✓' : '複製連結'}
+              </button>
+            </div>
+
+            <button className="btn-primary" onClick={() => navigate('/')}>完成</button>
+          </div>
+        </div>
       )}
     </div>
   );
