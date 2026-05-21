@@ -424,7 +424,7 @@ export default function TimeGrid() {
                 flex: 1, padding: '12px 0', borderRadius: 12, border: `1.5px solid ${FREE_COLOR}`,
                 background: 'transparent', color: FREE_COLOR, fontSize: 13, fontWeight: 600,
                 fontFamily: 'inherit', cursor: 'pointer',
-              }}>自動填入</button>
+              }}>填入目前最佳時段</button>
               <button className="btn-primary" onClick={() => setShowNameModal(true)} style={{ flex: 2, padding: '12px' }}>
                 送出
               </button>
@@ -511,8 +511,7 @@ export default function TimeGrid() {
           style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
           <div onClick={e => e.stopPropagation()}
             style={{ width: '100%', maxWidth: 360, background: '#fff', borderRadius: 20, padding: '28px 20px 24px' }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#8a9da8', marginBottom: 6 }}>請問你叫什麼名字？</div>
-            <div style={{ fontSize: 13, color: '#AAA', marginBottom: 20 }}>讓大家知道這份時間表是誰填的。</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#8a9da8', marginBottom: 20 }}>輸入姓名</div>
             <input autoFocus value={name} onChange={e => setName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && name.trim() && navigate('/results', { state: { ...state, mySlots: slotsRef.current, myName: name.trim() } })}
               placeholder="輸入你的名字"

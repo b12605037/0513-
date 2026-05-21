@@ -642,7 +642,7 @@ export default function CreateEvent() {
                 <input className="form-input" value={form.name} onChange={e => up('name', e.target.value)} placeholder="例：週會、團隊討論" />
               </div>
               <div className="form-field">
-                <label className="form-label">會議時長</label>
+                <label className="form-label">活動時長</label>
                 <DurationSlider value={form.duration} onChange={(v) => up('duration', v)} />
               </div>
               <div className="form-field">
@@ -692,7 +692,7 @@ export default function CreateEvent() {
 
               {!form.allDay && (
                 <div className="form-field">
-                  <label className="form-label">可用時段</label>
+                  <label className="form-label">選取調查時段</label>
                   <TimeRangeSlider
                     startSlot={startSlot}
                     endSlot={endSlot}
@@ -701,7 +701,7 @@ export default function CreateEvent() {
                 </div>
               )}
 
-              <label className="form-label" style={{ display: 'block', marginBottom: 8 }}>候選日期範圍</label>
+              <label className="form-label" style={{ display: 'block', marginBottom: 8 }}>選取日期範圍</label>
               <RangePicker
                 startDate={rangeStart}
                 endDate={rangeEnd}

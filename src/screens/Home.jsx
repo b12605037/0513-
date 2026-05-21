@@ -332,7 +332,7 @@ export default function Home() {
         <div style={{ padding: '16px 16px 0' }}>
 
           <div className="form-field">
-            <label className="form-label">候選日期範圍</label>
+            <label className="form-label">選取日期範圍</label>
             <RangePicker
               startDate={rangeStart}
               endDate={rangeEnd}
@@ -342,7 +342,7 @@ export default function Home() {
 
           <div className="form-field">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <label className="form-label" style={{ marginBottom: 0 }}>可用時段</label>
+              <label className="form-label" style={{ marginBottom: 0 }}>選取調查時段</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 13, fontWeight: 500, color: '#888' }}>全天</span>
                 <div onClick={() => setAllDay(v => !v)} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8a9da8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
@@ -360,7 +360,7 @@ export default function Home() {
           </div>
 
           <div className="form-field">
-            <label className="form-label">會議時長</label>
+            <label className="form-label">活動時長</label>
             <DurationSlider value={duration} onChange={setDuration} />
           </div>
 
