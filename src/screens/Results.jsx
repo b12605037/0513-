@@ -93,7 +93,7 @@ export default function Results() {
 
   const allRespondents  = [mySlots, ...mockSlots];
   const respondentNames = [myName, ...MOCK_NAMES];
-  const COLORS = ['#194569', '#5F84A2', '#91AEC4', '#8a9da8'];
+  const COLORS = ['#194569', '#5F84A2', '#91AEC4', '#2F4156'];
 
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState(() => new Set(allRespondents.map((_, i) => i)));
@@ -173,7 +173,7 @@ export default function Results() {
               </div>
               <span style={{ fontSize: 11, fontWeight: 600, color: '#5F84A2' }}>{bestSlot.count}/{visibleCount} 人有空</span>
             </div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#8a9da8', marginBottom: bestSlot.freeNames.length ? 6 : 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#2F4156', marginBottom: bestSlot.freeNames.length ? 6 : 0 }}>
               {bestSlot.day.label} {bestSlot.day.date} · {bestSlot.time}–{bestSlot.endTime}
             </div>
             {bestSlot.freeNames.length > 0 && (
@@ -213,7 +213,7 @@ export default function Results() {
           {pageDays.map((d, i) => (
             <div key={i} style={{ flex: 1, textAlign: 'center', padding: '4px 0 5px' }}>
               <div style={{ fontSize: 10, fontWeight: 600, color: '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
-              <div style={{ width: 20, height: 20, borderRadius: 10, margin: '2px auto 0', fontSize: 11, fontWeight: 700, color: '#8a9da8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
+              <div style={{ width: 20, height: 20, borderRadius: 10, margin: '2px auto 0', fontSize: 11, fontWeight: 700, color: '#2F4156', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
             </div>
           ))}
         </div>

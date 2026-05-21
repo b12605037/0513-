@@ -36,7 +36,7 @@ export default function Confirm() {
       {phase === 'success' && (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, gap: 0 }}>
           <div className="success-icon pop-in">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#8a9da8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2F4156" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
@@ -45,7 +45,7 @@ export default function Confirm() {
             Q2 Planning Kickoff 已加入所有 4 個日曆，並透過 Gmail 發送通知。
           </div>
 
-          <div style={{ background: 'linear-gradient(135deg,#8a9da8,#6b8592)', borderRadius: 16, padding: 20, width: '100%', color: '#fff', marginBottom: 20 }}>
+          <div style={{ background: 'linear-gradient(135deg,#2F4156,#2F4156)', borderRadius: 16, padding: 20, width: '100%', color: '#fff', marginBottom: 20 }}>
             <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 4, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>已排定</div>
             <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 4 }}>Q2 Planning Kickoff</div>
             <div style={{ fontSize: 14, opacity: 0.85, marginBottom: 12 }}>Thu, May 8 · 10:00 – 11:00 AM PST</div>
@@ -60,9 +60,9 @@ export default function Confirm() {
             <div style={{ fontSize: 12, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>已發送通知</div>
             {['alex@company.com', 'sam@company.com', 'jamie@company.com', 'riley@company.com'].map((e, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: i < 3 ? '1px solid #F5F5F5' : 'none' }}>
-                <div style={{ color: '#8a9da8' }}><IcMail /></div>
+                <div style={{ color: '#2F4156' }}><IcMail /></div>
                 <span style={{ fontSize: 13, color: '#555' }}>{e}</span>
-                <div style={{ marginLeft: 'auto' }}><IcCheck size={14} color="#8a9da8" /></div>
+                <div style={{ marginLeft: 'auto' }}><IcCheck size={14} color="#2F4156" /></div>
               </div>
             ))}
           </div>
@@ -77,12 +77,12 @@ export default function Confirm() {
         <div className="screen-content">
           <div style={{ margin: '16px 16px 12px', background: '#fff', borderRadius: 12, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             <div style={{ fontSize: 11, color: '#AAA', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Gmail 通知預覽</div>
-            <div style={{ borderLeft: '3px solid #8a9da8', paddingLeft: 12 }}>
+            <div style={{ borderLeft: '3px solid #2F4156', paddingLeft: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#111', marginBottom: 2 }}>📅 meetime：已找到最佳時段！</div>
               <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>from: noreply@meetime.app · to: you</div>
               <div style={{ fontSize: 13, color: '#555', lineHeight: 1.6 }}>
                 Hi Alex，<br />
-                已為 <strong>Q2 Planning Kickoff</strong> 找到最佳時段：<span style={{ color: '#8a9da8', fontWeight: 600 }}>5 月 8 日（四）上午 10–11 點 PST</span>。所有 4 位參與者均有空。
+                已為 <strong>Q2 Planning Kickoff</strong> 找到最佳時段：<span style={{ color: '#2F4156', fontWeight: 600 }}>5 月 8 日（四）上午 10–11 點 PST</span>。所有 4 位參與者均有空。
               </div>
             </div>
           </div>
@@ -145,7 +145,7 @@ export default function Confirm() {
               <IcCalendar />
               <div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>Thu May 8 · 10:00 – 11:00 AM</div>
-                <div style={{ fontSize: 12, color: '#6b8592', marginTop: 2 }}>4/4 位參與者有空 · PST</div>
+                <div style={{ fontSize: 12, color: '#2F4156', marginTop: 2 }}>4/4 位參與者有空 · PST</div>
               </div>
             </div>
             <button className="btn-primary" onClick={doConfirm} style={{ marginBottom: 10 }}>
