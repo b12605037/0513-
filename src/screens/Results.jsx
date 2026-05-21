@@ -62,11 +62,11 @@ function makeMockSlots(totalDays, total, seed) {
   return g;
 }
 
-// Color for N out of total respondents
+const HEAT_PALETTE = ['#B7D0E1', '#91AEC4', '#5F84A2', '#194569'];
 function heatColor(n, total) {
   if (n === 0 || total === 0) return 'transparent';
-  const opacity = 0.2 + (n / total) * 0.8;
-  return `rgba(71,128,88,${opacity.toFixed(2)})`;
+  const idx = Math.min(Math.ceil((n / total) * 4) - 1, 3);
+  return HEAT_PALETTE[idx];
 }
 
 const MOCK_NAMES = ['Alex', 'Sam', 'Jamie'];
@@ -93,7 +93,7 @@ export default function Results() {
 
   const allRespondents  = [mySlots, ...mockSlots];
   const respondentNames = [myName, ...MOCK_NAMES];
-  const COLORS = ['#478058', '#8a9da8', '#26A69A', '#4DB6AC'];
+  const COLORS = ['#194569', '#5F84A2', '#91AEC4', '#8a9da8'];
 
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState(() => new Set(allRespondents.map((_, i) => i)));
@@ -154,7 +154,7 @@ export default function Results() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {[1, 2, 3, 4].map(n => (
-              <div key={n} style={{ width: 14, height: 14, borderRadius: 3, background: heatColor(n, 4), border: '1px solid rgba(71,128,88,0.15)' }} />
+              <div key={n} style={{ width: 14, height: 14, borderRadius: 3, background: heatColor(n, 4), border: '1px solid rgba(95,132,162,0.15)' }} />
             ))}
             <span style={{ fontSize: 10, color: '#AAA', marginLeft: 2 }}>有空人數：少 → 多</span>
           </div>
@@ -164,14 +164,14 @@ export default function Results() {
           <div style={{ marginTop: 6, fontSize: 12, color: '#E57373', fontWeight: 500 }}>請至少選取一位</div>
         )}
         {bestSlot && visibleCount > 0 && (
-          <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(71,128,88,0.08)', borderRadius: 10, border: '1px solid rgba(71,128,88,0.2)' }}>
+          <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(95,132,162,0.08)', borderRadius: 10, border: '1px solid rgba(95,132,162,0.2)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 10, color: '#478058' }}>★</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#478058' }}>最佳時段</span>
+                <span style={{ fontSize: 10, color: '#5F84A2' }}>★</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#5F84A2' }}>最佳時段</span>
                 {!bestSlot.isFullDuration && <span style={{ fontSize: 10, color: '#AAA', fontWeight: 400 }}>(時段不足)</span>}
               </div>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#478058' }}>{bestSlot.count}/{visibleCount} 人有空</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#5F84A2' }}>{bestSlot.count}/{visibleCount} 人有空</span>
             </div>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#8a9da8', marginBottom: bestSlot.freeNames.length ? 6 : 0 }}>
               {bestSlot.day.label} {bestSlot.day.date} · {bestSlot.time}–{bestSlot.endTime}
@@ -192,7 +192,7 @@ export default function Results() {
         <div style={{ display: 'flex', alignItems: 'center', background: '#FAFAFA', borderBottom: '1px solid #F0F0F0', flexShrink: 0, padding: '0 4px' }}>
           <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{
             background: 'none', border: 'none', fontSize: 22, fontFamily: 'inherit',
-            color: page > 0 ? '#478058' : '#DDD', padding: '8px 12px', minWidth: 44,
+            color: page > 0 ? '#5F84A2' : '#DDD', padding: '8px 12px', minWidth: 44,
             cursor: page > 0 ? 'pointer' : 'default',
           }}>‹</button>
           <span style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#888' }}>
@@ -200,7 +200,7 @@ export default function Results() {
           </span>
           <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{
             background: 'none', border: 'none', fontSize: 22, fontFamily: 'inherit',
-            color: page < totalPages - 1 ? '#478058' : '#DDD', padding: '8px 12px', minWidth: 44,
+            color: page < totalPages - 1 ? '#5F84A2' : '#DDD', padding: '8px 12px', minWidth: 44,
             cursor: page < totalPages - 1 ? 'pointer' : 'default',
           }}>›</button>
         </div>
@@ -261,7 +261,7 @@ export default function Results() {
             return (
               <div key={i} onClick={() => toggleRespondent(i)} style={{
                 display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer',
-                background: sel ? '#F0F7F2' : '#F5F5F5',
+                background: sel ? 'rgba(183,208,225,0.3)' : '#F5F5F5',
                 border: `1.5px solid ${sel ? color : '#E5E5E5'}`,
                 borderRadius: 20, padding: '4px 10px', transition: 'all 0.15s',
               }}>
@@ -274,8 +274,8 @@ export default function Results() {
 
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => navigate('/grid', { state })} style={{
-            flex: 1, padding: '13px', borderRadius: 14, border: '1.5px solid #478058',
-            background: 'transparent', color: '#478058', fontSize: 15, fontWeight: 600,
+            flex: 1, padding: '13px', borderRadius: 14, border: '1.5px solid #5F84A2',
+            background: 'transparent', color: '#5F84A2', fontSize: 15, fontWeight: 600,
             fontFamily: 'inherit', cursor: 'pointer',
           }}>
             重新填寫

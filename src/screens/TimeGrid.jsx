@@ -8,7 +8,7 @@ const SLOT_H = 28;
 const LABEL_W = 48;
 const SCROLL_W = 24;
 const DAYS_PER_PAGE = 4;
-const FREE_COLOR = '#478058';
+const FREE_COLOR = '#5F84A2';
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -72,10 +72,11 @@ function makeMockSlots(totalDays, total, seed) {
       g[`${d}-${s}`] = rand() > 0.45 ? 1 : 0;
   return g;
 }
+const HEAT_PALETTE = ['#B7D0E1', '#91AEC4', '#5F84A2', '#194569'];
 function heatColor(n, total) {
   if (n === 0 || total === 0) return 'transparent';
-  const opacity = 0.15 + (n / total) * 0.85;
-  return `rgba(71,128,88,${opacity.toFixed(2)})`;
+  const idx = Math.min(Math.ceil((n / total) * 4) - 1, 3);
+  return HEAT_PALETTE[idx];
 }
 const MOCK_NAMES = ['Alex', 'Sam', 'Jamie'];
 
@@ -440,7 +441,7 @@ export default function TimeGrid() {
               return (
                 <div key={i} onClick={() => toggleRespondent(i)} style={{
                   display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer',
-                  background: sel ? '#F0F7F2' : '#F5F5F5',
+                  background: sel ? 'rgba(183,208,225,0.3)' : '#F5F5F5',
                   border: `1.5px solid ${sel ? c : '#E5E5E5'}`,
                   borderRadius: 20, padding: '5px 10px', transition: 'all 0.15s',
                 }}>

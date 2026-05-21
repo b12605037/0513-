@@ -187,6 +187,17 @@ function RangePicker({ startDate, endDate, onChange }) {
   const handleMouseDown = (d) => {
     const dt = dateFromCell(d);
     if (dt < today) return;
+    // Cross-month drag: lock anchor to original startDate so user can drag end in this month
+    const inDifferentMonth = startDate &&
+      (viewYear !== startDate.getFullYear() || viewMonth !== startDate.getMonth());
+    if (inDifferentMonth && dt > startDate) {
+      isDown.current = true;
+      anchorRef.current = startDate;
+      liveRef.current = dt;
+      setDragAnchor(startDate);
+      setDragLive(dt);
+      return;
+    }
     isDown.current = true; anchorRef.current = dt; liveRef.current = dt;
     setDragAnchor(dt); setDragLive(dt);
   };

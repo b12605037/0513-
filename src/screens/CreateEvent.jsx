@@ -236,6 +236,17 @@ function RangePicker({ startDate, endDate, onChange }) {
   const handleMouseDown = (d) => {
     const dt = dateFromCell(d);
     if (dt < today) return;
+    // Cross-month drag: lock anchor to original startDate so user can drag end in this month
+    const inDifferentMonth = startDate &&
+      (viewYear !== startDate.getFullYear() || viewMonth !== startDate.getMonth());
+    if (inDifferentMonth && dt > startDate) {
+      isDown.current = true;
+      anchorRef.current = startDate;
+      liveRef.current = dt;
+      setDragAnchor(startDate);
+      setDragLive(dt);
+      return;
+    }
     isDown.current = true;
     anchorRef.current = dt;
     liveRef.current = dt;
@@ -737,8 +748,8 @@ export default function CreateEvent() {
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
           <div style={{ width: '100%', background: '#fff', borderRadius: 24, padding: '28px 20px 22px', boxShadow: '0 12px 48px rgba(0,0,0,0.18)' }}>
 
-            <div style={{ width: 48, height: 48, borderRadius: 24, background: '#f0f7f2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#478058" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <div style={{ width: 48, height: 48, borderRadius: 24, background: 'rgba(183,208,225,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5F84A2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </div>
@@ -763,7 +774,7 @@ export default function CreateEvent() {
               </div>
               <button onClick={handleCopy} style={{
                 flexShrink: 0, padding: '7px 12px', borderRadius: 10, border: 'none',
-                background: copied ? '#478058' : '#1A1A1A',
+                background: copied ? '#5F84A2' : '#1A1A1A',
                 color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                 fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap',
               }}>
