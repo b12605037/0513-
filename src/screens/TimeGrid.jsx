@@ -421,11 +421,11 @@ export default function TimeGrid() {
           <>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
               <button onClick={autofillBestTime} style={{
-                flex: 1, padding: '12px 0', borderRadius: 12, border: `1.5px solid ${FREE_COLOR}`,
-                background: 'transparent', color: FREE_COLOR, fontSize: 13, fontWeight: 600,
+                flex: 1, padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${FREE_COLOR}`,
+                background: 'transparent', color: FREE_COLOR, fontSize: 12, fontWeight: 600,
                 fontFamily: 'inherit', cursor: 'pointer',
               }}>填入目前最佳時段</button>
-              <button className="btn-primary" onClick={() => setShowNameModal(true)} style={{ flex: 2, padding: '12px' }}>
+              <button className="btn-primary" onClick={() => setShowNameModal(true)} style={{ flex: 1, padding: '12px' }}>
                 送出
               </button>
             </div>
