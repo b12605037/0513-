@@ -156,9 +156,11 @@ export default function Results() {
   const selectedList = allBestSlots.filter(s => selectedSlots.has(s.key));
 
   const shareMessage = selectedList.length === 0 ? '' :
-    `📅 以下是投票結果的可用時段，請確認哪個時間方便：\n\n` +
-    selectedList.map(s => `✅ ${s.day.label} ${s.day.date} · ${s.time}–${s.endTime}（${s.count}/${visibleCount} 人有空）`).join('\n') +
-    `\n\n請回覆可以的時段，謝謝！`;
+    selectedList.length === 1
+      ? `📅 開會通知\n\n會議時間：${selectedList[0].day.label} ${selectedList[0].day.date} · ${selectedList[0].time}–${selectedList[0].endTime}\n\n請準時出席，謝謝！`
+      : `📅 開會通知\n\n以下時段將進行會議：\n` +
+        selectedList.map(s => `• ${s.day.label} ${s.day.date} · ${s.time}–${s.endTime}`).join('\n') +
+        `\n\n請準時出席，謝謝！`;
 
   const handleCopyMsg = () => {
     navigator.clipboard.writeText(shareMessage).then(() => {
