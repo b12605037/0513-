@@ -195,15 +195,15 @@ function RangePicker({ startDate, endDate, onChange }) {
   const liveRef = useRef(null);
   const onChangeRef = useRef(onChange);
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+  const startDateRef = useRef(startDate);
+  const endDateRef = useRef(endDate);
+  useEffect(() => { startDateRef.current = startDate; endDateRef.current = endDate; }, [startDate, endDate]);
 
   const calGridRef = useRef(null);
   useEffect(() => {
     const el = calGridRef.current;
     if (!el) return;
-    const onStart = (e) => {
-      const cel = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
-      if (cel?.closest?.('[data-day]')) e.preventDefault();
-    };
+    const onStart = (e) => { e.preventDefault(); };
     const onMove = (e) => {
       if (!isDown.current) return;
       e.preventDefault();
@@ -242,7 +242,11 @@ function RangePicker({ startDate, endDate, onChange }) {
       setDragLive(null);
       if (!anchor || !live) return;
       const [s, e] = anchor <= live ? [anchor, live] : [live, anchor];
-      onChangeRef.current(s, e);
+      if (sameDay(s, e) && sameDay(s, startDateRef.current) && sameDay(e, endDateRef.current)) {
+        onChangeRef.current(null, null);
+      } else {
+        onChangeRef.current(s, e);
+      }
     };
     window.addEventListener('mouseup', commit);
     window.addEventListener('touchend', commit);
@@ -349,7 +353,7 @@ function RangePicker({ startDate, endDate, onChange }) {
         <div style={{ width: 6, height: 6, borderRadius: 3, background: phase === 'done' ? '#8A9DA8' : phase === 'dragging' ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
         <span style={{ fontSize: 12, fontWeight: 600, color: phase === 'done' || phase === 'dragging' ? '#8A9DA8' : '#F57F17' }}>{phaseLabel}</span>
         {phase === 'done' && (
-          <button onClick={() => onChange(null, null)} style={{ marginLeft: 'auto', fontSize: 11, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
+          <button onClick={() => onChange(null, null)} style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
         )}
       </div>
 
