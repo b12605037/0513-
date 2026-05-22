@@ -325,7 +325,7 @@ export default function Results() {
 
       {/* Heatmap full-screen overlay */}
       {heatmapExpanded && (
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: '#fff', zIndex: 100, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: '#fff', zIndex: 100, display: 'flex', flexDirection: 'column', paddingTop: 20 }}>
           {/* Nav */}
           <div style={{ display: 'flex', alignItems: 'center', padding: '8px 16px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: '#333', flex: 1 }}>時段熱圖</span>
