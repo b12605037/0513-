@@ -327,20 +327,20 @@ export default function Results() {
       {heatmapExpanded && (
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: '#fff', zIndex: 100, display: 'flex', flexDirection: 'column' }}>
           {/* Nav */}
-          <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px 10px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
-            <button onClick={() => setHeatmapExpanded(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px 4px 0', display: 'flex', alignItems: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#555" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="13,4 7,10 13,16"/>
-              </svg>
-            </button>
-            <span style={{ fontSize: 15, fontWeight: 700, color: '#333', flex: 1 }}>時段熱圖</span>
+          <div style={{ display: 'flex', alignItems: 'center', padding: '8px 16px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#333', flex: 1 }}>時段熱圖</span>
             {totalPages > 1 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginRight: 12 }}>
                 <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{ background: 'none', border: 'none', fontSize: 20, color: page > 0 ? '#5F84A2' : '#DDD', padding: '0 6px', cursor: page > 0 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>‹</button>
                 <span style={{ fontSize: 11, fontWeight: 600, color: '#888' }}>{pageNavLabel(pageDays)}</span>
                 <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{ background: 'none', border: 'none', fontSize: 20, color: page < totalPages - 1 ? '#5F84A2' : '#DDD', padding: '0 6px', cursor: page < totalPages - 1 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>›</button>
               </div>
             )}
+            <button onClick={() => setHeatmapExpanded(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center' }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round">
+                <polyline points="2,5 7,10 12,5"/>
+              </svg>
+            </button>
           </div>
 
           {/* Sticky day headers */}
