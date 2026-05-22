@@ -200,6 +200,10 @@ function RangePicker({ startDate, endDate, onChange }) {
   useEffect(() => {
     const el = calGridRef.current;
     if (!el) return;
+    const onStart = (e) => {
+      const cel = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+      if (cel?.closest?.('[data-day]')) e.preventDefault();
+    };
     const onMove = (e) => {
       if (!isDown.current) return;
       e.preventDefault();
@@ -214,8 +218,12 @@ function RangePicker({ startDate, endDate, onChange }) {
       liveRef.current = dt;
       setDragLive(dt);
     };
+    el.addEventListener('touchstart', onStart, { passive: false });
     el.addEventListener('touchmove', onMove, { passive: false });
-    return () => el.removeEventListener('touchmove', onMove);
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+    };
   }, [viewYear, viewMonth]);
 
   const [dragAnchor, setDragAnchor] = useState(null);
@@ -336,7 +344,7 @@ function RangePicker({ startDate, endDate, onChange }) {
       : '點按並拖曳以選取日期';
 
   return (
-    <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16 }}>
+    <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16, touchAction: 'none' }}>
       <div style={{ padding: '10px 16px 8px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0', display: 'flex', alignItems: 'center', gap: 6 }}>
         <div style={{ width: 6, height: 6, borderRadius: 3, background: phase === 'done' ? '#8A9DA8' : phase === 'dragging' ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
         <span style={{ fontSize: 12, fontWeight: 600, color: phase === 'done' || phase === 'dragging' ? '#8A9DA8' : '#F57F17' }}>{phaseLabel}</span>
