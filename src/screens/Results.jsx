@@ -4,7 +4,7 @@ import StatusBar from '../components/StatusBar';
 
 const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
-const SLOT_H = 20;
+const SLOT_H = 30;
 const LABEL_W = 44;
 const DAYS_PER_PAGE = 4;
 const DOW    = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -359,7 +359,7 @@ export default function Results() {
               <div style={{ width: LABEL_W, flexShrink: 0 }}>
                 {Array.from({ length: TOTAL }, (_, s) => (
                   <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 4, paddingTop: 1, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent' }}>
-                    {s % SPH === 0 && <span style={{ fontSize: 8, fontWeight: 600, color: '#BBB' }}>{fmtH24(G_START + s / SPH)}</span>}
+                    {s % SPH === 0 && <span style={{ fontSize: 10, fontWeight: 600, color: '#BBB' }}>{fmtH24(G_START + s / SPH)}</span>}
                   </div>
                 ))}
               </div>
