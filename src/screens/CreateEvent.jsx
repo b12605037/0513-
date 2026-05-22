@@ -567,6 +567,7 @@ export default function CreateEvent() {
   const [step, setStep] = useState(1);
   const [showTzSheet, setShowTzSheet] = useState(false);
   const [showDeadlineSheet, setShowDeadlineSheet] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [meetingId, setMeetingId] = useState(null);
   const [modalName, setModalName] = useState('');
@@ -755,7 +756,7 @@ export default function CreateEvent() {
             ? <button className="btn-primary" onClick={() => setStep(s => s + 1)}>
                 下一步 <IcChevron dir="right" size={16} />
               </button>
-            : <button className="btn-primary" onClick={handleSendInvite}>
+            : <button className="btn-primary" onClick={() => setShowConfirmModal(true)}>
                 送出邀請
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -771,6 +772,46 @@ export default function CreateEvent() {
       {showDeadlineSheet && (
         <DatePickerSheet selected={deadlineDate} onSelect={setDeadlineDate} onClose={() => setShowDeadlineSheet(false)} />
       )}
+
+      {showConfirmModal && createPortal(
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
+          <div style={{ width: '100%', maxWidth: 400, background: '#fff', borderRadius: 20, padding: '24px 20px 20px', boxShadow: '0 16px 60px rgba(0,0,0,0.22)' }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#111', marginBottom: 18, textAlign: 'center', letterSpacing: '-0.02em' }}>確認活動資訊</div>
+
+            {(() => {
+              const rangeLabel = rangeStart && rangeEnd
+                ? (sameDay(rangeStart, rangeEnd)
+                    ? `${SHORT_MONTHS[rangeStart.getMonth()]} ${rangeStart.getDate()}, ${rangeStart.getFullYear()}`
+                    : `${SHORT_MONTHS[rangeStart.getMonth()]} ${rangeStart.getDate()} – ${SHORT_MONTHS[rangeEnd.getMonth()]} ${rangeEnd.getDate()}, ${rangeEnd.getFullYear()}`)
+                : '未設定';
+              const timeLabel = form.allDay ? '全天' : `${fmtSlot(startSlot)} ${fmtPeriod(startSlot)} – ${fmtSlot(endSlot)} ${fmtPeriod(endSlot)}`;
+              const deadlineLabel = deadlineDate ? formatDate(deadlineDate) : '未設定';
+              const rows = [
+                { label: '活動名稱', value: form.name || '（未命名）' },
+                { label: '候選日期', value: rangeLabel },
+                { label: '調查時段', value: timeLabel },
+                { label: '活動時長', value: fmtDuration(form.duration) },
+                { label: '回覆截止', value: deadlineLabel },
+              ];
+              return rows.map(({ label, value }) => (
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0', borderBottom: '1px solid #F5F5F5', gap: 12 }}>
+                  <span style={{ fontSize: 13, color: '#AAA', fontWeight: 500, flexShrink: 0 }}>{label}</span>
+                  <span style={{ fontSize: 13, color: '#111', fontWeight: 600, textAlign: 'right' }}>{value}</span>
+                </div>
+              ));
+            })()}
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+              <button onClick={() => setShowConfirmModal(false)} style={{ flex: 1, padding: '13px', borderRadius: 14, border: '1.5px solid #E0E0E0', background: '#fff', color: '#666', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                返回修改
+              </button>
+              <button className="btn-primary" onClick={() => { setShowConfirmModal(false); handleSendInvite(); }} style={{ flex: 1, padding: '13px' }}>
+                確認送出
+              </button>
+            </div>
+          </div>
+        </div>
+      , document.body)}
 
       {showShareModal && createPortal(
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px' }}>
