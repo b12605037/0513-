@@ -4,7 +4,7 @@ import StatusBar from '../components/StatusBar';
 
 const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
-const SLOT_H = 22;
+const SLOT_H = 20;
 const LABEL_W = 44;
 const DAYS_PER_PAGE = 4;
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -40,14 +40,12 @@ function buildAllDays(rangeStartTs, rangeEndTs) {
 
 function pageNavLabel(pageDays) {
   if (!pageDays.length) return '';
-  const first = pageDays[0];
-  const last  = pageDays[pageDays.length - 1];
+  const first = pageDays[0], last = pageDays[pageDays.length - 1];
   return first.month === last.month
     ? `${MON[first.month]} ${first.date}–${last.date}`
     : `${MON[first.month]} ${first.date} – ${MON[last.month]} ${last.date}`;
 }
 
-// Deterministic "fake" respondents based on slot key hash
 function seededRand(seed) {
   let s = seed;
   return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0xffffffff; };
@@ -69,8 +67,7 @@ function heatColor(n, total) {
   const t = total === 1 ? 1 : (n - 1) / (total - 1);
   const scaled = t * (HEAT_ANCHORS.length - 1);
   const lo = Math.min(Math.floor(scaled), HEAT_ANCHORS.length - 2);
-  const f  = scaled - lo;
-  const hi = lo + 1;
+  const f = scaled - lo, hi = lo + 1;
   const [r0,g0,b0] = HEAT_ANCHORS[lo], [r1,g1,b1] = HEAT_ANCHORS[hi];
   return `rgb(${Math.round(r0+f*(r1-r0))},${Math.round(g0+f*(g1-g0))},${Math.round(b0+f*(b1-b0))})`;
 }
@@ -85,24 +82,26 @@ export default function Results() {
   const G_END   = state?.allDay ? 24 : Math.ceil((state?.endSlot   ?? 36) / 2);
   const TOTAL   = (G_END - G_START) * SPH;
 
-  const allDays    = useMemo(() => buildAllDays(state?.rangeStart, state?.rangeEnd), [state]);
-  const totalDays  = allDays.length;
+  const allDays   = useMemo(() => buildAllDays(state?.rangeStart, state?.rangeEnd), [state]);
+  const totalDays = allDays.length;
   const totalPages = Math.ceil(totalDays / DAYS_PER_PAGE);
 
   const mySlots = state?.mySlots ?? {};
   const myName  = state?.myName  ?? '你';
 
-  // Generate 3 deterministic mock respondents
   const mockSlots = useMemo(() => MOCK_NAMES.map((_, i) =>
     makeMockSlots(totalDays, TOTAL, 42 + i * 17)
   ), [totalDays, TOTAL]);
 
   const allRespondents  = [mySlots, ...mockSlots];
   const respondentNames = [myName, ...MOCK_NAMES];
-  const COLORS = ['#194569', '#5F84A2', '#91AEC4', '#2F4156'];
+  const COLORS = ['#194569', '#5F84A2', '#91AEC4', '#8A9DA8'];
 
-  const [page, setPage] = useState(0);
-  const [selected, setSelected] = useState(() => new Set(allRespondents.map((_, i) => i)));
+  const [page, setPage]                   = useState(0);
+  const [selected, setSelected]           = useState(() => new Set(allRespondents.map((_, i) => i)));
+  const [selectedSlots, setSelectedSlots] = useState(new Set());
+  const [heatmapExpanded, setHeatmapExpanded] = useState(false);
+  const [copiedMsg, setCopiedMsg]         = useState(false);
 
   const pageStart = page * DAYS_PER_PAGE;
   const pageDays  = allDays.slice(pageStart, pageStart + DAYS_PER_PAGE);
@@ -112,39 +111,72 @@ export default function Results() {
 
   const visibleRespondents = allRespondents.filter((_, i) => selected.has(i));
   const visibleCount = visibleRespondents.length;
+  const slotsNeeded  = Math.max(1, Math.ceil((state?.duration ?? 30) / SLOT_MIN));
 
-  const slotsNeeded = Math.max(1, Math.ceil((state?.duration ?? 30) / SLOT_MIN));
-
-  const visibleWithIdx = allRespondents.map((r, i) => ({ r, i })).filter(({ i }) => selected.has(i));
-
-  const bestSlot = useMemo(() => {
-    if (visibleCount === 0) return null;
-    let best = null, bestScore = -1;
+  // All non-overlapping best slots, sorted by count desc then chronologically
+  const allBestSlots = useMemo(() => {
+    if (visibleCount === 0) return [];
+    const vwi = allRespondents.map((r, i) => ({ r, i })).filter(({ i }) => selected.has(i));
+    const candidates = [];
     for (let d = 0; d < totalDays; d++) {
-      for (let s = 0; s < TOTAL; s++) {
-        const freeSet = new Set(visibleWithIdx.map((_, vi) => vi));
-        for (let len = 1; len <= slotsNeeded && s + len <= TOTAL; len++) {
-          const slotKey = `${d}-${s + len - 1}`;
-          for (const vi of [...freeSet])
-            if (visibleWithIdx[vi].r[slotKey] !== 1) freeSet.delete(vi);
-          const count = freeSet.size;
-          const score = count * 1000 + len;
-          if (count > 0 && score > bestScore) {
-            bestScore = score;
-            best = { d, s, count, len, freeNames: [...freeSet].map(vi => respondentNames[visibleWithIdx[vi].i]) };
-          }
+      for (let s = 0; s <= TOTAL - slotsNeeded; s++) {
+        const free = vwi.filter(({ r }) => {
+          for (let len = 0; len < slotsNeeded; len++)
+            if (r[`${d}-${s + len}`] !== 1) return false;
+          return true;
+        });
+        if (free.length > 0) {
+          candidates.push({
+            key: `${d}-${s}`, d, s,
+            count: free.length,
+            freeNames: free.map(({ i }) => respondentNames[i]),
+            day: allDays[d],
+            time: fmtH(G_START + s / SPH),
+            endTime: fmtH(G_START + (s + slotsNeeded) / SPH),
+          });
         }
       }
     }
-    if (!best) return null;
-    return {
-      ...best,
-      day:            allDays[best.d],
-      time:           fmtH(G_START + best.s / SPH),
-      endTime:        fmtH(G_START + (best.s + best.len) / SPH),
-      isFullDuration: best.len === slotsNeeded,
-    };
-  }, [visibleRespondents, visibleWithIdx, slotsNeeded]);
+    candidates.sort((a, b) => b.count - a.count || a.d - b.d || a.s - b.s);
+    const picked = [], blocked = new Set();
+    for (const c of candidates) {
+      let skip = false;
+      for (let len = 0; len < slotsNeeded; len++) { if (blocked.has(`${c.d}-${c.s+len}`)) { skip = true; break; } }
+      if (!skip) {
+        picked.push(c);
+        for (let len = 0; len < slotsNeeded; len++) blocked.add(`${c.d}-${c.s+len}`);
+      }
+    }
+    return picked;
+  }, [selected, allRespondents, slotsNeeded, totalDays, TOTAL, G_START]);
+
+  const toggleSlot = (key) =>
+    setSelectedSlots(prev => { const s = new Set(prev); s.has(key) ? s.delete(key) : s.add(key); return s; });
+
+  const selectedList = allBestSlots.filter(s => selectedSlots.has(s.key));
+
+  const shareMessage = selectedList.length === 0 ? '' :
+    `📅 以下是投票結果的可用時段，請確認哪個時間方便：\n\n` +
+    selectedList.map(s => `✅ ${s.day.label} ${s.day.date} · ${s.time}–${s.endTime}（${s.count}/${visibleCount} 人有空）`).join('\n') +
+    `\n\n請回覆可以的時段，謝謝！`;
+
+  const handleCopyMsg = () => {
+    navigator.clipboard.writeText(shareMessage).then(() => {
+      setCopiedMsg(true);
+      setTimeout(() => setCopiedMsg(false), 2000);
+    });
+  };
+
+  // Per-day peak heat for preview strip
+  const dayPeaks = useMemo(() => pageDays.map((_, i) => {
+    const gi = pageStart + i;
+    let max = 0;
+    for (let s = 0; s < TOTAL; s++) {
+      const cnt = visibleRespondents.filter(r => r[`${gi}-${s}`] === 1).length;
+      if (cnt > max) max = cnt;
+    }
+    return max;
+  }), [pageDays, pageStart, visibleRespondents, TOTAL]);
 
   return (
     <div className="app-container" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -155,112 +187,9 @@ export default function Results() {
         <span style={{ width: 48 }} />
       </div>
 
-      {/* Legend + best time */}
+      {/* Respondent filter chips */}
       <div style={{ padding: '8px 16px', background: '#fff', borderBottom: '1px solid #F5F5F5', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {[1, 2, 3, 4].map(n => (
-              <div key={n} style={{ width: 14, height: 14, borderRadius: 3, background: heatColor(n, 4), border: '1px solid rgba(95,132,162,0.15)' }} />
-            ))}
-            <span style={{ fontSize: 10, color: '#AAA', marginLeft: 2 }}>有空人數：少 → 多</span>
-          </div>
-          <span style={{ fontSize: 11, color: '#888', fontWeight: 500 }}>已選取 {visibleCount} 人</span>
-        </div>
-        {visibleCount === 0 && (
-          <div style={{ marginTop: 6, fontSize: 12, color: '#E57373', fontWeight: 500 }}>請至少選取一位</div>
-        )}
-        {bestSlot && visibleCount > 0 && (
-          <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(95,132,162,0.08)', borderRadius: 10, border: '1px solid rgba(95,132,162,0.2)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 10, color: '#5F84A2' }}>★</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#5F84A2' }}>最佳時段</span>
-                {!bestSlot.isFullDuration && <span style={{ fontSize: 10, color: '#AAA', fontWeight: 400 }}>(時段不足)</span>}
-              </div>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#5F84A2' }}>{bestSlot.count}/{visibleCount} 人有空</span>
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#2F4156', marginBottom: bestSlot.freeNames.length ? 6 : 0 }}>
-              {bestSlot.day.label} {bestSlot.day.date} · {bestSlot.time}–{bestSlot.endTime}
-            </div>
-            {bestSlot.freeNames.length > 0 && (
-              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                {bestSlot.freeNames.map(n => (
-                  <span key={n} style={{ padding: '2px 8px', borderRadius: 10, background: '#1A1A1A', color: '#fff', fontSize: 10, fontWeight: 600 }}>{n}</span>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Page navigation */}
-      {totalPages > 1 && (
-        <div style={{ display: 'flex', alignItems: 'center', background: '#FAFAFA', borderBottom: '1px solid #F0F0F0', flexShrink: 0, padding: '0 4px' }}>
-          <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{
-            background: 'none', border: 'none', fontSize: 22, fontFamily: 'inherit',
-            color: page > 0 ? '#5F84A2' : '#DDD', padding: '8px 12px', minWidth: 44,
-            cursor: page > 0 ? 'pointer' : 'default',
-          }}>‹</button>
-          <span style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#888' }}>
-            {pageNavLabel(pageDays)}
-          </span>
-          <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{
-            background: 'none', border: 'none', fontSize: 22, fontFamily: 'inherit',
-            color: page < totalPages - 1 ? '#5F84A2' : '#DDD', padding: '8px 12px', minWidth: 44,
-            cursor: page < totalPages - 1 ? 'pointer' : 'default',
-          }}>›</button>
-        </div>
-      )}
-
-      {/* Heatmap grid */}
-      <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none' }}>
-        {/* Day headers */}
-        <div style={{ display: 'flex', paddingLeft: LABEL_W, position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: '1px solid #EBEBEB' }}>
-          {pageDays.map((d, i) => (
-            <div key={i} style={{ flex: 1, textAlign: 'center', padding: '4px 0 5px' }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
-              <div style={{ width: 20, height: 20, borderRadius: 10, margin: '2px auto 0', fontSize: 11, fontWeight: 700, color: '#2F4156', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Grid */}
-        <div style={{ display: 'flex', userSelect: 'none' }}>
-          {/* Hour labels */}
-          <div style={{ width: LABEL_W, flexShrink: 0 }}>
-            {Array.from({ length: TOTAL }, (_, s) => (
-              <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 1, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent' }}>
-                {s % SPH === 0 && <span style={{ fontSize: 9, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
-              </div>
-            ))}
-          </div>
-
-          {/* Day columns */}
-          {pageDays.map((_, i) => {
-            const globalIdx = pageStart + i;
-            return (
-              <div key={globalIdx} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
-                {Array.from({ length: TOTAL }, (_, slot) => {
-                  const key   = `${globalIdx}-${slot}`;
-                  const count = visibleRespondents.filter(r => r[key] === 1).length;
-                  return (
-                    <div key={slot} style={{
-                      height: SLOT_H,
-                      background: heatColor(count, visibleCount),
-                      borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent',
-                    }} />
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Bottom */}
-      <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
-        {/* Respondents — selectable filter chips */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {respondentNames.map((n, i) => {
             const sel = selected.has(i);
             const color = COLORS[i % 4];
@@ -276,8 +205,164 @@ export default function Results() {
               </div>
             );
           })}
+          {visibleCount === 0 && <span style={{ fontSize: 11, color: '#E57373', fontWeight: 500 }}>請至少選取一位</span>}
         </div>
+      </div>
 
+      {/* Best slots list */}
+      <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', padding: '10px 16px', background: '#F8F8F8' }}>
+        {allBestSlots.length === 0 ? (
+          <div style={{ textAlign: 'center', color: '#CCC', fontSize: 14, paddingTop: 48, lineHeight: 2 }}>
+            {visibleCount === 0 ? '請先選取成員' : '沒有找到共同空閒時段'}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {allBestSlots.map((slot, idx) => {
+              const isSel = selectedSlots.has(slot.key);
+              return (
+                <div key={slot.key} onClick={() => toggleSlot(slot.key)} style={{
+                  background: '#fff', borderRadius: 14, padding: '11px 12px',
+                  border: isSel ? '2px solid #8A9DA8' : '1.5px solid #EBEBEB',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
+                  boxShadow: isSel ? '0 2px 12px rgba(47,65,86,0.1)' : 'none',
+                  transition: 'all 0.15s',
+                }}>
+                  {/* Heat indicator bar */}
+                  <div style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, background: heatColor(slot.count, visibleCount), flexShrink: 0 }} />
+
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+                      {idx === 0 && (
+                        <span style={{ fontSize: 9, fontWeight: 700, color: '#fff', background: '#8A9DA8', borderRadius: 4, padding: '1px 5px', flexShrink: 0 }}>最佳</span>
+                      )}
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>
+                        {slot.day.label} {slot.day.date} · {slot.time}–{slot.endTime}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                      {slot.freeNames.map(n => (
+                        <span key={n} style={{ fontSize: 10, color: '#888', background: '#F5F5F5', borderRadius: 6, padding: '1px 6px' }}>{n}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Count + checkbox */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#9FB5C3' }}>{slot.count}/{visibleCount}</span>
+                    <div style={{
+                      width: 22, height: 22, borderRadius: 11,
+                      border: isSel ? 'none' : '1.5px solid #DDD',
+                      background: isSel ? '#8A9DA8' : '#fff',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {isSel && (
+                        <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="1.5,5.5 4.5,8.5 9.5,2.5"/>
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Copy message panel — shown when ≥1 slot selected */}
+      {selectedList.length > 0 && (
+        <div style={{ padding: '8px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
+          <div style={{ background: '#F5F5F5', borderRadius: 12, padding: '10px 10px 10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ flex: 1, fontSize: 12, color: '#555', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+              {selectedList.map(s => `${s.day.label} ${s.day.date} · ${s.time}–${s.endTime}`).join('、')}
+            </div>
+            <button onClick={handleCopyMsg} style={{
+              flexShrink: 0, padding: '8px 14px', borderRadius: 10, border: 'none',
+              background: copiedMsg ? '#5F84A2' : '#8A9DA8',
+              color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap',
+            }}>
+              {copiedMsg ? '已複製 ✓' : '複製訊息'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Heatmap accordion */}
+      <div style={{ background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
+        <button onClick={() => setHeatmapExpanded(e => !e)} style={{
+          width: '100%', padding: '8px 16px', display: 'flex', alignItems: 'center',
+          gap: 10, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+        }}>
+          {/* Day color preview strip */}
+          <div style={{ display: 'flex', gap: 3, flex: 1, alignItems: 'center' }}>
+            {pageDays.map((d, i) => (
+              <div key={i} style={{ flex: 1 }}>
+                <div style={{ height: 12, borderRadius: 3, background: dayPeaks[i] > 0 ? heatColor(dayPeaks[i], visibleCount) : '#EFEFEF' }} />
+              </div>
+            ))}
+          </div>
+          <span style={{ fontSize: 11, color: '#999', fontWeight: 500, flexShrink: 0 }}>時段熱圖</span>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round"
+            style={{ transform: heatmapExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>
+            <polyline points="2,5 7,10 12,5"/>
+          </svg>
+        </button>
+
+        {heatmapExpanded && (
+          <div style={{ maxHeight: 220, overflowY: 'auto', scrollbarWidth: 'none', borderTop: '1px solid #F0F0F0' }}>
+            {/* Page nav (inside expanded heatmap) */}
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', alignItems: 'center', padding: '0 4px', borderBottom: '1px solid #F5F5F5' }}>
+                <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{ background: 'none', border: 'none', fontSize: 20, color: page > 0 ? '#5F84A2' : '#DDD', padding: '4px 10px', cursor: page > 0 ? 'pointer' : 'default', fontFamily: 'inherit' }}>‹</button>
+                <span style={{ flex: 1, textAlign: 'center', fontSize: 11, fontWeight: 600, color: '#888' }}>{pageNavLabel(pageDays)}</span>
+                <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{ background: 'none', border: 'none', fontSize: 20, color: page < totalPages - 1 ? '#5F84A2' : '#DDD', padding: '4px 10px', cursor: page < totalPages - 1 ? 'pointer' : 'default', fontFamily: 'inherit' }}>›</button>
+              </div>
+            )}
+            {/* Day headers */}
+            <div style={{ display: 'flex', paddingLeft: LABEL_W, position: 'sticky', top: 0, background: '#fff', zIndex: 10, borderBottom: '1px solid #EBEBEB' }}>
+              {pageDays.map((d, i) => (
+                <div key={i} style={{ flex: 1, textAlign: 'center', padding: '3px 0' }}>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: '#AAA', textTransform: 'uppercase' }}>{d.label}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#8A9DA8' }}>{d.date}</div>
+                </div>
+              ))}
+            </div>
+            {/* Grid */}
+            <div style={{ display: 'flex', userSelect: 'none' }}>
+              <div style={{ width: LABEL_W, flexShrink: 0 }}>
+                {Array.from({ length: TOTAL }, (_, s) => (
+                  <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 4, paddingTop: 1, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent' }}>
+                    {s % SPH === 0 && <span style={{ fontSize: 8, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
+                  </div>
+                ))}
+              </div>
+              {pageDays.map((_, i) => {
+                const gi = pageStart + i;
+                return (
+                  <div key={gi} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
+                    {Array.from({ length: TOTAL }, (_, slot) => {
+                      const key = `${gi}-${slot}`;
+                      const count = visibleRespondents.filter(r => r[key] === 1).length;
+                      return (
+                        <div key={slot} style={{
+                          height: SLOT_H,
+                          background: heatColor(count, visibleCount),
+                          borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent',
+                        }} />
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom buttons */}
+      <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => navigate('/grid', { state })} style={{
             flex: 1, padding: '13px', borderRadius: 14, border: '1.5px solid #5F84A2',

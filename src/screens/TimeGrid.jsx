@@ -8,7 +8,7 @@ const SLOT_H = 28;
 const LABEL_W = 48;
 const SCROLL_W = 24;
 const DAYS_PER_PAGE = 4;
-const FREE_COLOR = '#2F4156';
+const FREE_COLOR = '#8A9DA8';
 const SLOT_COLOR = 'rgba(47,65,86,0.28)';
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -290,8 +290,8 @@ export default function TimeGrid() {
         return (
           <div key={i} onClick={() => onDayClick?.(globalIdx)}
             style={{ flex: 1, textAlign: 'center', padding: '5px 0 6px', cursor: onDayClick ? 'pointer' : 'default' }}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: isToday ? '#2F4156' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
-            <div style={{ width: 22, height: 22, borderRadius: 11, margin: '2px auto 0', background: isToday ? '#2F4156' : 'transparent', color: isToday ? '#fff' : '#2F4156', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
+            <div style={{ fontSize: 10, fontWeight: 600, color: isToday ? '#8A9DA8' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
+            <div style={{ width: 22, height: 22, borderRadius: 11, margin: '2px auto 0', background: isToday ? '#8A9DA8' : 'transparent', color: isToday ? '#fff' : '#8A9DA8', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
           </div>
         );
       })}
@@ -443,7 +443,7 @@ export default function TimeGrid() {
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             {allRespondents.map((_, i) => {
               const n = i === 0 ? (name || '你') : MOCK_NAMES[i - 1];
-              const c = [FREE_COLOR, '#2F4156', '#26A69A', '#4DB6AC'][i];
+              const c = [FREE_COLOR, '#8A9DA8', '#26A69A', '#4DB6AC'][i];
               const sel = selectedRespondents.has(i);
               return (
                 <div key={i} onClick={() => toggleRespondent(i)} style={{
@@ -485,7 +485,7 @@ export default function TimeGrid() {
             boxShadow: '0 6px 28px rgba(0,0,0,0.18)', zIndex: 50,
           }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 2 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#2F4156' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#8A9DA8' }}>
                 {allFree ? '所有人都有空' : `${avail.length} / ${people.length} 人有空`}
               </div>
               <button onTouchEnd={e => { e.stopPropagation(); setHoveredCell(null); }}
@@ -524,7 +524,7 @@ export default function TimeGrid() {
                 <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
               </svg>
             </button>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#2F4156', marginBottom: 20 }}>輸入姓名</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#8A9DA8', marginBottom: 20 }}>輸入姓名</div>
             <input autoFocus value={name} onChange={e => setName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && name.trim() && navigate('/results', { state: { ...state, mySlots: slotsRef.current, myName: name.trim() } })}
               placeholder="輸入你的名字"
