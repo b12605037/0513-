@@ -4,25 +4,43 @@
 
 body {
   font-family: 'DM Sans', sans-serif;
-  background: #E8E8E8;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background: #fff;
 }
 
 /* ── APP CONTAINER ── */
 .app-container {
-  width: 390px;
-  height: 844px;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
   background: #fff;
   position: relative;
   display: flex;
   flex-direction: column;
-  border-radius: 40px;
   overflow: hidden;
-  box-shadow: 0 32px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06);
-  flex-shrink: 0;
+}
+
+/* Desktop: show as phone mockup */
+@media (min-width: 500px) {
+  body {
+    background: #E8E8E8;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .app-container {
+    width: 390px;
+    height: 844px;
+    border-radius: 40px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06);
+    flex-shrink: 0;
+  }
+}
+
+/* Hide fake status bar on real mobile */
+@media (max-width: 499px) {
+  .status-bar { display: none; }
+  .bottom-sheet { max-width: 100%; }
 }
 
 /* ── NAV ── */

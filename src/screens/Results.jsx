@@ -192,7 +192,7 @@ export default function Results() {
   }), [pageDays, pageStart, visibleRespondents, TOTAL]);
 
   return (
-    <div className="app-container" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div className="app-container">
       <StatusBar />
       <div className="app-nav">
         <span style={{ width: 48 }} />

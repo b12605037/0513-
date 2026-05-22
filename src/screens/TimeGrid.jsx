@@ -329,7 +329,7 @@ export default function TimeGrid() {
   );
 
   return (
-    <div className="app-container" style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
+    <div className="app-container">
       <StatusBar />
       <div className="app-nav">
         <span style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>{surveyLabel}</span>
