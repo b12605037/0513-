@@ -567,10 +567,8 @@ export default function CreateEvent() {
   const [step, setStep] = useState(1);
   const [showTzSheet, setShowTzSheet] = useState(false);
   const [showDeadlineSheet, setShowDeadlineSheet] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [meetingId, setMeetingId] = useState(null);
-  const [modalName, setModalName] = useState('');
   const [copied, setCopied] = useState(false);
   const [deadlineDate, setDeadlineDate] = useState(new Date(2026, 4, 9));
   const [rangeStart, setRangeStart] = useState(new Date(2026, 4, 5));
@@ -609,20 +607,11 @@ export default function CreateEvent() {
     };
     localStorage.setItem(`meeting_${id}`, JSON.stringify(data));
     setMeetingId(id);
-    setModalName(form.name || '');
     setShowShareModal(true);
   };
 
   const displayLink = meetingId ? `meetime.app/join/${meetingId}` : '';
   const shareLink   = meetingId ? `https://meetime.app/join/${meetingId}` : '';
-
-  const handleModalNameChange = (name) => {
-    setModalName(name);
-    if (meetingId) {
-      const stored = JSON.parse(localStorage.getItem(`meeting_${meetingId}`) || '{}');
-      localStorage.setItem(`meeting_${meetingId}`, JSON.stringify({ ...stored, name }));
-    }
-  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareLink).then(() => {
@@ -632,18 +621,12 @@ export default function CreateEvent() {
   };
 
   const handleShareLine = () => {
-    window.open(`https://line.me/R/msg/text/?${encodeURIComponent(shareLink)}`);
-  };
-
-  const handleShareEmail = () => {
-    const subject = encodeURIComponent(modalName || '邀請你填寫可用時間');
-    const body    = encodeURIComponent(`請點選以下連結填寫可用時間：\n${shareLink}`);
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    window.open(`line://msg/text/${encodeURIComponent(shareLink)}`);
   };
 
   const handleShareOther = () => {
     if (navigator.share) {
-      navigator.share({ title: modalName || 'meetime', url: shareLink }).catch(() => {});
+      navigator.share({ title: form.name || 'meetime', url: shareLink }).catch(() => {});
     } else {
       handleCopy();
     }
@@ -756,7 +739,7 @@ export default function CreateEvent() {
             ? <button className="btn-primary" onClick={() => setStep(s => s + 1)}>
                 下一步 <IcChevron dir="right" size={16} />
               </button>
-            : <button className="btn-primary" onClick={() => setShowConfirmModal(true)}>
+            : <button className="btn-primary" onClick={handleSendInvite}>
                 送出邀請
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -773,74 +756,53 @@ export default function CreateEvent() {
         <DatePickerSheet selected={deadlineDate} onSelect={setDeadlineDate} onClose={() => setShowDeadlineSheet(false)} />
       )}
 
-      {showConfirmModal && createPortal(
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
-          <div style={{ width: '100%', maxWidth: 400, background: '#fff', borderRadius: 20, padding: '24px 20px 20px', boxShadow: '0 16px 60px rgba(0,0,0,0.22)' }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: '#111', marginBottom: 18, textAlign: 'center', letterSpacing: '-0.02em' }}>確認活動資訊</div>
-
-            {(() => {
-              const rangeLabel = rangeStart && rangeEnd
-                ? (sameDay(rangeStart, rangeEnd)
-                    ? `${SHORT_MONTHS[rangeStart.getMonth()]} ${rangeStart.getDate()}, ${rangeStart.getFullYear()}`
-                    : `${SHORT_MONTHS[rangeStart.getMonth()]} ${rangeStart.getDate()} – ${SHORT_MONTHS[rangeEnd.getMonth()]} ${rangeEnd.getDate()}, ${rangeEnd.getFullYear()}`)
-                : '未設定';
-              const timeLabel = form.allDay ? '全天' : `${fmtSlot(startSlot)} ${fmtPeriod(startSlot)} – ${fmtSlot(endSlot)} ${fmtPeriod(endSlot)}`;
-              const deadlineLabel = deadlineDate ? formatDate(deadlineDate) : '未設定';
-              const rows = [
-                { label: '活動名稱', value: form.name || '（未命名）' },
-                { label: '候選日期', value: rangeLabel },
-                { label: '調查時段', value: timeLabel },
-                { label: '活動時長', value: fmtDuration(form.duration) },
-                { label: '回覆截止', value: deadlineLabel },
-              ];
-              return rows.map(({ label, value }) => (
-                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0', borderBottom: '1px solid #F5F5F5', gap: 12 }}>
-                  <span style={{ fontSize: 13, color: '#AAA', fontWeight: 500, flexShrink: 0 }}>{label}</span>
-                  <span style={{ fontSize: 13, color: '#111', fontWeight: 600, textAlign: 'right' }}>{value}</span>
-                </div>
-              ));
-            })()}
-
-            <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-              <button onClick={() => setShowConfirmModal(false)} style={{ flex: 1, padding: '13px', borderRadius: 14, border: '1.5px solid #E0E0E0', background: '#fff', color: '#666', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                返回修改
-              </button>
-              <button className="btn-primary" onClick={() => { setShowConfirmModal(false); handleSendInvite(); }} style={{ flex: 1, padding: '13px' }}>
-                確認送出
-              </button>
-            </div>
-          </div>
-        </div>
-      , document.body)}
-
       {showShareModal && createPortal(
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px' }}>
-          <div style={{ width: '100%', maxWidth: 400, background: '#fff', borderRadius: 24, padding: '28px 20px 20px', boxShadow: '0 16px 60px rgba(0,0,0,0.22)' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px' }}>
+          <div style={{ width: '100%', maxWidth: 360, background: '#fff', borderRadius: 20, padding: '22px 20px 16px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}>
 
-            {/* Title */}
-            <div style={{ fontSize: 20, fontWeight: 800, color: '#111', marginBottom: 20, textAlign: 'center', letterSpacing: '-0.02em' }}>
-              邀請連結已產生！
+            {/* Header: icon + title */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 16 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: '#E8EEF1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A9DA8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <div style={{ paddingTop: 2 }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#111', letterSpacing: '-0.02em' }}>確認活動資訊</div>
+                <div style={{ fontSize: 12, color: '#AAA', marginTop: 3, lineHeight: 1.4 }}>分享連結給大家填寫空閒時間</div>
+              </div>
             </div>
 
-            {/* Meeting name input */}
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#888', display: 'block', marginBottom: 6 }}>會議名稱（選填）</label>
-              <input
-                value={modalName}
-                onChange={e => handleModalNameChange(e.target.value)}
-                placeholder="例如：Q2 設計週會"
-                style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1.5px solid #E0E0E0', fontSize: 15, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', color: '#111' }}
-              />
-            </div>
+            {/* Divider */}
+            <div style={{ height: 1, background: '#F0F0F0', marginBottom: 14 }} />
+
+            {/* Info rows */}
+            {[
+              { label: '調查時段', value: rangeStart && rangeEnd
+                  ? (sameDay(rangeStart, rangeEnd)
+                      ? `${SHORT_MONTHS[rangeStart.getMonth()]} ${rangeStart.getDate()}`
+                      : `${SHORT_MONTHS[rangeStart.getMonth()]} ${rangeStart.getDate()} – ${SHORT_MONTHS[rangeEnd.getMonth()]} ${rangeEnd.getDate()}`)
+                  : '未設定' },
+              { label: '活動時長', value: fmtDuration(form.duration) },
+              { label: '截止日',   value: deadlineDate ? formatDate(deadlineDate) : '未設定' },
+            ].map(({ label, value }) => (
+              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: 13, color: '#AAA', fontWeight: 400 }}>{label}</span>
+                <span style={{ fontSize: 13, color: '#111', fontWeight: 700 }}>{value}</span>
+              </div>
+            ))}
+
+            {/* Divider */}
+            <div style={{ height: 1, background: '#F0F0F0', margin: '14px 0' }} />
 
             {/* Link block */}
-            <div style={{ background: '#F5F5F5', borderRadius: 12, padding: '10px 10px 10px 14px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ flex: 1, fontSize: 12, color: '#555', wordBreak: 'break-all', fontFamily: 'monospace', lineHeight: 1.5 }}>
+            <div style={{ background: '#E8EEF1', borderRadius: 12, padding: '10px 8px 10px 14px', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <div style={{ flex: 1, fontSize: 12, color: '#5F84A2', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {displayLink}
               </div>
               <button onClick={handleCopy} style={{
-                flexShrink: 0, padding: '8px 14px', borderRadius: 10, border: 'none',
-                background: copied ? '#5F84A2' : '#8A9DA8',
+                flexShrink: 0, padding: '7px 13px', borderRadius: 9, border: 'none',
+                background: copied ? '#5F84A2' : '#2F4156',
                 color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                 fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap',
               }}>
@@ -849,43 +811,35 @@ export default function CreateEvent() {
             </div>
 
             {/* Share buttons */}
-            <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-              {/* LINE */}
-              <button onClick={handleShareLine} style={{ flex: 1, padding: '12px 8px 10px', borderRadius: 14, border: '1.5px solid #F0F0F0', background: '#fff', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, fontFamily: 'inherit' }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: '#06C755', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                    <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
-                  </svg>
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 600, color: '#444' }}>LINE</span>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+              <button onClick={handleShareLine} style={{
+                flex: 1, padding: '13px 8px', borderRadius: 12, border: 'none',
+                background: '#06C755', color: '#fff', fontSize: 13, fontWeight: 700,
+                cursor: 'pointer', fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                  <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+                </svg>
+                傳送至 LINE
               </button>
-
-              {/* Email */}
-              <button onClick={handleShareEmail} style={{ flex: 1, padding: '12px 8px 10px', borderRadius: 14, border: '1.5px solid #F0F0F0', background: '#fff', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, fontFamily: 'inherit' }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: '#EA4335', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="2" y="4" width="20" height="16" rx="2"/>
-                    <polyline points="2,4 12,13 22,4"/>
-                  </svg>
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 600, color: '#444' }}>Email</span>
-              </button>
-
-              {/* 其他 */}
-              <button onClick={handleShareOther} style={{ flex: 1, padding: '12px 8px 10px', borderRadius: 14, border: '1.5px solid #F0F0F0', background: '#fff', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, fontFamily: 'inherit' }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: '#8A9DA8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                  </svg>
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 600, color: '#444' }}>其他</span>
+              <button onClick={handleShareOther} style={{
+                flex: 1, padding: '13px 8px', borderRadius: 12, border: 'none',
+                background: '#F0F0F0', color: '#555', fontSize: 13, fontWeight: 700,
+                cursor: 'pointer', fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+                其他分享
               </button>
             </div>
 
-            {/* 回首頁 text link */}
-            <button onClick={() => navigate('/')} style={{ width: '100%', background: 'none', border: 'none', color: '#BBB', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', padding: '6px 0' }}>
-              回首頁
+            {/* Back button */}
+            <button onClick={() => setShowShareModal(false)} style={{ width: '100%', background: 'none', border: 'none', color: '#BBB', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', padding: '8px 0 2px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+              ← 返回修改
             </button>
           </div>
         </div>
