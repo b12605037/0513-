@@ -125,7 +125,7 @@ export default function Results() {
             if (r[`${d}-${s + len}`] !== 1) return false;
           return true;
         });
-        if (free.length > 0) {
+        if (free.length === vwi.length) {
           candidates.push({
             key: `${d}-${s}`, d, s,
             count: free.length,
@@ -227,29 +227,20 @@ export default function Results() {
                   boxShadow: isSel ? '0 2px 12px rgba(47,65,86,0.1)' : 'none',
                   transition: 'all 0.15s',
                 }}>
-                  {/* Heat indicator bar */}
-                  <div style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, background: heatColor(slot.count, visibleCount), flexShrink: 0 }} />
-
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
-                      {idx === 0 && (
-                        <span style={{ fontSize: 9, fontWeight: 700, color: '#fff', background: '#8A9DA8', borderRadius: 4, padding: '1px 5px', flexShrink: 0 }}>最佳</span>
-                      )}
-                      <span style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>
-                        {slot.day.label} {slot.day.date} · {slot.time}–{slot.endTime}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>
+                      {slot.day.label} {slot.day.date} · {slot.time}–{slot.endTime}
+                    </span>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
                       {slot.freeNames.map(n => (
                         <span key={n} style={{ fontSize: 10, color: '#888', background: '#F5F5F5', borderRadius: 6, padding: '1px 6px' }}>{n}</span>
                       ))}
                     </div>
                   </div>
 
-                  {/* Count + checkbox */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flexShrink: 0 }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: '#9FB5C3' }}>{slot.count}/{visibleCount}</span>
+                  {/* Checkbox */}
+                  <div style={{ flexShrink: 0 }}>
                     <div style={{
                       width: 22, height: 22, borderRadius: 11,
                       border: isSel ? 'none' : '1.5px solid #DDD',
