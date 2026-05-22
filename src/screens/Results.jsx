@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import StatusBar from '../components/StatusBar';
 
 const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
@@ -193,7 +192,6 @@ export default function Results() {
 
   return (
     <div className="app-container">
-      <StatusBar />
       <div className="app-nav">
         <span style={{ width: 48 }} />
         <span className="nav-title">結果</span>

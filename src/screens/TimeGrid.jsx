@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import StatusBar from '../components/StatusBar';
 
 const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
@@ -330,7 +329,6 @@ export default function TimeGrid() {
 
   return (
     <div className="app-container">
-      <StatusBar />
       <div className="app-nav">
         <span style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>{surveyLabel}</span>
         <span className="nav-title">填寫我的時間</span>

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import StatusBar from '../components/StatusBar';
 import { IcCalendar, IcClock, IcUsers, IcCheck, IcBell, IcMail } from '../components/Icons';
 
 export default function Confirm() {
@@ -16,7 +15,6 @@ export default function Confirm() {
 
   return (
     <div className="app-container" style={{ position: 'relative' }}>
-      <StatusBar />
       <div className="app-nav">
         <span style={{ width: 60 }} />
         <span className="nav-title">確認預約</span>

@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import StatusBar from '../components/StatusBar';
 import { IcChevron } from '../components/Icons';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -89,7 +88,7 @@ function DurationSlider({ value, onChange }) {
       <div style={{ background: '#e8eef1', borderRadius: 8, padding: '12px', textAlign: 'center', marginBottom: 20 }}>
         <div style={{ fontSize: 28, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtDuration(value)}</div>
       </div>
-      <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
+      <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px', touchAction: 'none' }}>
         <div style={{ position: 'absolute', left: 0, width: `${pct}%`, top: 0, bottom: 0, background: '#8A9DA8', borderRadius: 3 }} />
         <div
           onMouseDown={startDrag}
@@ -163,7 +162,7 @@ function TimeRangeSlider({ startSlot, endSlot, onChange }) {
         </div>
       </div>
 
-      <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
+      <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px', touchAction: 'none' }}>
         <div style={{ position: 'absolute', left: `${sPct}%`, width: `${ePct - sPct}%`, top: 0, bottom: 0, background: '#8A9DA8', borderRadius: 3 }} />
         <div
           onMouseDown={startDrag('start')}
@@ -196,6 +195,28 @@ function RangePicker({ startDate, endDate, onChange }) {
   const liveRef = useRef(null);
   const onChangeRef = useRef(onChange);
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+
+  const calGridRef = useRef(null);
+  useEffect(() => {
+    const el = calGridRef.current;
+    if (!el) return;
+    const onMove = (e) => {
+      if (!isDown.current) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const cel = document.elementFromPoint(touch.clientX, touch.clientY);
+      const cell = cel?.closest?.('[data-day]');
+      if (!cell) return;
+      const d = parseInt(cell.getAttribute('data-day'));
+      if (!d) return;
+      const dt = new Date(viewYear, viewMonth, d);
+      if (dt < today) return;
+      liveRef.current = dt;
+      setDragLive(dt);
+    };
+    el.addEventListener('touchmove', onMove, { passive: false });
+    return () => el.removeEventListener('touchmove', onMove);
+  }, [viewYear, viewMonth]);
 
   const [dragAnchor, setDragAnchor] = useState(null);
   const [dragLive, setDragLive] = useState(null);
@@ -342,8 +363,8 @@ function RangePicker({ startDate, endDate, onChange }) {
         </div>
 
         <div
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none' }}
-          onTouchMove={handleTouchMove}
+          ref={calGridRef}
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', touchAction: 'none' }}
         >
           {Array.from({ length: firstDow }).map((_, i) => <div key={'e' + i} />)}
           {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => {
@@ -639,7 +660,6 @@ export default function CreateEvent() {
   return (
     <>
     <div className="app-container" style={{ position: 'relative' }}>
-      <StatusBar />
       <div className="app-nav">
         {step > 1
           ? <button className="nav-back" onClick={() => setStep(s => s - 1)}>

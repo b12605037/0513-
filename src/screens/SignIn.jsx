@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
-import StatusBar from '../components/StatusBar';
 import { IcClock, IcUsers, IcGoogle } from '../components/Icons';
 import { useAuth } from '../context/AuthContext';
 
@@ -36,7 +35,6 @@ export default function SignIn() {
 
   return (
     <div className="app-container">
-      <StatusBar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 24px 40px' }}>
 
         {/* Invite card */}

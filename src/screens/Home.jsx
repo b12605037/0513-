@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import StatusBar from '../components/StatusBar';
 import { IcChevron } from '../components/Icons';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -331,7 +330,6 @@ export default function Home() {
 
   return (
     <div className="app-container" style={{ background: '#fff' }}>
-      <StatusBar />
 
       {/* Header */}
       <div style={{ padding: '12px 20px 0', flexShrink: 0 }}>
