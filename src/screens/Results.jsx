@@ -157,10 +157,10 @@ export default function Results() {
 
   const shareMessage = selectedList.length === 0 ? '' :
     selectedList.length === 1
-      ? `📅 開會通知\n\n會議時間：${selectedList[0].day.label} ${selectedList[0].day.date} · ${selectedList[0].time}–${selectedList[0].endTime}\n\n請準時出席，謝謝！`
-      : `📅 開會通知\n\n以下時段將進行會議：\n` +
+      ? `嗨大家！會議時間確定囉 🎉\n\n📅 ${selectedList[0].day.label} ${selectedList[0].day.date} · ${selectedList[0].time}–${selectedList[0].endTime}\n\n麻煩把時間空起來，到時見！`
+      : `嗨大家！以下是我們的會議時間 📅\n\n` +
         selectedList.map(s => `• ${s.day.label} ${s.day.date} · ${s.time}–${s.endTime}`).join('\n') +
-        `\n\n請準時出席，謝謝！`;
+        `\n\n麻煩把時間都空起來，到時見！`;
 
   const handleCopyMsg = () => {
     navigator.clipboard.writeText(shareMessage).then(() => {
