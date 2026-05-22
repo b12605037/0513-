@@ -614,8 +614,8 @@ export default function CreateEvent() {
     setShowShareModal(true);
   };
 
-  const displayLink = meetingIdRef.current ? `meetime.app/join/${meetingIdRef.current}` : '';
-  const shareLink   = meetingIdRef.current ? `https://meetime.app/join/${meetingIdRef.current}` : '';
+  const displayLink = meetingIdRef.current ? `meetime-sigma.vercel.app/join/${meetingIdRef.current}` : '';
+  const shareLink   = meetingIdRef.current ? `https://meetime-sigma.vercel.app/join/${meetingIdRef.current}` : '';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareLink).then(() => {
