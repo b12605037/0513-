@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import StatusBar from '../components/StatusBar';
 import { IcChevron } from '../components/Icons';
@@ -611,13 +612,40 @@ export default function CreateEvent() {
     setShowShareModal(true);
   };
 
-  const shareLink = meetingId ? `${window.location.origin}/join/${meetingId}` : '';
+  const displayLink = meetingId ? `meetime.app/join/${meetingId}` : '';
+  const shareLink   = meetingId ? `https://meetime.app/join/${meetingId}` : '';
+
+  const handleModalNameChange = (name) => {
+    setModalName(name);
+    if (meetingId) {
+      const stored = JSON.parse(localStorage.getItem(`meeting_${meetingId}`) || '{}');
+      localStorage.setItem(`meeting_${meetingId}`, JSON.stringify({ ...stored, name }));
+    }
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareLink).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     });
+  };
+
+  const handleShareLine = () => {
+    window.open(`https://line.me/R/msg/text/?${encodeURIComponent(shareLink)}`);
+  };
+
+  const handleShareEmail = () => {
+    const subject = encodeURIComponent(modalName || '邀請你填寫可用時間');
+    const body    = encodeURIComponent(`請點選以下連結填寫可用時間：\n${shareLink}`);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  };
+
+  const handleShareOther = () => {
+    if (navigator.share) {
+      navigator.share({ title: modalName || 'meetime', url: shareLink }).catch(() => {});
+    } else {
+      handleCopy();
+    }
   };
 
   return (
@@ -744,48 +772,83 @@ export default function CreateEvent() {
         <DatePickerSheet selected={deadlineDate} onSelect={setDeadlineDate} onClose={() => setShowDeadlineSheet(false)} />
       )}
 
-      {showShareModal && (
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
-          <div style={{ width: '100%', background: '#fff', borderRadius: 24, padding: '28px 20px 22px', boxShadow: '0 12px 48px rgba(0,0,0,0.18)' }}>
+      {showShareModal && createPortal(
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px' }}>
+          <div style={{ width: '100%', maxWidth: 400, background: '#fff', borderRadius: 24, padding: '28px 20px 20px', boxShadow: '0 16px 60px rgba(0,0,0,0.22)' }}>
 
-            <div style={{ width: 48, height: 48, borderRadius: 24, background: 'rgba(183,208,225,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5F84A2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
+            {/* Title */}
+            <div style={{ fontSize: 20, fontWeight: 800, color: '#111', marginBottom: 20, textAlign: 'center', letterSpacing: '-0.02em' }}>
+              邀請連結已產生！
             </div>
 
-            <div style={{ textAlign: 'center', marginBottom: 18 }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: '#111', marginBottom: 4 }}>邀請連結已建立！</div>
-              <div style={{ fontSize: 13, color: '#AAA' }}>取個名稱後，複製連結分享給大家填寫</div>
-            </div>
-
-            <div style={{ marginBottom: 14 }}>
+            {/* Meeting name input */}
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: '#888', display: 'block', marginBottom: 6 }}>會議名稱（選填）</label>
               <input
                 value={modalName}
-                onChange={e => setModalName(e.target.value)}
-                placeholder="活動名稱（可留空）"
+                onChange={e => handleModalNameChange(e.target.value)}
+                placeholder="例如：Q2 設計週會"
                 style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1.5px solid #E0E0E0', fontSize: 15, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', color: '#111' }}
               />
             </div>
 
-            <div style={{ background: '#F8F8F8', borderRadius: 12, padding: '10px 12px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ flex: 1, fontSize: 11, color: '#666', wordBreak: 'break-all', fontFamily: 'monospace', lineHeight: 1.4 }}>
-                {shareLink}
+            {/* Link block */}
+            <div style={{ background: '#F5F5F5', borderRadius: 12, padding: '10px 10px 10px 14px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ flex: 1, fontSize: 12, color: '#555', wordBreak: 'break-all', fontFamily: 'monospace', lineHeight: 1.5 }}>
+                {displayLink}
               </div>
               <button onClick={handleCopy} style={{
-                flexShrink: 0, padding: '7px 12px', borderRadius: 10, border: 'none',
-                background: copied ? '#5F84A2' : '#1A1A1A',
+                flexShrink: 0, padding: '8px 14px', borderRadius: 10, border: 'none',
+                background: copied ? '#5F84A2' : '#2F4156',
                 color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                 fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap',
               }}>
-                {copied ? '已複製 ✓' : '複製連結'}
+                {copied ? '已複製 ✓' : '複製'}
               </button>
             </div>
 
-            <button className="btn-primary" onClick={() => navigate('/')}>完成</button>
+            {/* Share buttons */}
+            <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+              {/* LINE */}
+              <button onClick={handleShareLine} style={{ flex: 1, padding: '12px 8px 10px', borderRadius: 14, border: '1.5px solid #F0F0F0', background: '#fff', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, fontFamily: 'inherit' }}>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: '#06C755', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                    <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+                  </svg>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 600, color: '#444' }}>LINE</span>
+              </button>
+
+              {/* Email */}
+              <button onClick={handleShareEmail} style={{ flex: 1, padding: '12px 8px 10px', borderRadius: 14, border: '1.5px solid #F0F0F0', background: '#fff', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, fontFamily: 'inherit' }}>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: '#EA4335', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2"/>
+                    <polyline points="2,4 12,13 22,4"/>
+                  </svg>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 600, color: '#444' }}>Email</span>
+              </button>
+
+              {/* 其他 */}
+              <button onClick={handleShareOther} style={{ flex: 1, padding: '12px 8px 10px', borderRadius: 14, border: '1.5px solid #F0F0F0', background: '#fff', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, fontFamily: 'inherit' }}>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: '#2F4156', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                  </svg>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 600, color: '#444' }}>其他</span>
+              </button>
+            </div>
+
+            {/* 回首頁 text link */}
+            <button onClick={() => navigate('/')} style={{ width: '100%', background: 'none', border: 'none', color: '#BBB', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', padding: '6px 0' }}>
+              回首頁
+            </button>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 }

@@ -62,11 +62,17 @@ function makeMockSlots(totalDays, total, seed) {
   return g;
 }
 
-const HEAT_PALETTE = ['#B7D0E1', '#91AEC4', '#5F84A2', '#194569'];
+// 4 anchor colors: lightest → darkest
+const HEAT_ANCHORS = [[191,204,212],[159,181,195],[138,157,168],[47,65,86]];
 function heatColor(n, total) {
   if (n === 0 || total === 0) return 'transparent';
-  const idx = Math.min(Math.ceil((n / total) * 4) - 1, 3);
-  return HEAT_PALETTE[idx];
+  const t = total === 1 ? 1 : (n - 1) / (total - 1);
+  const scaled = t * (HEAT_ANCHORS.length - 1);
+  const lo = Math.min(Math.floor(scaled), HEAT_ANCHORS.length - 2);
+  const f  = scaled - lo;
+  const hi = lo + 1;
+  const [r0,g0,b0] = HEAT_ANCHORS[lo], [r1,g1,b1] = HEAT_ANCHORS[hi];
+  return `rgb(${Math.round(r0+f*(r1-r0))},${Math.round(g0+f*(g1-g0))},${Math.round(b0+f*(b1-b0))})`;
 }
 
 const MOCK_NAMES = ['Alex', 'Sam', 'Jamie'];

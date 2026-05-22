@@ -9,6 +9,7 @@ const LABEL_W = 48;
 const SCROLL_W = 24;
 const DAYS_PER_PAGE = 4;
 const FREE_COLOR = '#2F4156';
+const SLOT_COLOR = 'rgba(47,65,86,0.28)';
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -72,11 +73,17 @@ function makeMockSlots(totalDays, total, seed) {
       g[`${d}-${s}`] = rand() > 0.45 ? 1 : 0;
   return g;
 }
-const HEAT_PALETTE = ['#B7D0E1', '#91AEC4', '#5F84A2', '#194569'];
+// 4 anchor colors: lightest → darkest
+const HEAT_ANCHORS = [[191,204,212],[159,181,195],[138,157,168],[47,65,86]];
 function heatColor(n, total) {
   if (n === 0 || total === 0) return 'transparent';
-  const idx = Math.min(Math.ceil((n / total) * 4) - 1, 3);
-  return HEAT_PALETTE[idx];
+  const t = total === 1 ? 1 : (n - 1) / (total - 1);
+  const scaled = t * (HEAT_ANCHORS.length - 1);
+  const lo = Math.min(Math.floor(scaled), HEAT_ANCHORS.length - 2);
+  const f  = scaled - lo;
+  const hi = lo + 1;
+  const [r0,g0,b0] = HEAT_ANCHORS[lo], [r1,g1,b1] = HEAT_ANCHORS[hi];
+  return `rgb(${Math.round(r0+f*(r1-r0))},${Math.round(g0+f*(g1-g0))},${Math.round(b0+f*(b1-b0))})`;
 }
 const MOCK_NAMES = ['Alex', 'Sam', 'Jamie'];
 
@@ -133,7 +140,7 @@ export default function TimeGrid() {
     slotsRef.current[key] = val;
     const [d, s] = key.split('-');
     const el = document.getElementById(`sl-${d}-${s}`);
-    if (el) el.style.background = val === 1 ? FREE_COLOR : 'transparent';
+    if (el) el.style.background = val === 1 ? SLOT_COLOR : 'transparent';
   };
   const flushSlots = () => setSlots({ ...slotsRef.current });
 
@@ -227,7 +234,7 @@ export default function TimeGrid() {
       const key = `${dayIdx}-${s}`;
       newSlots[key] = target;
       const el = document.getElementById(`sl-${dayIdx}-${s}`);
-      if (el) el.style.background = target === 1 ? FREE_COLOR : 'transparent';
+      if (el) el.style.background = target === 1 ? SLOT_COLOR : 'transparent';
     }
     slotsRef.current = newSlots;
     setSlots(newSlots);
@@ -248,7 +255,7 @@ export default function TimeGrid() {
         if (mockSlots.filter(r => r[key] === 1).length >= maxCount) {
           newSlots[key] = 1;
           const el = document.getElementById(`sl-${d}-${s}`);
-          if (el) el.style.background = FREE_COLOR;
+          if (el) el.style.background = SLOT_COLOR;
         }
       }
     slotsRef.current = newSlots;
@@ -367,7 +374,7 @@ export default function TimeGrid() {
                         data-day={globalIdx} data-slot={slot}
                         onMouseDown={() => handleMouseDown(globalIdx, slot)}
                         onMouseEnter={() => handleMouseEnter(globalIdx, slot)}
-                        style={{ height: SLOT_H, background: free ? FREE_COLOR : 'transparent', borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0', cursor: 'pointer' }}
+                        style={{ height: SLOT_H, background: free ? SLOT_COLOR : 'transparent', borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0', cursor: 'pointer' }}
                       />
                     );
                   })}
@@ -511,7 +518,12 @@ export default function TimeGrid() {
         <div onClick={() => setShowNameModal(false)}
           style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ width: '100%', maxWidth: 360, background: '#fff', borderRadius: 20, padding: '28px 20px 24px' }}>
+            style={{ width: '100%', maxWidth: 360, background: '#fff', borderRadius: 20, padding: '28px 20px 24px', position: 'relative' }}>
+            <button onClick={() => setShowNameModal(false)} style={{ position: 'absolute', top: 14, right: 14, width: 28, height: 28, borderRadius: 14, border: 'none', background: '#F0F0F0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round">
+                <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
+              </svg>
+            </button>
             <div style={{ fontSize: 18, fontWeight: 700, color: '#2F4156', marginBottom: 20 }}>輸入姓名</div>
             <input autoFocus value={name} onChange={e => setName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && name.trim() && navigate('/results', { state: { ...state, mySlots: slotsRef.current, myName: name.trim() } })}
