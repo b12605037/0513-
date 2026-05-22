@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import StatusBar from '../components/StatusBar';
 import { IcChevron } from '../components/Icons';
@@ -633,6 +632,7 @@ export default function CreateEvent() {
   };
 
   return (
+    <>
     <div className="app-container" style={{ position: 'relative' }}>
       <StatusBar />
       <div className="app-nav">
@@ -756,8 +756,10 @@ export default function CreateEvent() {
         <DatePickerSheet selected={deadlineDate} onSelect={setDeadlineDate} onClose={() => setShowDeadlineSheet(false)} />
       )}
 
-      {showShareModal && createPortal(
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px' }}>
+    </div>
+
+    {showShareModal && (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px' }}>
           <div style={{ width: '100%', maxWidth: 360, background: '#fff', borderRadius: 20, padding: '22px 20px 16px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}>
 
             {/* Header: icon + title */}
@@ -843,7 +845,7 @@ export default function CreateEvent() {
             </button>
           </div>
         </div>
-      , document.body)}
-    </div>
+      )}
+    </>
   );
 }
