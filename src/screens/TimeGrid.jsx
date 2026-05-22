@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import StatusBar from '../components/StatusBar';
 
 const SLOT_MIN = 30;
@@ -60,19 +61,6 @@ function initSlots(totalDays, total) {
   return g;
 }
 
-// Deterministic mock respondents
-function seededRand(seed) {
-  let s = seed;
-  return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0xffffffff; };
-}
-function makeMockSlots(totalDays, total, seed) {
-  const rand = seededRand(seed);
-  const g = {};
-  for (let d = 0; d < totalDays; d++)
-    for (let s = 0; s < total; s++)
-      g[`${d}-${s}`] = rand() > 0.45 ? 1 : 0;
-  return g;
-}
 // 4 anchor colors: lightest → darkest
 const HEAT_ANCHORS = [[191,204,212],[159,181,195],[138,157,168],[47,65,86]];
 function heatColor(n, total) {
@@ -85,7 +73,6 @@ function heatColor(n, total) {
   const [r0,g0,b0] = HEAT_ANCHORS[lo], [r1,g1,b1] = HEAT_ANCHORS[hi];
   return `rgb(${Math.round(r0+f*(r1-r0))},${Math.round(g0+f*(g1-g0))},${Math.round(b0+f*(b1-b0))})`;
 }
-const MOCK_NAMES = ['Alex', 'Sam', 'Jamie'];
 
 export default function TimeGrid() {
   const navigate = useNavigate();
@@ -101,11 +88,14 @@ export default function TimeGrid() {
 
   const [tab,  setTab]  = useState('mine'); // 'mine' | 'group'
   const [page, setPage] = useState(0);
-  const [slots, setSlots] = useState(() => state?.mySlots ?? initSlots(totalDays, TOTAL));
+  const [slots, setSlots] = useState(() => initSlots(totalDays, TOTAL));
   const [showNameModal, setShowNameModal] = useState(false);
   const [name, setName] = useState(state?.myName ?? '');
   const [hoveredCell, setHoveredCell] = useState(null); // { day, slot, cx, cy }
-  const [selectedRespondents, setSelectedRespondents] = useState(() => new Set([0, 1, 2, 3]));
+  const [selectedRespondents, setSelectedRespondents] = useState(() => new Set([0]));
+  const [groupResponses, setGroupResponses] = useState([]);
+  const [groupNames, setGroupNames] = useState([]);
+  const [submittingResponse, setSubmittingResponse] = useState(false);
 
   const pageRef  = useRef(page);
   const slotsRef = useRef(slots);
@@ -116,12 +106,26 @@ export default function TimeGrid() {
   const gestureRef      = useRef({ phase: 'idle', startX: 0, startY: 0, startDay: null, startSlot: null });
   const scrollContainerRef  = useRef(null);
 
-  // Mock respondents for group view
-  const mockSlots = useMemo(() =>
-    MOCK_NAMES.map((_, i) => makeMockSlots(totalDays, TOTAL, 42 + i * 17)),
-  [totalDays, TOTAL]);
+  useEffect(() => {
+    if (!state?.meetingId) return;
+    supabase.from('responses').select('respondent_name,slots').eq('meeting_id', state.meetingId)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setGroupNames(data.map(r => r.respondent_name));
+          setGroupResponses(data.map(r => r.slots));
+        }
+      });
+  }, [state?.meetingId]);
 
-  const allRespondents  = [slots, ...mockSlots];
+  useEffect(() => {
+    setSelectedRespondents(prev => {
+      const next = new Set(prev);
+      groupResponses.forEach((_, i) => next.add(i + 1));
+      return next;
+    });
+  }, [groupResponses.length]);
+
+  const allRespondents  = [slots, ...groupResponses];
   const respondentCount = allRespondents.length;
   const visibleRespondents = allRespondents.filter((_, i) => selectedRespondents.has(i));
   const visibleCount = visibleRespondents.length;
@@ -244,7 +248,7 @@ export default function TimeGrid() {
     let maxCount = 0;
     for (let d = 0; d < totalDays; d++)
       for (let s = 0; s < TOTAL; s++) {
-        const count = mockSlots.filter(r => r[`${d}-${s}`] === 1).length;
+        const count = groupResponses.filter(r => r[`${d}-${s}`] === 1).length;
         if (count > maxCount) maxCount = count;
       }
     if (maxCount === 0) return;
@@ -252,7 +256,7 @@ export default function TimeGrid() {
     for (let d = 0; d < totalDays; d++)
       for (let s = 0; s < TOTAL; s++) {
         const key = `${d}-${s}`;
-        if (mockSlots.filter(r => r[key] === 1).length >= maxCount) {
+        if (groupResponses.filter(r => r[key] === 1).length >= maxCount) {
           newSlots[key] = 1;
           const el = document.getElementById(`sl-${d}-${s}`);
           if (el) el.style.background = SLOT_COLOR;
@@ -260,6 +264,31 @@ export default function TimeGrid() {
       }
     slotsRef.current = newSlots;
     setSlots(newSlots);
+  };
+
+  const submitResponse = async () => {
+    if (!name.trim()) return;
+    setSubmittingResponse(true);
+    if (state?.meetingId) {
+      await supabase.from('responses').insert({
+        meeting_id: state.meetingId,
+        respondent_name: name.trim(),
+        slots: slotsRef.current,
+      });
+    }
+    setSubmittingResponse(false);
+    navigate('/results', {
+      state: {
+        meetingId:  state?.meetingId,
+        myName:     name.trim(),
+        duration:   state?.duration,
+        rangeStart: state?.rangeStart,
+        rangeEnd:   state?.rangeEnd,
+        startSlot:  state?.startSlot,
+        endSlot:    state?.endSlot,
+        allDay:     state?.allDay,
+      }
+    });
   };
 
   const showGroupCell = (e, day, slot) => {
@@ -442,7 +471,7 @@ export default function TimeGrid() {
         ) : (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             {allRespondents.map((_, i) => {
-              const n = i === 0 ? (name || '你') : MOCK_NAMES[i - 1];
+              const n = i === 0 ? (name || '你') : (groupNames[i - 1] ?? '?');
               const c = [FREE_COLOR, '#8A9DA8', '#26A69A', '#4DB6AC'][i];
               const sel = selectedRespondents.has(i);
               return (
@@ -467,7 +496,7 @@ export default function TimeGrid() {
         const dayInfo = allDays[hoveredCell.day];
         const time    = fmtH(G_START + hoveredCell.slot / SPH);
         const people  = allRespondents.map((r, i) => ({
-          name: i === 0 ? (name || '你') : MOCK_NAMES[i - 1],
+          name: i === 0 ? (name || '你') : (groupNames[i - 1] ?? '?'),
           free: r[key] === 1,
         }));
         const avail = people.filter(p => p.free);
@@ -526,13 +555,13 @@ export default function TimeGrid() {
             </button>
             <div style={{ fontSize: 18, fontWeight: 700, color: '#8A9DA8', marginBottom: 20 }}>輸入姓名</div>
             <input autoFocus value={name} onChange={e => setName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && name.trim() && navigate('/results', { state: { ...state, mySlots: slotsRef.current, myName: name.trim() } })}
+              onKeyDown={e => e.key === 'Enter' && name.trim() && submitResponse()}
               placeholder="輸入你的名字"
               style={{ width: '100%', padding: '13px 14px', borderRadius: 12, border: '1.5px solid #E0E0E0', fontSize: 16, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', marginBottom: 14 }} />
-            <button className="btn-primary" disabled={!name.trim()}
-              onClick={() => name.trim() && navigate('/results', { state: { ...state, mySlots: slotsRef.current, myName: name.trim() } })}
-              style={{ padding: '13px', opacity: name.trim() ? 1 : 0.4 }}>
-              送出
+            <button className="btn-primary" disabled={!name.trim() || submittingResponse}
+              onClick={submitResponse}
+              style={{ padding: '13px', opacity: name.trim() && !submittingResponse ? 1 : 0.4 }}>
+              {submittingResponse ? '送出中…' : '送出'}
             </button>
           </div>
         </div>

@@ -1,25 +1,34 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 export default function Join() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const raw = localStorage.getItem(`meeting_${id}`);
-    if (!raw) { navigate('/', { replace: true }); return; }
-    const m = JSON.parse(raw);
-    navigate('/grid', {
-      replace: true,
-      state: {
-        rangeStart: m.rangeStart,
-        rangeEnd: m.rangeEnd,
-        startSlot: m.startSlot,
-        endSlot: m.endSlot,
-        allDay: m.allDay,
-        eventName: m.name,
-      },
-    });
+    supabase
+      .from('meetings')
+      .select('*')
+      .eq('id', id)
+      .single()
+      .then(({ data: m, error }) => {
+        if (error || !m) { navigate('/', { replace: true }); return; }
+        navigate('/grid', {
+          replace: true,
+          state: {
+            meetingId:  m.id,
+            eventName:  m.name,
+            rangeStart: m.range_start,
+            rangeEnd:   m.range_end,
+            startSlot:  m.start_slot,
+            endSlot:    m.end_slot,
+            allDay:     m.all_day,
+            duration:   m.duration,
+            deadline:   m.deadline,
+          },
+        });
+      });
   }, [id, navigate]);
 
   return (

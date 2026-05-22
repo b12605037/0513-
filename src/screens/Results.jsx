@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import StatusBar from '../components/StatusBar';
 
 const SLOT_MIN = 30;
@@ -58,20 +59,6 @@ function pageNavLabel(pageDays) {
     : `${MON[first.month]} ${first.date} – ${MON[last.month]} ${last.date}`;
 }
 
-function seededRand(seed) {
-  let s = seed;
-  return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0xffffffff; };
-}
-
-function makeMockSlots(totalDays, total, seed) {
-  const rand = seededRand(seed);
-  const g = {};
-  for (let d = 0; d < totalDays; d++)
-    for (let s = 0; s < total; s++)
-      g[`${d}-${s}`] = rand() > 0.45 ? 1 : 0;
-  return g;
-}
-
 // 4 anchor colors: lightest → darkest
 const HEAT_ANCHORS = [[191,204,212],[159,181,195],[138,157,168],[47,65,86]];
 function heatColor(n, total) {
@@ -84,7 +71,6 @@ function heatColor(n, total) {
   return `rgb(${Math.round(r0+f*(r1-r0))},${Math.round(g0+f*(g1-g0))},${Math.round(b0+f*(b1-b0))})`;
 }
 
-const MOCK_NAMES = ['Alex', 'Sam', 'Jamie'];
 
 export default function Results() {
   const navigate = useNavigate();
@@ -98,15 +84,21 @@ export default function Results() {
   const totalDays = allDays.length;
   const totalPages = Math.ceil(totalDays / DAYS_PER_PAGE);
 
-  const mySlots = state?.mySlots ?? {};
-  const myName  = state?.myName  ?? '你';
+  const [responses, setResponses]         = useState([]);
+  const [loading, setLoading]             = useState(true);
 
-  const mockSlots = useMemo(() => MOCK_NAMES.map((_, i) =>
-    makeMockSlots(totalDays, TOTAL, 42 + i * 17)
-  ), [totalDays, TOTAL]);
+  useEffect(() => {
+    if (!state?.meetingId) { setLoading(false); return; }
+    supabase.from('responses').select('respondent_name,slots')
+      .eq('meeting_id', state.meetingId)
+      .then(({ data }) => {
+        if (data) setResponses(data);
+        setLoading(false);
+      });
+  }, [state?.meetingId]);
 
-  const allRespondents  = [mySlots, ...mockSlots];
-  const respondentNames = [myName, ...MOCK_NAMES];
+  const allRespondents  = useMemo(() => responses.map(r => r.slots), [responses]);
+  const respondentNames = useMemo(() => responses.map(r => r.respondent_name), [responses]);
   const COLORS = ['#194569', '#5F84A2', '#91AEC4', '#8A9DA8'];
 
   const _today = new Date();
@@ -114,10 +106,14 @@ export default function Results() {
   const todayD = _today.getDate();
 
   const [page, setPage]                   = useState(0);
-  const [selected, setSelected]           = useState(() => new Set(allRespondents.map((_, i) => i)));
+  const [selected, setSelected]           = useState(new Set());
   const [selectedSlots, setSelectedSlots] = useState(new Set());
   const [heatmapExpanded, setHeatmapExpanded] = useState(false);
   const [copiedMsg, setCopiedMsg]         = useState(false);
+
+  useEffect(() => {
+    setSelected(new Set(responses.map((_, i) => i)));
+  }, [responses.length]);
 
   const pageStart = page * DAYS_PER_PAGE;
   const pageDays  = allDays.slice(pageStart, pageStart + DAYS_PER_PAGE);
@@ -164,7 +160,7 @@ export default function Results() {
       }
     }
     return picked;
-  }, [selected, allRespondents, slotsNeeded, totalDays, TOTAL, G_START]);
+  }, [selected, responses, slotsNeeded, totalDays, TOTAL, G_START]);
 
   const toggleSlot = (key) =>
     setSelectedSlots(prev => { const s = new Set(prev); s.has(key) ? s.delete(key) : s.add(key); return s; });
@@ -228,7 +224,9 @@ export default function Results() {
 
       {/* Best slots list */}
       <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', padding: '10px 16px', background: '#F8F8F8' }}>
-        {allBestSlots.length === 0 ? (
+        {loading ? (
+          <div style={{ textAlign: 'center', color: '#CCC', fontSize: 14, paddingTop: 48 }}>載入中…</div>
+        ) : allBestSlots.length === 0 ? (
           <div style={{ textAlign: 'center', color: '#CCC', fontSize: 14, paddingTop: 48, lineHeight: 2 }}>
             {visibleCount === 0 ? '請先選取成員' : '沒有找到共同空閒時段'}
           </div>

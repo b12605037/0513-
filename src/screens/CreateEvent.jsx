@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import StatusBar from '../components/StatusBar';
 import { IcChevron } from '../components/Icons';
 
@@ -589,22 +590,26 @@ export default function CreateEvent() {
     setShowTzSheet(false);
   };
 
-  const handleSendInvite = () => {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSendInvite = async () => {
+    setSubmitting(true);
     const id = Math.random().toString(36).slice(2, 10);
-    const data = {
+    const { error } = await supabase.from('meetings').insert({
       id,
       name: form.name,
-      rangeStart: rangeStart?.getTime() ?? null,
-      rangeEnd: rangeEnd?.getTime() ?? null,
-      startSlot,
-      endSlot,
-      allDay: form.allDay,
-      duration: form.duration,
-      timezone: form.timezone,
-      timezoneOffset: form.timezoneOffset,
-      deadline: deadlineDate?.getTime() ?? null,
-    };
-    localStorage.setItem(`meeting_${id}`, JSON.stringify(data));
+      range_start: rangeStart?.getTime() ?? null,
+      range_end:   rangeEnd?.getTime()   ?? null,
+      start_slot:  startSlot,
+      end_slot:    endSlot,
+      all_day:     form.allDay,
+      duration:    form.duration,
+      timezone:    form.timezone,
+      timezone_offset: form.timezoneOffset,
+      deadline:    deadlineDate?.getTime() ?? null,
+    });
+    setSubmitting(false);
+    if (error) { alert('儲存失敗：' + error.message); return; }
     meetingIdRef.current = id;
     setShowShareModal(true);
   };
@@ -739,11 +744,11 @@ export default function CreateEvent() {
             ? <button className="btn-primary" onClick={() => setStep(s => s + 1)}>
                 下一步 <IcChevron dir="right" size={16} />
               </button>
-            : <button className="btn-primary" onClick={handleSendInvite}>
-                送出邀請
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            : <button className="btn-primary" onClick={handleSendInvite} disabled={submitting} style={{ opacity: submitting ? 0.6 : 1 }}>
+                {submitting ? '儲存中…' : '送出邀請'}
+                {!submitting && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                </svg>
+                </svg>}
               </button>
           }
         </div>
