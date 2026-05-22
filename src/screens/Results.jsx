@@ -5,7 +5,7 @@ import StatusBar from '../components/StatusBar';
 const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
 const SLOT_H = 30;
-const LABEL_W = 44;
+const LABEL_W = 52;
 const DAYS_PER_PAGE = 4;
 const DOW    = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DOW_ZH = ['週日','週一','週二','週三','週四','週五','週六'];
@@ -14,6 +14,12 @@ const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct
 const fmtH24 = h => {
   const hr = Math.floor(h) % 24, min = Math.round((h - Math.floor(h)) * 60);
   return `${String(hr).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
+};
+const fmtHLabel = h => {
+  const hr = Math.floor(h) % 24;
+  if (hr === 0) return '12am';
+  if (hr === 12) return '12pm';
+  return hr < 12 ? `${hr}am` : `${hr - 12}pm`;
 };
 
 const fmtH = h => {
@@ -102,6 +108,10 @@ export default function Results() {
   const allRespondents  = [mySlots, ...mockSlots];
   const respondentNames = [myName, ...MOCK_NAMES];
   const COLORS = ['#194569', '#5F84A2', '#91AEC4', '#8A9DA8'];
+
+  const _today = new Date();
+  const todayM = _today.getMonth();
+  const todayD = _today.getDate();
 
   const [page, setPage]                   = useState(0);
   const [selected, setSelected]           = useState(() => new Set(allRespondents.map((_, i) => i)));
@@ -323,50 +333,50 @@ export default function Results() {
         </div>
       </div>
 
-      {/* Heatmap full-screen overlay */}
+      {/* Heatmap bottom-sheet overlay */}
       {heatmapExpanded && (
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: '#fff', zIndex: 100, display: 'flex', flexDirection: 'column', paddingTop: 20 }}>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '82%', background: '#fff', zIndex: 100, borderRadius: '20px 20px 0 0', boxShadow: '0 -4px 24px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column' }}>
           {/* Nav */}
-          <div style={{ display: 'flex', alignItems: 'center', padding: '8px 16px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#333', flex: 1 }}>時段熱圖</span>
-            {totalPages > 1 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginRight: 12 }}>
-                <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{ background: 'none', border: 'none', fontSize: 20, color: page > 0 ? '#5F84A2' : '#DDD', padding: '0 6px', cursor: page > 0 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>‹</button>
-                <span style={{ fontSize: 11, fontWeight: 600, color: '#888' }}>{pageNavLabel(pageDays)}</span>
-                <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{ background: 'none', border: 'none', fontSize: 20, color: page < totalPages - 1 ? '#5F84A2' : '#DDD', padding: '0 6px', cursor: page < totalPages - 1 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>›</button>
-              </div>
-            )}
-            <button onClick={() => setHeatmapExpanded(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', padding: '14px 6px 10px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
+            <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{ background: 'none', border: 'none', fontSize: 22, color: page > 0 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page > 0 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>‹</button>
+            <span style={{ flex: 1, textAlign: 'center', fontSize: 15, fontWeight: 700, color: '#111' }}>{pageNavLabel(pageDays)}</span>
+            <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{ background: 'none', border: 'none', fontSize: 22, color: page < totalPages - 1 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page < totalPages - 1 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>›</button>
+            <button onClick={() => setHeatmapExpanded(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 12px 4px 0', display: 'flex', alignItems: 'center' }}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round">
                 <polyline points="2,5 7,10 12,5"/>
               </svg>
             </button>
           </div>
 
-          {/* Sticky day headers */}
-          <div style={{ display: 'flex', paddingLeft: LABEL_W, background: '#fff', borderBottom: '1px solid #EBEBEB', flexShrink: 0 }}>
-            {pageDays.map((d, i) => (
-              <div key={i} style={{ flex: 1, textAlign: 'center', padding: '4px 0' }}>
-                <div style={{ fontSize: 9, fontWeight: 600, color: '#AAA' }}>{DOW_ZH[DOW_IDX[d.label]]}</div>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#8A9DA8' }}>{d.date}</div>
-              </div>
-            ))}
+          {/* Day headers */}
+          <div style={{ display: 'flex', paddingLeft: LABEL_W, background: '#fff', borderBottom: '1px solid #E0E0E0', flexShrink: 0 }}>
+            {pageDays.map((d, i) => {
+              const isToday = Number(d.date) === todayD && d.month === todayM;
+              return (
+                <div key={i} style={{ flex: 1, textAlign: 'center', padding: '8px 0' }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: '#AAA', letterSpacing: '0.06em', marginBottom: 4 }}>{DOW_ZH[DOW_IDX[d.label]]}</div>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 14, background: isToday ? '#8A9DA8' : 'transparent' }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: isToday ? '#fff' : '#333' }}>{d.date}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Scrollable grid */}
-          <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none' }}>
-            <div style={{ display: 'flex', userSelect: 'none' }}>
+          <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', userSelect: 'none', marginTop: 'auto' }}>
               <div style={{ width: LABEL_W, flexShrink: 0 }}>
                 {Array.from({ length: TOTAL }, (_, s) => (
-                  <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 4, paddingTop: 1, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent' }}>
-                    {s % SPH === 0 && <span style={{ fontSize: 10, fontWeight: 600, color: '#BBB' }}>{fmtH24(G_START + s / SPH)}</span>}
+                  <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', paddingLeft: 8, paddingTop: 3, borderTop: s % SPH === 0 ? '1px solid #E0E0E0' : '1px dashed #EBEBEB' }}>
+                    {s % SPH === 0 && <span style={{ fontSize: 10, fontWeight: 600, color: '#AAA', lineHeight: 1 }}>{fmtHLabel(G_START + s / SPH)}</span>}
                   </div>
                 ))}
               </div>
               {pageDays.map((_, i) => {
                 const gi = pageStart + i;
                 return (
-                  <div key={gi} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
+                  <div key={gi} style={{ flex: 1, borderLeft: '1px solid #E0E0E0' }}>
                     {Array.from({ length: TOTAL }, (_, slot) => {
                       const key = `${gi}-${slot}`;
                       const count = visibleRespondents.filter(r => r[key] === 1).length;
@@ -374,7 +384,7 @@ export default function Results() {
                         <div key={slot} style={{
                           height: SLOT_H,
                           background: heatColor(count, visibleCount),
-                          borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent',
+                          borderTop: slot % SPH === 0 ? '1px solid #E0E0E0' : '1px dashed #EBEBEB',
                         }} />
                       );
                     })}
