@@ -161,28 +161,30 @@ export default function TimeGrid() {
     paintSlot(key, dragRef.current.target);
   };
 
-  // Non-passive touchmove
+  // Non-passive touchmove — block scroll while gesture is pending/swipe/paint
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
     const onMove = (e) => {
       const g = gestureRef.current;
-      if (g.phase === 'idle') return;
+      if (g.phase === 'idle' || g.phase === 'scroll') return;
       const t = e.touches[0];
       if (g.phase === 'pending') {
         const dx = Math.abs(t.clientX - g.startX);
         const dy = Math.abs(t.clientY - g.startY);
-        if (dx < 6 && dy < 6) return;
+        // Block scroll during direction-detection window so browser can't start scrolling early
+        if (dx < 6 && dy < 6) { e.preventDefault(); return; }
         if (dx > dy) { g.phase = 'swipe'; }
         else if (g.startDay !== null) {
           g.phase = 'paint';
           g.lastTX = t.clientX; g.lastTY = t.clientY;
           startDrag(g.startDay, g.startSlot);
         }
-        else { g.phase = 'scroll'; }
+        else { g.phase = 'scroll'; return; } // vertical scroll on non-cell area — allow native scroll
       }
+      // swipe or paint: always block page scroll
+      e.preventDefault();
       if (g.phase === 'paint') {
-        e.preventDefault();
         const lx = g.lastTX ?? t.clientX;
         const ly = g.lastTY ?? t.clientY;
         const cx = t.clientX, cy = t.clientY;
@@ -196,8 +198,6 @@ export default function TimeGrid() {
             moveDrag(+el.dataset.day, +el.dataset.slot);
         }
         g.lastTX = cx; g.lastTY = cy;
-      } else if (g.phase === 'swipe') {
-        e.preventDefault();
       }
     };
     container.addEventListener('touchmove', onMove, { passive: false });
