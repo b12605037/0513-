@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import StatusBar from '../components/StatusBar';
@@ -568,7 +568,7 @@ export default function CreateEvent() {
   const [showTzSheet, setShowTzSheet] = useState(false);
   const [showDeadlineSheet, setShowDeadlineSheet] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [meetingId, setMeetingId] = useState(null);
+  const meetingIdRef = useRef(null);
   const [copied, setCopied] = useState(false);
   const [deadlineDate, setDeadlineDate] = useState(new Date(2026, 4, 9));
   const [rangeStart, setRangeStart] = useState(new Date(2026, 4, 5));
@@ -606,12 +606,12 @@ export default function CreateEvent() {
       deadline: deadlineDate?.getTime() ?? null,
     };
     localStorage.setItem(`meeting_${id}`, JSON.stringify(data));
-    setMeetingId(id);
+    meetingIdRef.current = id;
     setShowShareModal(true);
   };
 
-  const displayLink = meetingId ? `meetime.app/join/${meetingId}` : '';
-  const shareLink   = meetingId ? `https://meetime.app/join/${meetingId}` : '';
+  const displayLink = meetingIdRef.current ? `meetime.app/join/${meetingIdRef.current}` : '';
+  const shareLink   = meetingIdRef.current ? `https://meetime.app/join/${meetingIdRef.current}` : '';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareLink).then(() => {
