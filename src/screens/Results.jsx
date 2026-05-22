@@ -211,21 +211,21 @@ export default function Results() {
                 border: `1.5px solid ${sel ? color : '#E5E5E5'}`,
                 borderRadius: 20, padding: '4px 10px', transition: 'all 0.15s',
               }}>
-                <div style={{ width: 18, height: 18, borderRadius: 9, background: sel ? color : '#CCC', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n[0]}</div>
-                <span style={{ fontSize: 11, fontWeight: sel ? 600 : 400, color: sel ? '#333' : '#AAA' }}>{n}</span>
+                <div style={{ width: 18, height: 18, borderRadius: 9, background: sel ? color : '#CCC', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n[0]}</div>
+                <span style={{ fontSize: 14, fontWeight: sel ? 600 : 400, color: sel ? '#333' : '#AAA' }}>{n}</span>
               </div>
             );
           })}
-          {visibleCount === 0 && <span style={{ fontSize: 11, color: '#E57373', fontWeight: 500 }}>請至少選取一位</span>}
+          {visibleCount === 0 && <span style={{ fontSize: 14, color: '#E57373', fontWeight: 500 }}>請至少選取一位</span>}
         </div>
       </div>
 
       {/* Best slots list */}
       <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', padding: '10px 16px', background: '#F8F8F8' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', color: '#CCC', fontSize: 14, paddingTop: 48 }}>載入中…</div>
+          <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, paddingTop: 48 }}>載入中…</div>
         ) : allBestSlots.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#CCC', fontSize: 14, paddingTop: 48, lineHeight: 2 }}>
+          <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, paddingTop: 48, lineHeight: 2 }}>
             {visibleCount === 0 ? '請先選取成員' : '沒有找到共同空閒時段'}
           </div>
         ) : (
@@ -242,12 +242,12 @@ export default function Results() {
                 }}>
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: '#111' }}>
                       {DOW_ZH[DOW_IDX[slot.day.label]]} {slot.day.date} · {fmtH24(G_START + slot.rawS / SPH)}–{fmtH24(G_START + (slot.rawS + slotsNeeded) / SPH)}
                     </span>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
                       {slot.freeNames.map(n => (
-                        <span key={n} style={{ fontSize: 10, color: '#888', background: '#F5F5F5', borderRadius: 6, padding: '1px 6px' }}>{n}</span>
+                        <span key={n} style={{ fontSize: 13, color: '#888', background: '#F5F5F5', borderRadius: 6, padding: '1px 6px' }}>{n}</span>
                       ))}
                     </div>
                   </div>
@@ -278,13 +278,13 @@ export default function Results() {
       {selectedList.length > 0 && (
         <div style={{ padding: '8px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
           <div style={{ background: '#F5F5F5', borderRadius: 12, padding: '10px 10px 10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ flex: 1, fontSize: 12, color: '#555', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+            <div style={{ flex: 1, fontSize: 15, color: '#555', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
               {selectedList.map(s => `${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} · ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + slotsNeeded) / SPH)}`).join('、')}
             </div>
             <button onClick={handleCopyMsg} style={{
               flexShrink: 0, padding: '8px 14px', borderRadius: 10, border: 'none',
               background: copiedMsg ? '#5F84A2' : '#8A9DA8',
-              color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
               fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap',
             }}>
               {copiedMsg ? '已複製 ✓' : '複製訊息'}
@@ -306,7 +306,7 @@ export default function Results() {
               </div>
             ))}
           </div>
-          <span style={{ fontSize: 11, color: '#999', fontWeight: 500, flexShrink: 0 }}>時段熱圖</span>
+          <span style={{ fontSize: 14, color: '#999', fontWeight: 500, flexShrink: 0 }}>時段熱圖</span>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
             <polyline points="2,9 7,4 12,9"/>
           </svg>
@@ -318,7 +318,7 @@ export default function Results() {
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => navigate('/grid', { state })} style={{
             flex: 1, padding: '13px', borderRadius: 14, border: '1.5px solid #5F84A2',
-            background: 'transparent', color: '#5F84A2', fontSize: 15, fontWeight: 600,
+            background: 'transparent', color: '#5F84A2', fontSize: 19, fontWeight: 600,
             fontFamily: 'inherit', cursor: 'pointer',
           }}>
             重新填寫
@@ -334,9 +334,9 @@ export default function Results() {
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '82%', background: '#fff', zIndex: 100, borderRadius: '20px 20px 0 0', boxShadow: '0 -4px 24px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column' }}>
           {/* Nav */}
           <div style={{ display: 'flex', alignItems: 'center', padding: '14px 6px 10px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
-            <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{ background: 'none', border: 'none', fontSize: 22, color: page > 0 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page > 0 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>‹</button>
-            <span style={{ flex: 1, textAlign: 'center', fontSize: 15, fontWeight: 700, color: '#111' }}>{pageNavLabel(pageDays)}</span>
-            <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{ background: 'none', border: 'none', fontSize: 22, color: page < totalPages - 1 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page < totalPages - 1 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>›</button>
+            <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{ background: 'none', border: 'none', fontSize: 28, color: page > 0 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page > 0 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>‹</button>
+            <span style={{ flex: 1, textAlign: 'center', fontSize: 19, fontWeight: 700, color: '#111' }}>{pageNavLabel(pageDays)}</span>
+            <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{ background: 'none', border: 'none', fontSize: 28, color: page < totalPages - 1 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page < totalPages - 1 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>›</button>
             <button onClick={() => setHeatmapExpanded(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 12px 4px 0', display: 'flex', alignItems: 'center' }}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round">
                 <polyline points="2,5 7,10 12,5"/>
@@ -350,9 +350,9 @@ export default function Results() {
               const isToday = Number(d.date) === todayD && d.month === todayM;
               return (
                 <div key={i} style={{ flex: 1, textAlign: 'center', padding: '8px 0' }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: '#AAA', letterSpacing: '0.06em', marginBottom: 4 }}>{DOW_ZH[DOW_IDX[d.label]]}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#AAA', letterSpacing: '0.06em', marginBottom: 4 }}>{DOW_ZH[DOW_IDX[d.label]]}</div>
                   <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 14, background: isToday ? '#8A9DA8' : 'transparent' }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: isToday ? '#fff' : '#333' }}>{d.date}</span>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: isToday ? '#fff' : '#333' }}>{d.date}</span>
                   </div>
                 </div>
               );
@@ -365,7 +365,7 @@ export default function Results() {
               <div style={{ width: LABEL_W, flexShrink: 0 }}>
                 {Array.from({ length: TOTAL }, (_, s) => (
                   <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', paddingLeft: 8, paddingTop: 3, borderTop: s % SPH === 0 ? '1px solid #E0E0E0' : '1px dashed #EBEBEB' }}>
-                    {s % SPH === 0 && <span style={{ fontSize: 10, fontWeight: 600, color: '#AAA', lineHeight: 1 }}>{fmtHLabel(G_START + s / SPH)}</span>}
+                    {s % SPH === 0 && <span style={{ fontSize: 13, fontWeight: 600, color: '#AAA', lineHeight: 1 }}>{fmtHLabel(G_START + s / SPH)}</span>}
                   </div>
                 ))}
               </div>

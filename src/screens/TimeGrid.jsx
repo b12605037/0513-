@@ -318,8 +318,8 @@ export default function TimeGrid() {
         return (
           <div key={i} onClick={() => onDayClick?.(globalIdx)}
             style={{ flex: 1, textAlign: 'center', padding: '5px 0 6px', cursor: onDayClick ? 'pointer' : 'default' }}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: isToday ? '#8A9DA8' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
-            <div style={{ width: 22, height: 22, borderRadius: 11, margin: '2px auto 0', background: isToday ? '#8A9DA8' : 'transparent', color: isToday ? '#fff' : '#8A9DA8', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: isToday ? '#8A9DA8' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
+            <div style={{ width: 22, height: 22, borderRadius: 11, margin: '2px auto 0', background: isToday ? '#8A9DA8' : 'transparent', color: isToday ? '#fff' : '#8A9DA8', fontSize: 15, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
           </div>
         );
       })}
@@ -330,7 +330,7 @@ export default function TimeGrid() {
   return (
     <div className="app-container">
       <div className="app-nav">
-        <span style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>{surveyLabel}</span>
+        <span style={{ fontSize: 16, color: '#888', fontWeight: 500 }}>{surveyLabel}</span>
         <span className="nav-title">填寫我的時間</span>
         <span style={{ width: 48 }} />
       </div>
@@ -341,7 +341,7 @@ export default function TimeGrid() {
           {[['mine', '我的'], ['group', '群組']].map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)} style={{
               flex: 1, padding: '7px 0', borderRadius: 8, border: 'none', fontFamily: 'inherit',
-              fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.18s',
+              fontSize: 16, fontWeight: 600, cursor: 'pointer', transition: 'all 0.18s',
               background: tab === key ? '#fff' : 'transparent',
               color: tab === key ? FREE_COLOR : '#AAA',
               boxShadow: tab === key ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
@@ -354,15 +354,15 @@ export default function TimeGrid() {
       {totalPages > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', background: '#FAFAFA', borderBottom: '1px solid #F0F0F0', flexShrink: 0, padding: '0 4px' }}>
           <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{
-            background: 'none', border: 'none', fontSize: 22, fontFamily: 'inherit',
+            background: 'none', border: 'none', fontSize: 28, fontFamily: 'inherit',
             color: page > 0 ? FREE_COLOR : '#DDD', padding: '8px 12px', minWidth: 44,
             cursor: page > 0 ? 'pointer' : 'default',
           }}>‹</button>
-          <span style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#888' }}>
+          <span style={{ flex: 1, textAlign: 'center', fontSize: 15, fontWeight: 600, color: '#888' }}>
             {pageNavLabel(pageDays)}
           </span>
           <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{
-            background: 'none', border: 'none', fontSize: 22, fontFamily: 'inherit',
+            background: 'none', border: 'none', fontSize: 28, fontFamily: 'inherit',
             color: page < totalPages - 1 ? FREE_COLOR : '#DDD', padding: '8px 12px', minWidth: 44,
             cursor: page < totalPages - 1 ? 'pointer' : 'default',
           }}>›</button>
@@ -384,7 +384,7 @@ export default function TimeGrid() {
             <div style={{ width: LABEL_W, flexShrink: 0 }}>
               {Array.from({ length: TOTAL }, (_, s) => (
                 <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0' }}>
-                  {s % SPH === 0 && <span style={{ fontSize: 9, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
+                  {s % SPH === 0 && <span style={{ fontSize: 11, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
                 </div>
               ))}
             </div>
@@ -425,7 +425,7 @@ export default function TimeGrid() {
             <div style={{ width: LABEL_W, flexShrink: 0 }}>
               {Array.from({ length: TOTAL }, (_, s) => (
                 <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent' }}>
-                  {s % SPH === 0 && <span style={{ fontSize: 9, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
+                  {s % SPH === 0 && <span style={{ fontSize: 11, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
                 </div>
               ))}
             </div>
@@ -457,14 +457,14 @@ export default function TimeGrid() {
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
               <button onClick={autofillBestTime} style={{
                 flex: 1, padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${FREE_COLOR}`,
-                background: 'transparent', color: FREE_COLOR, fontSize: 12, fontWeight: 600,
+                background: 'transparent', color: FREE_COLOR, fontSize: 15, fontWeight: 600,
                 fontFamily: 'inherit', cursor: 'pointer',
               }}>填入目前最佳時段</button>
               <button className="btn-primary" onClick={() => setShowNameModal(true)} style={{ flex: 1, padding: '12px' }}>
                 送出
               </button>
             </div>
-            <div style={{ fontSize: 11, color: '#AAA', textAlign: 'center' }}>點按・拖曳塗色・左右滑動換頁</div>
+            <div style={{ fontSize: 14, color: '#AAA', textAlign: 'center' }}>點按・拖曳塗色・左右滑動換頁</div>
           </>
         ) : (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -479,8 +479,8 @@ export default function TimeGrid() {
                   border: `1.5px solid ${sel ? c : '#E5E5E5'}`,
                   borderRadius: 20, padding: '5px 10px', transition: 'all 0.15s',
                 }}>
-                  <div style={{ width: 16, height: 16, borderRadius: 8, background: sel ? c : '#CCC', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n[0]}</div>
-                  <span style={{ fontSize: 11, fontWeight: sel ? 600 : 400, color: sel ? '#333' : '#AAA' }}>{n}</span>
+                  <div style={{ width: 16, height: 16, borderRadius: 8, background: sel ? c : '#CCC', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n[0]}</div>
+                  <span style={{ fontSize: 14, fontWeight: sel ? 600 : 400, color: sel ? '#333' : '#AAA' }}>{n}</span>
                 </div>
               );
             })}
@@ -512,27 +512,27 @@ export default function TimeGrid() {
             boxShadow: '0 6px 28px rgba(0,0,0,0.18)', zIndex: 50,
           }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 2 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#8A9DA8' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#8A9DA8' }}>
                 {allFree ? '所有人都有空' : `${avail.length} / ${people.length} 人有空`}
               </div>
               <button onTouchEnd={e => { e.stopPropagation(); setHoveredCell(null); }}
                 onClick={() => setHoveredCell(null)}
-                style={{ background: 'none', border: 'none', fontSize: 13, color: '#CCC', cursor: 'pointer', padding: '0 0 0 8px', lineHeight: 1 }}>✕</button>
+                style={{ background: 'none', border: 'none', fontSize: 16, color: '#CCC', cursor: 'pointer', padding: '0 0 0 8px', lineHeight: 1 }}>✕</button>
             </div>
-            <div style={{ fontSize: 10, color: '#AAA', marginBottom: 10 }}>
+            <div style={{ fontSize: 13, color: '#AAA', marginBottom: 10 }}>
               {dayInfo?.label} {dayInfo?.date} · {time}
             </div>
             {avail.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: busy.length ? 8 : 0 }}>
                 {avail.map(({ name: n }) => (
-                  <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: '#1A1A1A', color: '#fff', fontSize: 11, fontWeight: 600 }}>{n}</div>
+                  <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: '#1A1A1A', color: '#fff', fontSize: 14, fontWeight: 600 }}>{n}</div>
                 ))}
               </div>
             )}
             {busy.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                 {busy.map(({ name: n }) => (
-                  <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: '#F0F0F0', color: '#AAA', fontSize: 11 }}>{n}</div>
+                  <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: '#F0F0F0', color: '#AAA', fontSize: 14 }}>{n}</div>
                 ))}
               </div>
             )}
@@ -551,11 +551,11 @@ export default function TimeGrid() {
                 <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
               </svg>
             </button>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#8A9DA8', marginBottom: 20 }}>輸入姓名</div>
+            <div style={{ fontSize: 23, fontWeight: 700, color: '#8A9DA8', marginBottom: 20 }}>輸入姓名</div>
             <input autoFocus value={name} onChange={e => setName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && name.trim() && submitResponse()}
               placeholder="輸入你的名字"
-              style={{ width: '100%', padding: '13px 14px', borderRadius: 12, border: '1.5px solid #E0E0E0', fontSize: 16, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', marginBottom: 14 }} />
+              style={{ width: '100%', padding: '13px 14px', borderRadius: 12, border: '1.5px solid #E0E0E0', fontSize: 20, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', marginBottom: 14 }} />
             <button className="btn-primary" disabled={!name.trim() || submittingResponse}
               onClick={submitResponse}
               style={{ padding: '13px', opacity: name.trim() && !submittingResponse ? 1 : 0.4 }}>

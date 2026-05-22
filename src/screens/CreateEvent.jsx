@@ -86,7 +86,7 @@ function DurationSlider({ value, onChange }) {
   return (
     <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0' }}>
       <div style={{ background: '#e8eef1', borderRadius: 8, padding: '12px', textAlign: 'center', marginBottom: 20 }}>
-        <div style={{ fontSize: 28, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtDuration(value)}</div>
+        <div style={{ fontSize: 35, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtDuration(value)}</div>
       </div>
       <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px', touchAction: 'none' }}>
         <div style={{ position: 'absolute', left: 0, width: `${pct}%`, top: 0, bottom: 0, background: '#8A9DA8', borderRadius: 3 }} />
@@ -101,7 +101,7 @@ function DurationSlider({ value, onChange }) {
           const pct = (slot / DURATION_TOTAL) * 100;
           const transform = i === 0 ? 'none' : i === DURATION_TICKS.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)';
           return (
-            <span key={label} style={{ position: 'absolute', left: `${pct}%`, transform, fontSize: 10, color: '#CCC', fontWeight: 500, whiteSpace: 'nowrap' }}>{label}</span>
+            <span key={label} style={{ position: 'absolute', left: `${pct}%`, transform, fontSize: 13, color: '#CCC', fontWeight: 500, whiteSpace: 'nowrap' }}>{label}</span>
           );
         })}
       </div>
@@ -154,11 +154,11 @@ function TimeRangeSlider({ startSlot, endSlot, onChange }) {
     <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
         <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtSlot(startSlot)} <span style={{ fontSize: 13, fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtSlot(startSlot)} <span style={{ fontSize: 16, fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
         </div>
-        <div style={{ color: '#CCC', fontSize: 20 }}>→</div>
+        <div style={{ color: '#CCC', fontSize: 25 }}>→</div>
         <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtSlot(endSlot)} <span style={{ fontSize: 13, fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtSlot(endSlot)} <span style={{ fontSize: 16, fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
         </div>
       </div>
 
@@ -176,7 +176,7 @@ function TimeRangeSlider({ startSlot, endSlot, onChange }) {
         />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#CCC', fontWeight: 500, paddingLeft: 2, paddingRight: 2 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#CCC', fontWeight: 500, paddingLeft: 2, paddingRight: 2 }}>
         {TICK_LABELS.map(t => <span key={t}>{t}</span>)}
       </div>
     </div>
@@ -351,9 +351,9 @@ function RangePicker({ startDate, endDate, onChange }) {
     <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16, touchAction: 'none' }}>
       <div style={{ padding: '10px 16px 8px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0', display: 'flex', alignItems: 'center', gap: 6 }}>
         <div style={{ width: 6, height: 6, borderRadius: 3, background: phase === 'done' ? '#8A9DA8' : phase === 'dragging' ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
-        <span style={{ fontSize: 12, fontWeight: 600, color: phase === 'done' || phase === 'dragging' ? '#8A9DA8' : '#F57F17' }}>{phaseLabel}</span>
+        <span style={{ fontSize: 15, fontWeight: 600, color: phase === 'done' || phase === 'dragging' ? '#8A9DA8' : '#F57F17' }}>{phaseLabel}</span>
         {phase === 'done' && (
-          <button onClick={() => onChange(null, null)} style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
+          <button onClick={() => onChange(null, null)} style={{ marginLeft: 'auto', fontSize: 15, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
         )}
       </div>
 
@@ -362,7 +362,7 @@ function RangePicker({ startDate, endDate, onChange }) {
           <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8A9DA8' }}>
             <IcChevron dir="left" size={16} />
           </button>
-          <span style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
+          <span style={{ fontSize: 18, fontWeight: 700, color: '#111' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8A9DA8' }}>
             <IcChevron dir="right" size={16} />
           </button>
@@ -370,7 +370,7 @@ function RangePicker({ startDate, endDate, onChange }) {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 2 }}>
           {DAY_LABELS.map(d => (
-            <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: '#BBB', padding: '3px 0' }}>{d}</div>
+            <div key={d} style={{ textAlign: 'center', fontSize: 14, fontWeight: 600, color: '#BBB', padding: '3px 0' }}>{d}</div>
           ))}
         </div>
 
@@ -400,7 +400,7 @@ function RangePicker({ startDate, endDate, onChange }) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: isStart || isEnd ? '#8A9DA8' : 'transparent',
                   border: isToday && !isStart && !isEnd ? '1.5px solid #8A9DA8' : 'none',
-                  fontSize: 13,
+                  fontSize: 16,
                   fontWeight: isStart || isEnd || inRange ? 600 : 400,
                   color: isStart || isEnd ? '#fff' : disabled ? '#DDD' : isToday ? '#8A9DA8' : inRange ? '#8A9DA8' : '#111',
                   transition: 'background 0.1s',
@@ -447,15 +447,15 @@ function DatePickerSheet({ selected, onSelect, onClose }) {
         <div className="sheet-handle" />
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div style={{ fontSize: 17, fontWeight: 700, color: '#111' }}>回覆截止日</div>
-          {selected && <div style={{ fontSize: 13, fontWeight: 600, color: '#8A9DA8' }}>{formatDate(selected)}</div>}
+          <div style={{ fontSize: 21, fontWeight: 700, color: '#111' }}>回覆截止日</div>
+          {selected && <div style={{ fontSize: 16, fontWeight: 600, color: '#8A9DA8' }}>{formatDate(selected)}</div>}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}>
             <IcChevron dir="left" size={18} />
           </button>
-          <span style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
+          <span style={{ fontSize: 19, fontWeight: 700, color: '#111' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}>
             <IcChevron dir="right" size={18} />
           </button>
@@ -463,7 +463,7 @@ function DatePickerSheet({ selected, onSelect, onClose }) {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 4 }}>
           {DAY_LABELS.map(d => (
-            <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: '#BBB', padding: '4px 0' }}>{d}</div>
+            <div key={d} style={{ textAlign: 'center', fontSize: 14, fontWeight: 600, color: '#BBB', padding: '4px 0' }}>{d}</div>
           ))}
         </div>
 
@@ -480,7 +480,7 @@ function DatePickerSheet({ selected, onSelect, onClose }) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: sel ? '#8A9DA8' : 'transparent',
                   border: todayMark && !sel ? '1.5px solid #8A9DA8' : 'none',
-                  fontSize: 14, fontWeight: sel || todayMark ? 700 : 400,
+                  fontSize: 18, fontWeight: sel || todayMark ? 700 : 400,
                   color: sel ? '#fff' : todayMark ? '#8A9DA8' : '#111',
                   transition: 'background 0.12s',
                 }}>
@@ -554,7 +554,7 @@ function TimezoneSheet({ current, onSelect, onClose }) {
     <div className="bottom-sheet-overlay" onClick={onClose}>
       <div className="bottom-sheet" style={{ maxHeight: '80vh', display: 'flex', flexDirection: 'column', paddingBottom: 0 }} onClick={e => e.stopPropagation()}>
         <div className="sheet-handle" />
-        <div style={{ fontSize: 17, fontWeight: 700, color: '#111', marginBottom: 14 }}>選擇時區</div>
+        <div style={{ fontSize: 21, fontWeight: 700, color: '#111', marginBottom: 14 }}>選擇時區</div>
 
         <div style={{ position: 'relative', marginBottom: 12 }}>
           <svg style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#BBB' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -566,17 +566,17 @@ function TimezoneSheet({ current, onSelect, onClose }) {
         <div style={{ overflowY: 'auto', flex: 1, marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20, paddingBottom: 34 }}>
           {filtered.map(group => (
             <div key={group.region}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#BBB', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '10px 0 6px' }}>{group.region}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#BBB', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '10px 0 6px' }}>{group.region}</div>
               {group.zones.map(tz => {
                 const isSelected = current === tz.label;
                 return (
                   <div key={tz.value} onClick={() => onSelect(tz)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 0', borderBottom: '1px solid #F5F5F5', cursor: 'pointer' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: isSelected ? 700 : 500, color: isSelected ? '#8A9DA8' : '#111', fontFamily: 'monospace' }}>{tz.label}</div>
-                      <div style={{ fontSize: 12, color: '#AAA', marginTop: 2 }}>{tz.sub}</div>
+                      <div style={{ fontSize: 16, fontWeight: isSelected ? 700 : 500, color: isSelected ? '#8A9DA8' : '#111', fontFamily: 'monospace' }}>{tz.label}</div>
+                      <div style={{ fontSize: 15, color: '#AAA', marginTop: 2 }}>{tz.sub}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, marginLeft: 8 }}>
-                      {tz.offset && <span style={{ fontSize: 12, fontWeight: 500, color: '#BBB' }}>{tz.offset}</span>}
+                      {tz.offset && <span style={{ fontSize: 15, fontWeight: 500, color: '#BBB' }}>{tz.offset}</span>}
                       {isSelected && (
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A9DA8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12"/>
@@ -710,7 +710,7 @@ export default function CreateEvent() {
                 <div style={{ position: 'relative' }} onClick={() => setShowTzSheet(true)}>
                   <div className="form-input" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', paddingRight: 36 }}>
                     <span style={{ color: '#111' }}>{form.timezone}</span>
-                    {form.timezoneOffset && <span style={{ color: '#AAA', fontSize: 13, marginLeft: 8 }}>{form.timezoneOffset}</span>}
+                    {form.timezoneOffset && <span style={{ color: '#AAA', fontSize: 16, marginLeft: 8 }}>{form.timezoneOffset}</span>}
                   </div>
                   <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#BBB', pointerEvents: 'none' }}>
                     <IcChevron dir="down" size={14} />
@@ -743,7 +743,7 @@ export default function CreateEvent() {
             <div style={{ padding: '0 16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', borderRadius: 10, padding: '12px 14px', marginBottom: 14, border: '1.5px solid #F0F0F0' }}>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>全天</div>
+                  <div style={{ fontSize: 18, fontWeight: 600, color: '#111' }}>全天</div>
                 </div>
                 <div onClick={() => up('allDay', !form.allDay)} style={{ width: 44, height: 26, borderRadius: 13, background: form.allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
                   <div style={{ position: 'absolute', top: 3, left: form.allDay ? 20 : 3, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
@@ -807,8 +807,8 @@ export default function CreateEvent() {
                 </svg>
               </div>
               <div style={{ paddingTop: 2 }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#111', letterSpacing: '-0.02em' }}>確認活動資訊</div>
-                <div style={{ fontSize: 12, color: '#AAA', marginTop: 3, lineHeight: 1.4 }}>分享連結給大家填寫空閒時間</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: '#111', letterSpacing: '-0.02em' }}>確認活動資訊</div>
+                <div style={{ fontSize: 15, color: '#AAA', marginTop: 3, lineHeight: 1.4 }}>分享連結給大家填寫空閒時間</div>
               </div>
             </div>
 
@@ -826,8 +826,8 @@ export default function CreateEvent() {
               { label: '截止日',   value: deadlineDate ? formatDate(deadlineDate) : '未設定' },
             ].map(({ label, value }) => (
               <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <span style={{ fontSize: 13, color: '#AAA', fontWeight: 400 }}>{label}</span>
-                <span style={{ fontSize: 13, color: '#111', fontWeight: 700 }}>{value}</span>
+                <span style={{ fontSize: 16, color: '#AAA', fontWeight: 400 }}>{label}</span>
+                <span style={{ fontSize: 16, color: '#111', fontWeight: 700 }}>{value}</span>
               </div>
             ))}
 
@@ -836,13 +836,13 @@ export default function CreateEvent() {
 
             {/* Link block */}
             <div style={{ background: '#E8EEF1', borderRadius: 12, padding: '10px 8px 10px 14px', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <div style={{ flex: 1, fontSize: 12, color: '#5F84A2', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ flex: 1, fontSize: 15, color: '#5F84A2', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {displayLink}
               </div>
               <button onClick={handleCopy} style={{
                 flexShrink: 0, padding: '7px 13px', borderRadius: 9, border: 'none',
                 background: copied ? '#5F84A2' : '#2F4156',
-                color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
                 fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap',
               }}>
                 {copied ? '已複製 ✓' : '複製'}
@@ -853,7 +853,7 @@ export default function CreateEvent() {
             <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
               <button onClick={handleShareLine} style={{
                 flex: 1, padding: '13px 8px', borderRadius: 12, border: 'none',
-                background: '#06C755', color: '#fff', fontSize: 13, fontWeight: 700,
+                background: '#06C755', color: '#fff', fontSize: 16, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               }}>
@@ -864,7 +864,7 @@ export default function CreateEvent() {
               </button>
               <button onClick={handleShareOther} style={{
                 flex: 1, padding: '13px 8px', borderRadius: 12, border: 'none',
-                background: '#F0F0F0', color: '#555', fontSize: 13, fontWeight: 700,
+                background: '#F0F0F0', color: '#555', fontSize: 16, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               }}>
@@ -877,7 +877,7 @@ export default function CreateEvent() {
             </div>
 
             {/* Back button */}
-            <button onClick={() => setShowShareModal(false)} style={{ width: '100%', background: 'none', border: 'none', color: '#BBB', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', padding: '8px 0 2px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+            <button onClick={() => setShowShareModal(false)} style={{ width: '100%', background: 'none', border: 'none', color: '#BBB', fontSize: 16, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', padding: '8px 0 2px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
               ← 返回修改
             </button>
           </div>
