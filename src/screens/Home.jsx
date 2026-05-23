@@ -552,7 +552,7 @@ export default function Home() {
                 <div style={{ flex: 1, fontSize: 13, color: '#5F84A2', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   meetime-sigma.vercel.app/join/{generatedId}
                 </div>
-                <button onClick={handleCopyLink} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 9, border: 'none', background: linkCopied ? '#5F84A2' : '#2F4156', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap' }}>
+                <button onClick={handleCopyLink} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 9, border: 'none', background: linkCopied ? '#8A9DA8' : '#7A8C9C', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap' }}>
                   {linkCopied ? '已複製 ✓' : '複製'}
                 </button>
               </div>
@@ -561,7 +561,7 @@ export default function Home() {
                 <button onClick={() => {
                   const text = `${meetingName.trim()}\n請填寫你的空閒時間：https://meetime-sigma.vercel.app/join/${generatedId}`;
                   window.open(`https://line.me/R/msg/text/${encodeURIComponent(text)}`);
-                }} style={{ flex: 1, padding: '13px 8px', borderRadius: 12, border: 'none', background: '#06C755', color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                }} style={{ flex: 1, padding: '13px 8px', borderRadius: 12, border: 'none', background: '#8FA99A', color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
                     <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
                   </svg>
@@ -571,8 +571,8 @@ export default function Home() {
                   const url = `https://meetime-sigma.vercel.app/join/${generatedId}`;
                   if (navigator.share) navigator.share({ title: meetingName.trim(), url }).catch(() => {});
                   else handleCopyLink();
-                }} style={{ flex: 1, padding: '13px 8px', borderRadius: 12, border: 'none', background: '#F0F0F0', color: '#555', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                }} style={{ flex: 1, padding: '13px 8px', borderRadius: 12, border: 'none', background: '#EAE8E3', color: '#7A7670', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A7670" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
                     <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
                   </svg>
