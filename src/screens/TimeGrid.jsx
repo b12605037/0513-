@@ -478,7 +478,7 @@ export default function TimeGrid() {
             </div>
           </div>
           {scrollThumb.h < 96 && (
-            <div style={{ position: 'absolute', left: 6, top: 8, bottom: 8, width: 7, pointerEvents: 'none', zIndex: 10 }}>
+            <div style={{ position: 'absolute', right: 6, top: 8, bottom: 8, width: 7, pointerEvents: 'none', zIndex: 10 }}>
               <div style={{ position: 'absolute', left: 0, right: 0, top: `${scrollThumb.top}%`, height: `${scrollThumb.h}%`, background: '#8A9DA8', borderRadius: 4, opacity: 0.55 }} />
             </div>
           )}
@@ -525,7 +525,7 @@ export default function TimeGrid() {
             </div>
           </div>
           {scrollThumb.h < 96 && (
-            <div style={{ position: 'absolute', left: 6, top: 8, bottom: 8, width: 7, pointerEvents: 'none', zIndex: 10 }}>
+            <div style={{ position: 'absolute', right: 6, top: 8, bottom: 8, width: 7, pointerEvents: 'none', zIndex: 10 }}>
               <div style={{ position: 'absolute', left: 0, right: 0, top: `${scrollThumb.top}%`, height: `${scrollThumb.h}%`, background: '#8A9DA8', borderRadius: 4, opacity: 0.55 }} />
             </div>
           )}
