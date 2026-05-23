@@ -120,10 +120,12 @@ export default function Results() {
   const todayM = _today.getMonth();
   const todayD = _today.getDate();
 
+  const hasDuration = (state?.duration ?? 0) > 0;
+
   const [page, setPage]                   = useState(0);
   const [selected, setSelected]           = useState(new Set());
   const [selectedSlots, setSelectedSlots] = useState(new Set());
-  const [heatmapExpanded, setHeatmapExpanded] = useState(false);
+  const [heatmapExpanded, setHeatmapExpanded] = useState(!hasDuration);
 
   useEffect(() => {
     setSelected(new Set(responses.map((_, i) => i)));
@@ -290,80 +292,93 @@ export default function Results() {
         </div>
       </div>
 
-      {/* Best slots list */}
-      <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', padding: '10px 16px', background: '#F8F8F8' }}>
-        {loading ? (
-          <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, paddingTop: 48 }}>載入中…</div>
-        ) : bestSlots.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, paddingTop: 48, lineHeight: 2 }}>
-            {visibleCount === 0 ? '請先選取成員' : '沒有找到共同空閒時段'}
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {isDegrade && (
-              <div style={{
-                background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10,
-                padding: '8px 12px', fontSize: 13, color: '#92400E', fontWeight: 500, lineHeight: 1.5,
-              }}>
-                找不到完全符合的時段，以下是最接近的選項
-              </div>
-            )}
-            {bestSlots.map((slot) => {
-              const isSel = selectedSlots.has(slot.key);
-              return (
-                <div key={slot.key} onClick={() => toggleSlot(slot.key)} style={{
-                  background: '#fff', borderRadius: 14, padding: '11px 12px',
-                  border: isSel ? '2px solid #8A9DA8' : '1.5px solid #EBEBEB',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
-                  boxShadow: isSel ? '0 2px 12px rgba(47,65,86,0.1)' : 'none',
-                  transition: 'all 0.15s',
+      {/* Best slots list — only when duration is set */}
+      {hasDuration && (
+        <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', padding: '10px 16px', background: '#F8F8F8' }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, paddingTop: 48 }}>載入中…</div>
+          ) : bestSlots.length === 0 ? (
+            <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, paddingTop: 48, lineHeight: 2 }}>
+              {visibleCount === 0 ? '請先選取成員' : '沒有找到共同空閒時段'}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {isDegrade && (
+                <div style={{
+                  background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10,
+                  padding: '8px 12px', fontSize: 13, color: '#92400E', fontWeight: 500, lineHeight: 1.5,
                 }}>
-                  {/* Info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ fontSize: 16, fontWeight: 700, color: '#111' }}>
-                      {DOW_ZH[DOW_IDX[slot.day.label]]} {slot.day.date} · {fmtH24(G_START + slot.rawS / SPH)}–{fmtH24(G_START + (slot.rawS + slot.actualSlots) / SPH)}
-                    </span>
-                    <div style={{ marginTop: 4 }}>
-                      <span style={{
-                        fontSize: 12, fontWeight: 600,
-                        color: slot.isPerfect ? '#5F84A2' : '#92400E',
-                        background: slot.isPerfect ? 'rgba(95,132,162,0.12)' : 'rgba(253,230,138,0.5)',
-                        borderRadius: 6, padding: '2px 7px',
-                      }}>
-                        {slot.label}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
-                      {slot.freeNames.map(n => (
-                        <span key={n} style={{ fontSize: 13, color: '#888', background: '#F5F5F5', borderRadius: 6, padding: '1px 6px' }}>{n}</span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Checkbox */}
-                  <div style={{ flexShrink: 0 }}>
-                    <div style={{
-                      width: 22, height: 22, borderRadius: 11,
-                      border: isSel ? 'none' : '1.5px solid #DDD',
-                      background: isSel ? '#8A9DA8' : '#fff',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      {isSel && (
-                        <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="1.5,5.5 4.5,8.5 9.5,2.5"/>
-                        </svg>
-                      )}
-                    </div>
-                  </div>
+                  找不到完全符合的時段，以下是最接近的選項
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+              )}
+              {bestSlots.map((slot) => {
+                const isSel = selectedSlots.has(slot.key);
+                return (
+                  <div key={slot.key} onClick={() => toggleSlot(slot.key)} style={{
+                    background: '#fff', borderRadius: 14, padding: '11px 12px',
+                    border: isSel ? '2px solid #8A9DA8' : '1.5px solid #EBEBEB',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
+                    boxShadow: isSel ? '0 2px 12px rgba(47,65,86,0.1)' : 'none',
+                    transition: 'all 0.15s',
+                  }}>
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 16, fontWeight: 700, color: '#111' }}>
+                        {DOW_ZH[DOW_IDX[slot.day.label]]} {slot.day.date} · {fmtH24(G_START + slot.rawS / SPH)}–{fmtH24(G_START + (slot.rawS + slot.actualSlots) / SPH)}
+                      </span>
+                      <div style={{ marginTop: 4 }}>
+                        <span style={{
+                          fontSize: 12, fontWeight: 600,
+                          color: slot.isPerfect ? '#5F84A2' : '#92400E',
+                          background: slot.isPerfect ? 'rgba(95,132,162,0.12)' : 'rgba(253,230,138,0.5)',
+                          borderRadius: 6, padding: '2px 7px',
+                        }}>
+                          {slot.label}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
+                        {slot.freeNames.map(n => (
+                          <span key={n} style={{ fontSize: 13, color: '#888', background: '#F5F5F5', borderRadius: 6, padding: '1px 6px' }}>{n}</span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Checkbox */}
+                    <div style={{ flexShrink: 0 }}>
+                      <div style={{
+                        width: 22, height: 22, borderRadius: 11,
+                        border: isSel ? 'none' : '1.5px solid #DDD',
+                        background: isSel ? '#8A9DA8' : '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {isSel && (
+                          <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="1.5,5.5 4.5,8.5 9.5,2.5"/>
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* No-duration placeholder — always a flex:1 spacer; message shown only when heatmap collapsed */}
+      {!hasDuration && (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8F8F8' }}>
+          {!heatmapExpanded && (
+            <div style={{ textAlign: 'center', color: '#CCC', fontSize: 16, lineHeight: 2 }}>
+              點擊下方「時段熱圖」<br />查看成員空閒時間
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Copy message panel — shown when ≥1 slot selected */}
-      {selectedList.length > 0 && (
+      {hasDuration && selectedList.length > 0 && (
         <div style={{ padding: '8px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
           <div style={{ background: '#F5F5F5', borderRadius: 12, padding: '10px 10px 10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ flex: 1, fontSize: 15, color: '#555', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
