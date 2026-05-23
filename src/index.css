@@ -285,6 +285,62 @@ body {
   background: #8A9DA8; color: #fff; font-size: 14px; font-weight: 700;
 }
 
+/* ── DESKTOP RWD (>= 768px) ── */
+@media (min-width: 768px) {
+  body {
+    background: #E4E8EC;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+  .app-container {
+    width: 100%;
+    max-width: 1000px;
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+    background: #fff;
+    margin: 0 auto;
+    flex-shrink: 1;
+  }
+  .app-nav {
+    background: #fff;
+    border-bottom: 1px solid #E0E4E8;
+  }
+
+  /* Grid scroll — show thin scrollbar on desktop */
+  .grid-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(138,157,168,0.45) transparent;
+  }
+  .grid-scroll::-webkit-scrollbar {
+    display: block;
+    width: 5px;
+  }
+  .grid-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .grid-scroll::-webkit-scrollbar-thumb {
+    background: rgba(138,157,168,0.45);
+    border-radius: 3px;
+  }
+
+  /* Desktop modal → right sidebar */
+  .desktop-sidebar-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+    z-index: 9999; display: flex; align-items: stretch; justify-content: flex-end;
+    animation: fadeIn 0.2s ease;
+  }
+  .desktop-sidebar-panel {
+    width: 420px; background: #fff; height: 100%;
+    overflow-y: auto; box-shadow: -8px 0 32px rgba(0,0,0,0.12);
+    animation: slideInRight 0.28s cubic-bezier(0.32,0.72,0,1);
+    padding: 40px 28px 40px;
+    display: flex; flex-direction: column;
+  }
+}
+@keyframes slideInRight { from { transform: translateX(100%) } to { transform: translateX(0) } }
+
 /* ── ANIMATIONS ── */
 @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
 @keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }

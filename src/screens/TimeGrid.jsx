@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useDesktop } from '../hooks/useDesktop';
 
 const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
 const SLOT_H = 28;
+const SLOT_H_DESKTOP = 44;
 const LABEL_W = 48;
+const LABEL_W_DESKTOP = 64;
 const SCROLL_W = 44;
 const DAYS_PER_PAGE = 4;
 const FREE_COLOR = '#8A9DA8';
@@ -22,7 +25,6 @@ const fmtH = h => {
 
 function buildAllDays(rangeStartTs, rangeEndTs, dateList) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  // Use explicit date list if provided (new meetings with individual date selection)
   if (dateList && dateList.length > 0) {
     const sorted = [...dateList].map(ts => { const d = new Date(ts); d.setHours(0,0,0,0); return d; }).sort((a,b) => a-b);
     let todayIdx = -1;
@@ -32,7 +34,6 @@ function buildAllDays(rangeStartTs, rangeEndTs, dateList) {
     });
     return { days, todayIdx };
   }
-  // Fall back to range for older meetings
   if (!rangeStartTs) {
     const days = [];
     for (let i = 0; i < 7; i++) {
@@ -71,7 +72,6 @@ function initSlots(totalDays, total) {
   return g;
 }
 
-// 4 anchor colors: lightest → darkest
 const HEAT_ANCHORS = [[191,204,212],[159,181,195],[138,157,168],[47,65,86]];
 function heatColor(n, total) {
   if (n === 0 || total === 0) return 'transparent';
@@ -87,6 +87,7 @@ function heatColor(n, total) {
 export default function TimeGrid() {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const isDesktop = useDesktop();
 
   const { days: allDays, todayIdx } = buildAllDays(state?.rangeStart, state?.rangeEnd, state?.dateList);
   const totalDays  = allDays.length;
@@ -96,12 +97,18 @@ export default function TimeGrid() {
   const G_END   = state?.allDay ? 24 : Math.ceil((state?.endSlot   ?? 36) / 2);
   const TOTAL   = (G_END - G_START) * SPH;
 
-  const [tab,  setTab]  = useState('mine'); // 'mine' | 'group'
+  // Desktop-specific derived values
+  const slotH   = isDesktop ? SLOT_H_DESKTOP : SLOT_H;
+  const labelW  = isDesktop ? LABEL_W_DESKTOP : LABEL_W;
+  const scrollW = isDesktop ? 0 : SCROLL_W;
+
+  const [tab,  setTab]  = useState('mine');
   const [page, setPage] = useState(0);
   const [slots, setSlots] = useState(() => state?.mySlots ?? initSlots(totalDays, TOTAL));
   const [showNameModal, setShowNameModal] = useState(false);
   const [name, setName] = useState(state?.myName ?? '');
-  const [hoveredCell, setHoveredCell] = useState(null); // { day, slot, cx, cy }
+  const [hoveredCell, setHoveredCell] = useState(null);
+  const [desktopMineTooltip, setDesktopMineTooltip] = useState(null);
   const [selectedRespondents, setSelectedRespondents] = useState(() => new Set([0]));
   const [groupResponses, setGroupResponses] = useState([]);
   const [groupNames, setGroupNames] = useState([]);
@@ -199,7 +206,6 @@ export default function TimeGrid() {
     paintSlot(key, dragRef.current.target);
   };
 
-  // Non-passive touchmove — block scroll while gesture is pending/swipe/paint
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -210,7 +216,6 @@ export default function TimeGrid() {
       if (g.phase === 'pending') {
         const dx = Math.abs(t.clientX - g.startX);
         const dy = Math.abs(t.clientY - g.startY);
-        // Block scroll during direction-detection window so browser can't start scrolling early
         if (dx < 6 && dy < 6) { e.preventDefault(); return; }
         if (dx > dy) { g.phase = 'swipe'; }
         else if (g.startDay !== null) {
@@ -218,9 +223,8 @@ export default function TimeGrid() {
           g.lastTX = t.clientX; g.lastTY = t.clientY;
           startDrag(g.startDay, g.startSlot);
         }
-        else { g.phase = 'scroll'; return; } // vertical scroll on non-cell area — allow native scroll
+        else { g.phase = 'scroll'; return; }
       }
-      // swipe or paint: always block page scroll
       e.preventDefault();
       if (g.phase === 'paint') {
         const lx = g.lastTX ?? t.clientX;
@@ -320,7 +324,6 @@ export default function TimeGrid() {
           .eq('meeting_id', state.meetingId)
           .eq('respondent_name', name.trim())
           .select('respondent_name');
-        // If update matched nothing (silent RLS block), insert new row
         if (!updated || updated.length === 0) {
           await supabase.from('responses').insert({
             meeting_id: state.meetingId,
@@ -358,8 +361,11 @@ export default function TimeGrid() {
     setHoveredCell({ day, slot, cx: e.clientX, cy: e.clientY });
   };
 
-  const pageStart = page * DAYS_PER_PAGE;
-  const pageDays  = allDays.slice(pageStart, pageStart + DAYS_PER_PAGE);
+  // Mobile: paginated; Desktop: all days
+  const pageStart    = page * DAYS_PER_PAGE;
+  const pageDays     = allDays.slice(pageStart, pageStart + DAYS_PER_PAGE);
+  const displayDays  = isDesktop ? allDays : pageDays;
+  const displayStart = isDesktop ? 0 : pageStart;
 
   const surveyLabel = useMemo(() => {
     if (!state?.rangeStart) return '';
@@ -371,65 +377,88 @@ export default function TimeGrid() {
       : `${MON[sm]} ${start.getDate()} – ${MON[em]} ${end.getDate()}`;
   }, [state]);
 
-  // ── Shared day-header + grid skeleton ────────────────────────────────────────
+  // ── Shared day-header — reads displayDays/displayStart/labelW/scrollW from closure
   const DayHeader = ({ onDayClick } = {}) => (
     <div style={{ display: 'flex', position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: '1px solid #EBEBEB' }}>
-      <div style={{ width: LABEL_W, flexShrink: 0 }} />
-      {pageDays.map((d, i) => {
-        const isToday = (pageStart + i) === todayIdx;
-        const globalIdx = pageStart + i;
+      <div style={{ width: labelW, flexShrink: 0 }} />
+      {displayDays.map((d, i) => {
+        const isToday = (displayStart + i) === todayIdx;
+        const globalIdx = displayStart + i;
         return (
           <div key={i} onClick={() => onDayClick?.(globalIdx)}
-            style={{ flex: 1, textAlign: 'center', padding: '5px 0 6px', cursor: onDayClick ? 'pointer' : 'default' }}>
+            style={{ flex: 1, textAlign: 'center', padding: '5px 0 6px', cursor: onDayClick ? 'pointer' : 'default', minWidth: isDesktop ? 60 : undefined }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: isToday ? '#8A9DA8' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
             <div style={{ width: 22, height: 22, borderRadius: 11, margin: '2px auto 0', background: isToday ? '#8A9DA8' : 'transparent', color: isToday ? '#fff' : '#8A9DA8', fontSize: 15, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
           </div>
         );
       })}
-      <div style={{ width: SCROLL_W, flexShrink: 0 }} />
+      {scrollW > 0 && <div style={{ width: scrollW, flexShrink: 0 }} />}
     </div>
   );
 
   return (
     <div className="app-container">
-      <div className="app-nav">
-        <span style={{ fontSize: 16, color: '#888', fontWeight: 500 }}>{surveyLabel}</span>
-        <span className="nav-title">填寫我的時間</span>
-        <span style={{ width: 48 }} />
-      </div>
 
-      {/* Tab switcher */}
-      <div style={{ padding: '8px 16px', background: '#fff', borderBottom: '1px solid #F5F5F5', flexShrink: 0 }}>
-        <div style={{ display: 'flex', background: '#F0F0F0', borderRadius: 10, padding: 3 }}>
-          {[['mine', '我的'], ['group', '群組']].map(([key, label]) => (
-            <button key={key} onClick={() => setTab(key)} style={{
-              flex: 1, padding: '7px 0', borderRadius: 8, border: 'none', fontFamily: 'inherit',
-              fontSize: 16, fontWeight: 600, cursor: 'pointer', transition: 'all 0.18s',
-              background: tab === key ? '#fff' : 'transparent',
-              color: tab === key ? FREE_COLOR : '#AAA',
-              boxShadow: tab === key ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-            }}>{label}</button>
-          ))}
+      {/* ── Desktop Nav: tabs left | title center | date range right ── */}
+      {isDesktop ? (
+        <div className="app-nav">
+          <div style={{ display: 'flex', background: '#F0F0F0', borderRadius: 10, padding: 3 }}>
+            {[['mine', '我的'], ['group', '群組']].map(([key, label]) => (
+              <button key={key} onClick={() => setTab(key)} style={{
+                padding: '6px 18px', borderRadius: 8, border: 'none', fontFamily: 'inherit',
+                fontSize: 15, fontWeight: 600, cursor: 'pointer', transition: 'all 0.18s',
+                background: tab === key ? '#fff' : 'transparent',
+                color: tab === key ? FREE_COLOR : '#AAA',
+                boxShadow: tab === key ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+              }}>{label}</button>
+            ))}
+          </div>
+          <span className="nav-title">填寫我的時間</span>
+          <span style={{ fontSize: 15, color: '#8A9DA8', fontWeight: 600, minWidth: 80, textAlign: 'right' }}>{surveyLabel}</span>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Mobile Nav */}
+          <div className="app-nav">
+            <span style={{ fontSize: 16, color: '#888', fontWeight: 500 }}>{surveyLabel}</span>
+            <span className="nav-title">填寫我的時間</span>
+            <span style={{ width: 48 }} />
+          </div>
 
-      {/* Page navigation */}
-      {totalPages > 1 && (
-        <div style={{ display: 'flex', alignItems: 'center', background: '#FAFAFA', borderBottom: '1px solid #F0F0F0', flexShrink: 0, padding: '0 4px' }}>
-          <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{
-            background: 'none', border: 'none', fontSize: 28, fontFamily: 'inherit',
-            color: page > 0 ? FREE_COLOR : '#DDD', padding: '8px 12px', minWidth: 44,
-            cursor: page > 0 ? 'pointer' : 'default',
-          }}>‹</button>
-          <span style={{ flex: 1, textAlign: 'center', fontSize: 15, fontWeight: 600, color: '#888' }}>
-            {pageNavLabel(pageDays)}
-          </span>
-          <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{
-            background: 'none', border: 'none', fontSize: 28, fontFamily: 'inherit',
-            color: page < totalPages - 1 ? FREE_COLOR : '#DDD', padding: '8px 12px', minWidth: 44,
-            cursor: page < totalPages - 1 ? 'pointer' : 'default',
-          }}>›</button>
-        </div>
+          {/* Mobile Tab switcher */}
+          <div style={{ padding: '8px 16px', background: '#fff', borderBottom: '1px solid #F5F5F5', flexShrink: 0 }}>
+            <div style={{ display: 'flex', background: '#F0F0F0', borderRadius: 10, padding: 3 }}>
+              {[['mine', '我的'], ['group', '群組']].map(([key, label]) => (
+                <button key={key} onClick={() => setTab(key)} style={{
+                  flex: 1, padding: '7px 0', borderRadius: 8, border: 'none', fontFamily: 'inherit',
+                  fontSize: 16, fontWeight: 600, cursor: 'pointer', transition: 'all 0.18s',
+                  background: tab === key ? '#fff' : 'transparent',
+                  color: tab === key ? FREE_COLOR : '#AAA',
+                  boxShadow: tab === key ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                }}>{label}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile Page navigation */}
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', background: '#FAFAFA', borderBottom: '1px solid #F0F0F0', flexShrink: 0, padding: '0 4px' }}>
+              <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{
+                background: 'none', border: 'none', fontSize: 28, fontFamily: 'inherit',
+                color: page > 0 ? FREE_COLOR : '#DDD', padding: '8px 12px', minWidth: 44,
+                cursor: page > 0 ? 'pointer' : 'default',
+              }}>‹</button>
+              <span style={{ flex: 1, textAlign: 'center', fontSize: 15, fontWeight: 600, color: '#888' }}>
+                {pageNavLabel(pageDays)}
+              </span>
+              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{
+                background: 'none', border: 'none', fontSize: 28, fontFamily: 'inherit',
+                color: page < totalPages - 1 ? FREE_COLOR : '#DDD', padding: '8px 12px', minWidth: 44,
+                cursor: page < totalPages - 1 ? 'pointer' : 'default',
+              }}>›</button>
+            </div>
+          )}
+        </>
       )}
 
       {/* ── Mine tab ─────────────────────────────────────────────────────────── */}
@@ -440,22 +469,22 @@ export default function TimeGrid() {
             className="grid-scroll"
             style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
             onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
+            onMouseLeave={() => { handleMouseUp(); if (isDesktop) setDesktopMineTooltip(null); }}
             onTouchStart={handleContainerTouchStart}
             onTouchEnd={handleContainerTouchEnd}
             onScroll={handleGridScroll}
           >
             {DayHeader({ onDayClick: fillDay })}
             <div style={{ display: 'flex', userSelect: 'none', WebkitUserSelect: 'none' }}>
-              <div style={{ width: LABEL_W, flexShrink: 0 }}>
+              <div style={{ width: labelW, flexShrink: 0 }}>
                 {Array.from({ length: TOTAL }, (_, s) => (
-                  <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0' }}>
+                  <div key={s} style={{ height: slotH, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0' }}>
                     {s % SPH === 0 && <span style={{ fontSize: 11, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
                   </div>
                 ))}
               </div>
-              {pageDays.map((_, i) => {
-                const globalIdx = pageStart + i;
+              {displayDays.map((_, i) => {
+                const globalIdx = displayStart + i;
                 return (
                   <div key={globalIdx} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
                     {Array.from({ length: TOTAL }, (_, slot) => {
@@ -466,23 +495,51 @@ export default function TimeGrid() {
                           id={`sl-${globalIdx}-${slot}`}
                           data-day={globalIdx} data-slot={slot}
                           onMouseDown={() => handleMouseDown(globalIdx, slot)}
-                          onMouseEnter={() => handleMouseEnter(globalIdx, slot)}
-                          style={{ height: SLOT_H, background: free ? SLOT_COLOR : 'transparent', borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0', cursor: 'pointer' }}
+                          onMouseEnter={(e) => {
+                            handleMouseEnter(globalIdx, slot);
+                            if (isDesktop) setDesktopMineTooltip({ day: globalIdx, slot, cx: e.clientX, cy: e.clientY });
+                          }}
+                          onMouseLeave={isDesktop ? () => setDesktopMineTooltip(null) : undefined}
+                          style={{ height: slotH, background: free ? SLOT_COLOR : 'transparent', borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0', cursor: 'pointer' }}
                         />
                       );
                     })}
                   </div>
                 );
               })}
-              <div style={{ width: SCROLL_W, flexShrink: 0 }} />
+              {scrollW > 0 && <div style={{ width: scrollW, flexShrink: 0 }} />}
             </div>
           </div>
-          {scrollThumb.h < 96 && (
+
+          {/* Custom scroll thumb — mobile only */}
+          {!isDesktop && scrollThumb.h < 96 && (
             <div style={{ position: 'absolute', right: 6, top: 8, bottom: 8, width: 7, pointerEvents: 'none', zIndex: 10 }}>
               <div style={{ position: 'absolute', left: 0, right: 0, top: `${scrollThumb.top}%`, height: `${scrollThumb.h}%`, background: '#8A9DA8', borderRadius: 4, opacity: 0.55 }} />
             </div>
           )}
+
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
+
+          {/* Desktop mine tab tooltip */}
+          {isDesktop && desktopMineTooltip && (
+            <div style={{
+              position: 'fixed',
+              left: desktopMineTooltip.cx + 14,
+              top: desktopMineTooltip.cy - 18,
+              background: 'rgba(26,26,26,0.88)',
+              color: '#fff',
+              borderRadius: 8,
+              padding: '5px 11px',
+              fontSize: 13,
+              fontWeight: 600,
+              pointerEvents: 'none',
+              zIndex: 200,
+              whiteSpace: 'nowrap',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+            }}>
+              {fmtH(G_START + desktopMineTooltip.slot / SPH)}–{fmtH(G_START + (desktopMineTooltip.slot + 1) / SPH)}
+            </div>
+          )}
         </div>
       )}
 
@@ -493,20 +550,20 @@ export default function TimeGrid() {
             ref={groupScrollRef}
             className="grid-scroll"
             style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
-            onClick={() => setHoveredCell(null)}
+            onClick={!isDesktop ? () => setHoveredCell(null) : undefined}
             onScroll={(e) => { setHoveredCell(null); handleGridScroll(e); }}
           >
             {DayHeader({})}
             <div style={{ display: 'flex', userSelect: 'none' }}>
-              <div style={{ width: LABEL_W, flexShrink: 0 }}>
+              <div style={{ width: labelW, flexShrink: 0 }}>
                 {Array.from({ length: TOTAL }, (_, s) => (
-                  <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0' }}>
+                  <div key={s} style={{ height: slotH, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0' }}>
                     {s % SPH === 0 && <span style={{ fontSize: 11, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
                   </div>
                 ))}
               </div>
-              {pageDays.map((_, i) => {
-                const globalIdx = pageStart + i;
+              {displayDays.map((_, i) => {
+                const globalIdx = displayStart + i;
                 return (
                   <div key={globalIdx} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
                     {Array.from({ length: TOTAL }, (_, slot) => {
@@ -514,21 +571,26 @@ export default function TimeGrid() {
                       const count = visibleRespondents.filter(r => r[key] === 1).length;
                       return (
                         <div key={slot} data-day={globalIdx} data-slot={slot}
-                          onClick={e => showGroupCell(e, globalIdx, slot)}
-                          style={{ height: SLOT_H, background: heatColor(count, visibleCount), borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0', cursor: 'pointer' }} />
+                          onClick={!isDesktop ? e => showGroupCell(e, globalIdx, slot) : undefined}
+                          onMouseEnter={isDesktop ? e => showGroupCell(e, globalIdx, slot) : undefined}
+                          onMouseLeave={isDesktop ? () => setHoveredCell(null) : undefined}
+                          style={{ height: slotH, background: heatColor(count, visibleCount), borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0', cursor: 'pointer' }} />
                       );
                     })}
                   </div>
                 );
               })}
-              <div style={{ width: SCROLL_W, flexShrink: 0 }} />
+              {scrollW > 0 && <div style={{ width: scrollW, flexShrink: 0 }} />}
             </div>
           </div>
-          {scrollThumb.h < 96 && (
+
+          {/* Custom scroll thumb — mobile only */}
+          {!isDesktop && scrollThumb.h < 96 && (
             <div style={{ position: 'absolute', right: 6, top: 8, bottom: 8, width: 7, pointerEvents: 'none', zIndex: 10 }}>
               <div style={{ position: 'absolute', left: 0, right: 0, top: `${scrollThumb.top}%`, height: `${scrollThumb.h}%`, background: '#8A9DA8', borderRadius: 4, opacity: 0.55 }} />
             </div>
           )}
+
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
         </div>
       )}
@@ -547,7 +609,6 @@ export default function TimeGrid() {
                 送出
               </button>
             </div>
-
           </>
         ) : (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -571,7 +632,7 @@ export default function TimeGrid() {
         )}
       </div>
 
-      {/* Group cell tooltip */}
+      {/* Group cell tooltip — fixed positioning works with viewport coords on all screen sizes */}
       {hoveredCell && tab === 'group' && (() => {
         const key     = `${hoveredCell.day}-${hoveredCell.slot}`;
         const dayInfo = allDays[hoveredCell.day];
@@ -590,17 +651,20 @@ export default function TimeGrid() {
         const top  = aboveY < 140 ? hoveredCell.cy + 16 : aboveY;
         return (
           <div key="group-tip" style={{
-            position: 'absolute', left, top, width: TW,
+            position: 'fixed', left, top, width: TW,
             background: '#fff', borderRadius: 14, padding: '12px 14px 14px',
             boxShadow: '0 6px 28px rgba(0,0,0,0.18)', zIndex: 50,
+            pointerEvents: isDesktop ? 'none' : 'auto',
           }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 2 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#8A9DA8' }}>
                 {allFree ? '所有人都有空' : `${avail.length} / ${people.length} 人有空`}
               </div>
-              <button onTouchEnd={e => { e.stopPropagation(); setHoveredCell(null); }}
-                onClick={() => setHoveredCell(null)}
-                style={{ background: 'none', border: 'none', fontSize: 16, color: '#CCC', cursor: 'pointer', padding: '0 0 0 8px', lineHeight: 1 }}>✕</button>
+              {!isDesktop && (
+                <button onTouchEnd={e => { e.stopPropagation(); setHoveredCell(null); }}
+                  onClick={() => setHoveredCell(null)}
+                  style={{ background: 'none', border: 'none', fontSize: 16, color: '#CCC', cursor: 'pointer', padding: '0 0 0 8px', lineHeight: 1 }}>✕</button>
+              )}
             </div>
             <div style={{ fontSize: 13, color: '#AAA', marginBottom: 10 }}>
               {dayInfo?.label} {dayInfo?.date} · {time}
