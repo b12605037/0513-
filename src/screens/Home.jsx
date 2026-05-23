@@ -288,11 +288,11 @@ function DateMultiPicker({ selectedDates, onChange }) {
       <div style={{ padding: '12px 16px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8A9DA8' }}><IcChevron dir="left" size={16} /></button>
-          <span style={{ fontSize: 18, fontWeight: 700, color: '#111' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
+          <span style={{ fontSize: 18, fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8A9DA8' }}><IcChevron dir="right" size={16} /></button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 2 }}>
-          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 14, fontWeight: 600, color: '#BBB', padding: '3px 0' }}>{d}</div>)}
+          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 14, fontWeight: 600, color: '#91AEC4', padding: '3px 0' }}>{d}</div>)}
         </div>
         <div ref={calRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none' }}>
           {Array.from({ length: firstDow }).map((_, i) => <div key={'e' + i} />)}
@@ -307,7 +307,7 @@ function DateMultiPicker({ selectedDates, onChange }) {
                 onMouseDown={() => !disabled && mouseDown(key)}
                 onMouseEnter={() => !disabled && mouseEnter(key)}
                 style={{ height: 36, cursor: disabled ? 'default' : 'pointer' }}>
-                <div style={{ width: 32, height: 32, borderRadius: 16, margin: '2px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: 16, fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : isToday ? '#8A9DA8' : '#111', transition: 'background 0.08s' }}>{d}</div>
+                <div style={{ width: 32, height: 32, borderRadius: 16, margin: '2px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: 16, fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8', transition: 'background 0.08s' }}>{d}</div>
               </div>
             );
           })}
