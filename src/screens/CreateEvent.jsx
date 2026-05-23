@@ -824,17 +824,6 @@ export default function CreateEvent() {
               </svg>
               傳送至 LINE
             </button>
-            <button onClick={handleShareOther} style={{
-              width: '100%', background: 'none', border: 'none', color: '#AAA',
-              fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
-              padding: '8px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-            }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#AAA" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-              </svg>
-              其他分享
-            </button>
 
             {/* Back button */}
             <button onClick={() => setShowShareModal(false)} style={{ width: '100%', background: 'none', border: 'none', color: '#BBB', fontSize: 16, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', padding: '8px 0 2px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>

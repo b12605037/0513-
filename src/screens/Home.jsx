@@ -574,24 +574,9 @@ export default function Home() {
                 </svg>
                 傳送至 LINE
               </button>
-              <button onClick={() => {
-                const url = `https://meetime-sigma.vercel.app/join/${generatedId}`;
-                if (navigator.share) navigator.share({ title: meetingName.trim(), url }).catch(() => {});
-                else handleCopyLink();
-              }} style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', padding: '8px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#AAA" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                </svg>
-                其他分享
-              </button>
-
               <button onClick={() => { setShowNameModal(false); navigate('/grid', { state: { meetingId: generatedId, eventName: meetingName.trim(), rangeStart: rangeStart?.getTime() ?? null, rangeEnd: rangeEnd?.getTime() ?? null, startSlot, endSlot, allDay, duration } }); }}
-                style={{ width: '100%', padding: '13px', borderRadius: 12, border: 'none', background: '#8A9DA8', color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ width: '100%', padding: '12px', borderRadius: 12, border: '1.5px solid #8A9DA8', background: 'transparent', color: '#8A9DA8', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
                 填寫我的時間
-              </button>
-              <button onClick={() => setShowNameModal(false)} style={{ width: '100%', background: 'none', border: 'none', color: '#BBB', fontSize: 15, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', padding: '10px 0 2px' }}>
-                關閉
               </button>
             </>)}
           </div>
