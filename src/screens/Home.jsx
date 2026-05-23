@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IcChevron } from '../components/Icons';
+import { supabase } from '../lib/supabase';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -339,11 +340,55 @@ export default function Home() {
   const [duration, setDuration] = useState(60);
   const [showNameModal, setShowNameModal] = useState(false);
   const [meetingName, setMeetingName] = useState('');
+  const [nameModalPhase, setNameModalPhase] = useState('input'); // 'input' | 'link'
+  const [generatedId, setGeneratedId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [linkCopied, setLinkCopied] = useState(false);
 
-  const handleConfirmName = () => {
-    if (!meetingName.trim()) return;
-    setShowNameModal(false);
-    navigate('/grid', { state: { eventName: meetingName.trim(), rangeStart: rangeStart?.getTime() ?? null, rangeEnd: rangeEnd?.getTime() ?? null, startSlot, endSlot, allDay, duration } });
+  const openNameModal = () => {
+    setMeetingName('');
+    setNameModalPhase('input');
+    setGeneratedId(null);
+    setSaveError('');
+    setLinkCopied(false);
+    setShowNameModal(true);
+  };
+
+  const handleConfirmName = async () => {
+    if (!meetingName.trim() || saving) return;
+    setSaving(true);
+    setSaveError('');
+    const id = Math.random().toString(36).slice(2, 10);
+    const { error } = await supabase.from('meetings').insert({
+      id,
+      name: meetingName.trim(),
+      range_start: rangeStart?.getTime() ?? null,
+      range_end:   rangeEnd?.getTime()   ?? null,
+      start_slot:  startSlot,
+      end_slot:    endSlot,
+      all_day:     allDay,
+      duration,
+      deadline:    deadlineDate?.getTime() ?? null,
+    });
+    setSaving(false);
+    if (error) { setSaveError(error.message); return; }
+    try {
+      const prev = JSON.parse(localStorage.getItem('meetime_recent') || '[]');
+      prev.unshift({ id, name: meetingName.trim(), time: Date.now() });
+      const next = prev.slice(0, 10);
+      localStorage.setItem('meetime_recent', JSON.stringify(next));
+      setRecentEvents(next);
+    } catch {}
+    setGeneratedId(id);
+    setNameModalPhase('link');
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(`https://meetime-sigma.vercel.app/join/${generatedId}`).then(() => {
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 1800);
+    });
   };
 
   return (
@@ -438,7 +483,7 @@ export default function Home() {
         </div>
 
         <div style={{ padding: '4px 16px 40px' }}>
-          <button className="btn-primary" onClick={() => { setMeetingName(''); setShowNameModal(true); }}>
+          <button className="btn-primary" onClick={openNameModal}>
             送出
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -454,23 +499,72 @@ export default function Home() {
 
       {showNameModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}
-          onClick={() => setShowNameModal(false)}>
+          onClick={() => nameModalPhase === 'input' && setShowNameModal(false)}>
           <div style={{ width: '100%', maxWidth: 340, background: '#fff', borderRadius: 20, padding: '24px 20px 18px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}
             onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: '#111', letterSpacing: '-0.02em', marginBottom: 18 }}>活動名稱</div>
-            <input
-              autoFocus
-              className="form-input"
-              placeholder="例：週會、Q2 規劃討論"
-              value={meetingName}
-              onChange={e => setMeetingName(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleConfirmName(); }}
-              style={{ marginBottom: 16 }}
-            />
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setShowNameModal(false)} style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: '#F0F0F0', color: '#555', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>取消</button>
-              <button onClick={handleConfirmName} disabled={!meetingName.trim()} style={{ flex: 2, padding: '13px', borderRadius: 12, border: 'none', background: meetingName.trim() ? '#8A9DA8' : '#D0D8DC', color: '#fff', fontSize: 16, fontWeight: 700, cursor: meetingName.trim() ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'background 0.2s' }}>確認</button>
-            </div>
+
+            {nameModalPhase === 'input' ? (<>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#111', letterSpacing: '-0.02em', marginBottom: 14 }}>活動名稱</div>
+              <input
+                autoFocus
+                className="form-input"
+                value={meetingName}
+                onChange={e => setMeetingName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleConfirmName(); }}
+                style={{ marginBottom: 16 }}
+              />
+
+              {/* Summary */}
+              <div style={{ background: '#F8F9FA', borderRadius: 12, padding: '12px 14px', marginBottom: 16 }}>
+                {[
+                  { label: '調查日期', value: rangeStart && rangeEnd
+                    ? sameDay(rangeStart, rangeEnd)
+                      ? `${SHORT_MONTHS[rangeStart.getMonth()]} ${rangeStart.getDate()}`
+                      : `${SHORT_MONTHS[rangeStart.getMonth()]} ${rangeStart.getDate()} – ${SHORT_MONTHS[rangeEnd.getMonth()]} ${rangeEnd.getDate()}`
+                    : '未設定' },
+                  { label: '調查時段', value: allDay ? '全天' : `${fmtSlot(startSlot)} ${fmtPeriod(startSlot)} – ${fmtSlot(endSlot)} ${fmtPeriod(endSlot)}` },
+                  { label: '活動時長', value: fmtDuration(duration) },
+                  { label: '截止日',   value: deadlineDate ? formatDate(deadlineDate) : '未設定' },
+                ].map(({ label, value }) => (
+                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0' }}>
+                    <span style={{ fontSize: 14, color: '#AAA' }}>{label}</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#555' }}>{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {saveError && <div style={{ fontSize: 13, color: '#E53935', marginBottom: 10 }}>{saveError}</div>}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={() => setShowNameModal(false)} style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: '#F0F0F0', color: '#555', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>取消</button>
+                <button onClick={handleConfirmName} disabled={!meetingName.trim() || saving} style={{ flex: 2, padding: '13px', borderRadius: 12, border: 'none', background: meetingName.trim() && !saving ? '#8A9DA8' : '#D0D8DC', color: '#fff', fontSize: 16, fontWeight: 700, cursor: meetingName.trim() && !saving ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'background 0.2s' }}>
+                  {saving ? '建立中…' : '確認'}
+                </button>
+              </div>
+            </>) : (<>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: '#E8EEF1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A9DA8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#111', letterSpacing: '-0.02em' }}>邀請連結已建立</div>
+              </div>
+
+              <div style={{ background: '#E8EEF1', borderRadius: 12, padding: '10px 8px 10px 14px', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                <div style={{ flex: 1, fontSize: 13, color: '#5F84A2', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  meetime-sigma.vercel.app/join/{generatedId}
+                </div>
+                <button onClick={handleCopyLink} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 9, border: 'none', background: linkCopied ? '#5F84A2' : '#2F4156', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap' }}>
+                  {linkCopied ? '已複製 ✓' : '複製'}
+                </button>
+              </div>
+
+              <button onClick={() => { setShowNameModal(false); navigate('/grid', { state: { meetingId: generatedId, eventName: meetingName.trim(), rangeStart: rangeStart?.getTime() ?? null, rangeEnd: rangeEnd?.getTime() ?? null, startSlot, endSlot, allDay, duration } }); }}
+                style={{ width: '100%', padding: '13px', borderRadius: 12, border: 'none', background: '#8A9DA8', color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                填寫我的時間
+              </button>
+              <button onClick={() => setShowNameModal(false)} style={{ width: '100%', background: 'none', border: 'none', color: '#BBB', fontSize: 15, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', padding: '10px 0 2px' }}>
+                關閉
+              </button>
+            </>)}
           </div>
         </div>
       )}
