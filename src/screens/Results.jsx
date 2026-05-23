@@ -366,14 +366,53 @@ export default function Results() {
         </div>
       )}
 
-      {/* No-duration placeholder — always a flex:1 spacer; message shown only when heatmap collapsed */}
+      {/* No-duration: heatmap fills all remaining space inline */}
       {!hasDuration && (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8F8F8' }}>
-          {!heatmapExpanded && (
-            <div style={{ textAlign: 'center', color: '#CCC', fontSize: 16, lineHeight: 2 }}>
-              點擊下方「時段熱圖」<br />查看成員空閒時間
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', padding: '14px 6px 10px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
+            <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{ background: 'none', border: 'none', fontSize: 28, color: page > 0 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page > 0 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>‹</button>
+            <span style={{ flex: 1, textAlign: 'center', fontSize: 19, fontWeight: 700, color: '#111' }}>{pageNavLabel(pageDays)}</span>
+            <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{ background: 'none', border: 'none', fontSize: 28, color: page < totalPages - 1 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page < totalPages - 1 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>›</button>
+            <span style={{ width: 38 }} />
+          </div>
+          <div style={{ display: 'flex', paddingLeft: LABEL_W, background: '#fff', borderBottom: '1px solid #E0E0E0', flexShrink: 0 }}>
+            {pageDays.map((d, i) => {
+              const isToday = Number(d.date) === todayD && d.month === todayM;
+              return (
+                <div key={i} style={{ flex: 1, textAlign: 'center', padding: '8px 0' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#AAA', letterSpacing: '0.06em', marginBottom: 4 }}>{DOW_ZH[DOW_IDX[d.label]]}</div>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 14, background: isToday ? '#8A9DA8' : 'transparent' }}>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: isToday ? '#fff' : '#333' }}>{d.date}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', userSelect: 'none' }}>
+              <div style={{ width: LABEL_W, flexShrink: 0 }}>
+                {Array.from({ length: TOTAL }, (_, s) => (
+                  <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', paddingLeft: 8, paddingTop: 3, borderTop: s % SPH === 0 ? '1px solid #E0E0E0' : '1px dashed #EBEBEB' }}>
+                    {s % SPH === 0 && <span style={{ fontSize: 13, fontWeight: 600, color: '#AAA', lineHeight: 1 }}>{fmtHLabel(G_START + s / SPH)}</span>}
+                  </div>
+                ))}
+              </div>
+              {pageDays.map((_, i) => {
+                const gi = pageStart + i;
+                return (
+                  <div key={gi} style={{ flex: 1, borderLeft: '1px solid #E0E0E0' }}>
+                    {Array.from({ length: TOTAL }, (_, slot) => {
+                      const key = `${gi}-${slot}`;
+                      const count = visibleRespondents.filter(r => r[key] === 1).length;
+                      return (
+                        <div key={slot} style={{ height: SLOT_H, background: heatColor(count, visibleCount), borderTop: slot % SPH === 0 ? '1px solid #E0E0E0' : '1px dashed #EBEBEB' }} />
+                      );
+                    })}
+                  </div>
+                );
+              })}
             </div>
-          )}
+          </div>
         </div>
       )}
 
@@ -400,8 +439,8 @@ export default function Results() {
         </div>
       )}
 
-      {/* Heatmap collapsed preview strip */}
-      <div style={{ background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
+      {/* Heatmap collapsed preview strip — only when duration is set */}
+      {hasDuration && <div style={{ background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
         <button onClick={() => setHeatmapExpanded(true)} style={{
           width: '100%', padding: '8px 16px', display: 'flex', alignItems: 'center',
           gap: 10, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
@@ -418,7 +457,7 @@ export default function Results() {
             <polyline points="2,9 7,4 12,9"/>
           </svg>
         </button>
-      </div>
+      </div>}
 
       {/* Bottom buttons */}
       <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
@@ -436,8 +475,8 @@ export default function Results() {
         </div>
       </div>
 
-      {/* Heatmap bottom-sheet overlay */}
-      {heatmapExpanded && (
+      {/* Heatmap bottom-sheet overlay — only when duration is set */}
+      {hasDuration && heatmapExpanded && (
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '82%', background: '#fff', zIndex: 100, borderRadius: '20px 20px 0 0', boxShadow: '0 -4px 24px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column' }}>
           {/* Nav */}
           <div style={{ display: 'flex', alignItems: 'center', padding: '14px 6px 10px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
