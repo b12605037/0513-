@@ -382,7 +382,7 @@ export default function Results() {
                 <div key={i} style={{ flex: 1, textAlign: 'center', padding: '8px 0' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#AAA', letterSpacing: '0.06em', marginBottom: 4 }}>{DOW_ZH[DOW_IDX[d.label]]}</div>
                   <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 14, background: isToday ? '#8A9DA8' : 'transparent' }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: isToday ? '#fff' : '#8A9DA8' }}>{d.date}</span>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: isToday ? '#fff' : '#333' }}>{d.date}</span>
                   </div>
                 </div>
               );
@@ -495,7 +495,7 @@ export default function Results() {
                 <div key={i} style={{ flex: 1, textAlign: 'center', padding: '8px 0' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#AAA', letterSpacing: '0.06em', marginBottom: 4 }}>{DOW_ZH[DOW_IDX[d.label]]}</div>
                   <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 14, background: isToday ? '#8A9DA8' : 'transparent' }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: isToday ? '#fff' : '#8A9DA8' }}>{d.date}</span>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: isToday ? '#fff' : '#333' }}>{d.date}</span>
                   </div>
                 </div>
               );
