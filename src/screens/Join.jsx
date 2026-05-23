@@ -21,6 +21,7 @@ export default function Join() {
             eventName:  m.name,
             rangeStart: m.range_start,
             rangeEnd:   m.range_end,
+            dateList:   m.date_list,
             startSlot:  m.start_slot,
             endSlot:    m.end_slot,
             allDay:     m.all_day,

@@ -29,8 +29,12 @@ const fmtH = h => {
   return min === 0 ? `${dh}${period}` : `${dh}:${String(min).padStart(2, '0')}${period}`;
 };
 
-function buildAllDays(rangeStartTs, rangeEndTs) {
+function buildAllDays(rangeStartTs, rangeEndTs, dateList) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
+  if (dateList && dateList.length > 0) {
+    return [...dateList].map(ts => new Date(ts)).sort((a,b) => a-b)
+      .map(d => ({ label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth() }));
+  }
   if (!rangeStartTs) {
     const days = [];
     for (let i = 0; i < 7; i++) {
@@ -79,7 +83,7 @@ export default function Results() {
   const G_END   = state?.allDay ? 24 : Math.ceil((state?.endSlot   ?? 36) / 2);
   const TOTAL   = (G_END - G_START) * SPH;
 
-  const allDays   = useMemo(() => buildAllDays(state?.rangeStart, state?.rangeEnd), [state]);
+  const allDays   = useMemo(() => buildAllDays(state?.rangeStart, state?.rangeEnd, state?.dateList), [state]);
   const totalDays = allDays.length;
   const totalPages = Math.ceil(totalDays / DAYS_PER_PAGE);
 

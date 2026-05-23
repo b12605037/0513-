@@ -20,8 +20,19 @@ const fmtH = h => {
   return min === 0 ? `${dh}${period}` : `${dh}:${String(min).padStart(2, '0')}${period}`;
 };
 
-function buildAllDays(rangeStartTs, rangeEndTs) {
+function buildAllDays(rangeStartTs, rangeEndTs, dateList) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
+  // Use explicit date list if provided (new meetings with individual date selection)
+  if (dateList && dateList.length > 0) {
+    const sorted = [...dateList].map(ts => { const d = new Date(ts); d.setHours(0,0,0,0); return d; }).sort((a,b) => a-b);
+    let todayIdx = -1;
+    const days = sorted.map((d, i) => {
+      if (d.getTime() === today.getTime()) todayIdx = i;
+      return { label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth() };
+    });
+    return { days, todayIdx };
+  }
+  // Fall back to range for older meetings
   if (!rangeStartTs) {
     const days = [];
     for (let i = 0; i < 7; i++) {
@@ -77,7 +88,7 @@ export default function TimeGrid() {
   const navigate = useNavigate();
   const { state } = useLocation();
 
-  const { days: allDays, todayIdx } = buildAllDays(state?.rangeStart, state?.rangeEnd);
+  const { days: allDays, todayIdx } = buildAllDays(state?.rangeStart, state?.rangeEnd, state?.dateList);
   const totalDays  = allDays.length;
   const totalPages = Math.ceil(totalDays / DAYS_PER_PAGE);
 
@@ -283,6 +294,7 @@ export default function TimeGrid() {
         duration:   state?.duration,
         rangeStart: state?.rangeStart,
         rangeEnd:   state?.rangeEnd,
+        dateList:   state?.dateList,
         startSlot:  state?.startSlot,
         endSlot:    state?.endSlot,
         allDay:     state?.allDay,

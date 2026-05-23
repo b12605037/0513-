@@ -183,230 +183,168 @@ function TimeRangeSlider({ startSlot, endSlot, onChange }) {
   );
 }
 
-// ── Date range picker with drag-to-select ─────────────────────────────────────
-function RangePicker({ startDate, endDate, onChange }) {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const [viewYear, setViewYear] = useState(startDate ? startDate.getFullYear() : today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(startDate ? startDate.getMonth() : today.getMonth());
+// ── Date multi-select picker ───────────────────────────────────────────────────
+function DateMultiPicker({ selectedDates, onChange }) {
+  const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
+  const mkKey  = (dt) => `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
+  const fromKey = (k)  => { const [y,m,d] = k.split('-').map(Number); return new Date(y,m,d); };
 
-  // Drag state — refs for stable event handler closures, state for rendering
-  const isDown = useRef(false);
-  const anchorRef = useRef(null);
-  const liveRef = useRef(null);
-  const onChangeRef = useRef(onChange);
-  useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
-  const startDateRef = useRef(startDate);
-  const endDateRef = useRef(endDate);
-  useEffect(() => { startDateRef.current = startDate; endDateRef.current = endDate; }, [startDate, endDate]);
+  const [viewYear,  setViewYear]  = useState(() => selectedDates?.[0]?.getFullYear() ?? today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(() => selectedDates?.[0]?.getMonth()    ?? today.getMonth());
 
-  const calGridRef = useRef(null);
+  const [displaySet, setDisplaySet] = useState(() => {
+    const s = new Set(); selectedDates?.forEach(d => s.add(mkKey(d))); return s;
+  });
+
+  const dragging      = useRef(false);
+  const workSet       = useRef(new Set());
+  const dragMode      = useRef(null); // 'select' | 'deselect'
+  const displaySetRef = useRef(displaySet);
+  const onChangeRef   = useRef(onChange);
+  const calRef        = useRef(null);
+
+  useEffect(() => { displaySetRef.current = displaySet; }, [displaySet]);
+  useEffect(() => { onChangeRef.current   = onChange;   }, [onChange]);
+
+  // Sync display from prop when not in a drag
   useEffect(() => {
-    const el = calGridRef.current;
+    if (dragging.current) return;
+    const s = new Set(); selectedDates?.forEach(d => s.add(mkKey(d)));
+    setDisplaySet(s);
+  }, [selectedDates]);
+
+  // Non-passive touch events — lock scroll immediately on touchstart
+  useEffect(() => {
+    const el = calRef.current;
     if (!el) return;
-    const onStart = (e) => { e.preventDefault(); };
-    const onMove = (e) => {
-      if (!isDown.current) return;
-      e.preventDefault();
-      const touch = e.touches[0];
-      const cel = document.elementFromPoint(touch.clientX, touch.clientY);
-      const cell = cel?.closest?.('[data-day]');
-      if (!cell) return;
-      const d = parseInt(cell.getAttribute('data-day'));
-      if (!d) return;
-      const dt = new Date(viewYear, viewMonth, d);
+    const getKey = (cx, cy) =>
+      document.elementFromPoint(cx, cy)?.closest('[data-dkey]')?.dataset?.dkey ?? null;
+    const paint = (key) => {
+      if (!dragMode.current) return;
+      const dt = fromKey(key);
       if (dt < today) return;
-      liveRef.current = dt;
-      setDragLive(dt);
+      workSet.current[dragMode.current === 'select' ? 'add' : 'delete'](key);
+      setDisplaySet(new Set(workSet.current));
+    };
+    const onStart = (e) => {
+      e.preventDefault();
+      document.body.style.overflow = 'hidden';
+      const { clientX, clientY } = e.touches[0];
+      const key = getKey(clientX, clientY);
+      if (!key) return;
+      const dt = fromKey(key);
+      if (dt < today) return;
+      dragging.current = true;
+      workSet.current  = new Set(displaySetRef.current);
+      dragMode.current = workSet.current.has(key) ? 'deselect' : 'select';
+      paint(key);
+    };
+    const onMove = (e) => {
+      e.preventDefault();
+      if (!dragMode.current) return;
+      const { clientX, clientY } = e.touches[0];
+      const key = getKey(clientX, clientY);
+      if (key) paint(key);
     };
     el.addEventListener('touchstart', onStart, { passive: false });
-    el.addEventListener('touchmove', onMove, { passive: false });
+    el.addEventListener('touchmove',  onMove,  { passive: false });
     return () => {
       el.removeEventListener('touchstart', onStart);
-      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchmove',  onMove);
     };
-  }, [viewYear, viewMonth]);
+  }, [today]);
 
-  const [dragAnchor, setDragAnchor] = useState(null);
-  const [dragLive, setDragLive] = useState(null);
-
-  // Commit on global mouseup / touchend
+  // Commit on touchend / mouseup anywhere on page
   useEffect(() => {
     const commit = () => {
-      if (!isDown.current) return;
-      isDown.current = false;
-      const anchor = anchorRef.current;
-      const live = liveRef.current || anchor;
-      anchorRef.current = null;
-      liveRef.current = null;
-      setDragAnchor(null);
-      setDragLive(null);
-      if (!anchor || !live) return;
-      const [s, e] = anchor <= live ? [anchor, live] : [live, anchor];
-      if (sameDay(s, e) && sameDay(s, startDateRef.current) && sameDay(e, endDateRef.current)) {
-        onChangeRef.current(null, null);
-      } else {
-        onChangeRef.current(s, e);
-      }
+      if (!dragging.current) return;
+      dragging.current = false;
+      dragMode.current = null;
+      document.body.style.overflow = '';
+      const dates = Array.from(workSet.current).map(fromKey).sort((a, b) => a - b);
+      onChangeRef.current(dates);
     };
-    window.addEventListener('mouseup', commit);
     window.addEventListener('touchend', commit);
+    window.addEventListener('mouseup',  commit);
     return () => {
-      window.removeEventListener('mouseup', commit);
       window.removeEventListener('touchend', commit);
+      window.removeEventListener('mouseup',  commit);
+      document.body.style.overflow = '';
     };
   }, []);
 
-  const prevMonth = () => {
-    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
-    else setViewMonth(m => m - 1);
-  };
-  const nextMonth = () => {
-    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
-    else setViewMonth(m => m + 1);
-  };
-
-  const dateFromCell = (d) => new Date(viewYear, viewMonth, d);
-
-  const handleMouseDown = (d) => {
-    const dt = dateFromCell(d);
+  // Mouse drag for desktop
+  const mouseDown = (key) => {
+    const dt = fromKey(key);
     if (dt < today) return;
-    // Cross-month drag: lock anchor to original startDate so user can drag end in this month
-    const inDifferentMonth = startDate &&
-      (viewYear !== startDate.getFullYear() || viewMonth !== startDate.getMonth());
-    if (inDifferentMonth && dt > startDate) {
-      isDown.current = true;
-      anchorRef.current = startDate;
-      liveRef.current = dt;
-      setDragAnchor(startDate);
-      setDragLive(dt);
-      return;
-    }
-    isDown.current = true;
-    anchorRef.current = dt;
-    liveRef.current = dt;
-    setDragAnchor(dt);
-    setDragLive(dt);
+    dragging.current = true;
+    workSet.current  = new Set(displaySetRef.current);
+    dragMode.current = workSet.current.has(key) ? 'deselect' : 'select';
+    workSet.current[dragMode.current === 'select' ? 'add' : 'delete'](key);
+    setDisplaySet(new Set(workSet.current));
   };
-
-  const handleMouseEnter = (d) => {
-    if (!isDown.current) return;
-    const dt = dateFromCell(d);
+  const mouseEnter = (key) => {
+    if (!dragging.current || !dragMode.current) return;
+    const dt = fromKey(key);
     if (dt < today) return;
-    liveRef.current = dt;
-    setDragLive(dt);
+    workSet.current[dragMode.current === 'select' ? 'add' : 'delete'](key);
+    setDisplaySet(new Set(workSet.current));
   };
 
-  // Touch: touchmove fires on original element, so use elementFromPoint
-  const handleTouchMove = (e) => {
-    if (!isDown.current) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    const el = document.elementFromPoint(touch.clientX, touch.clientY);
-    const cell = el?.closest?.('[data-day]');
-    if (!cell) return;
-    const d = parseInt(cell.getAttribute('data-day'));
-    if (!d) return;
-    const dt = dateFromCell(d);
-    if (dt < today) return;
-    liveRef.current = dt;
-    setDragLive(dt);
-  };
+  const prevMonth = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); } else setViewMonth(m => m - 1); };
+  const nextMonth = () => { if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); } else setViewMonth(m => m + 1); };
 
-  const firstDow = new Date(viewYear, viewMonth, 1).getDay();
+  const firstDow    = new Date(viewYear, viewMonth, 1).getDay();
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-
-  // Normalise direction for display
-  const isDragging = dragAnchor !== null;
-  const effStart = isDragging
-    ? (dragAnchor <= (dragLive || dragAnchor) ? dragAnchor : (dragLive || dragAnchor))
-    : startDate;
-  const effEnd = isDragging
-    ? (dragAnchor <= (dragLive || dragAnchor) ? (dragLive || dragAnchor) : dragAnchor)
-    : endDate;
-
-  const classFor = (d) => {
-    const dt = dateFromCell(d);
-    const disabled = dt < today;
-    const isStart = sameDay(dt, effStart);
-    const isEnd = sameDay(dt, effEnd);
-    const inRange = effStart && effEnd && dt > effStart && dt < effEnd;
-    const isToday = sameDay(dt, today);
-    return { dt, disabled, isStart, isEnd, inRange, isToday };
-  };
-
-  const phase = isDragging ? 'dragging' : !startDate ? 'empty' : 'done';
-  const phaseLabel = isDragging
-    ? (effStart && effEnd && !sameDay(effStart, effEnd)
-        ? `${SHORT_MONTHS[effStart.getMonth()]} ${effStart.getDate()} – ${SHORT_MONTHS[effEnd.getMonth()]} ${effEnd.getDate()}`
-        : `${SHORT_MONTHS[effStart.getMonth()]} ${effStart.getDate()}`)
-    : phase === 'empty'
-    ? '點按並拖曳以選取日期'
-    : (startDate && endDate && !sameDay(startDate, endDate))
-      ? `${SHORT_MONTHS[startDate.getMonth()]} ${startDate.getDate()} – ${SHORT_MONTHS[endDate.getMonth()]} ${endDate.getDate()}, ${endDate.getFullYear()}`
-      : startDate
-      ? `${SHORT_MONTHS[startDate.getMonth()]} ${startDate.getDate()}, ${startDate.getFullYear()}`
-      : '點按並拖曳以選取日期';
+  const count       = displaySet.size;
+  const label = count === 0
+    ? '點擊或滑動選取日期'
+    : count === 1
+    ? (() => { const d = fromKey([...displaySet][0]); return `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; })()
+    : `已選 ${count} 天`;
 
   return (
-    <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16, touchAction: 'none' }}>
+    <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16 }}>
       <div style={{ padding: '10px 16px 8px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0', display: 'flex', alignItems: 'center', gap: 6 }}>
-        <div style={{ width: 6, height: 6, borderRadius: 3, background: phase === 'done' ? '#8A9DA8' : phase === 'dragging' ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
-        <span style={{ fontSize: 15, fontWeight: 600, color: phase === 'done' || phase === 'dragging' ? '#8A9DA8' : '#F57F17' }}>{phaseLabel}</span>
-        {phase === 'done' && (
-          <button onClick={() => onChange(null, null)} style={{ marginLeft: 'auto', fontSize: 15, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
+        <div style={{ width: 6, height: 6, borderRadius: 3, background: count > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
+        <span style={{ fontSize: 15, fontWeight: 600, color: count > 0 ? '#8A9DA8' : '#F57F17' }}>{label}</span>
+        {count > 0 && (
+          <button onClick={() => onChangeRef.current([])} style={{ marginLeft: 'auto', fontSize: 15, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
         )}
       </div>
-
       <div style={{ padding: '12px 16px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8A9DA8' }}>
-            <IcChevron dir="left" size={16} />
-          </button>
+          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8A9DA8' }}><IcChevron dir="left" size={16} /></button>
           <span style={{ fontSize: 18, fontWeight: 700, color: '#111' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
-          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8A9DA8' }}>
-            <IcChevron dir="right" size={16} />
-          </button>
+          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8A9DA8' }}><IcChevron dir="right" size={16} /></button>
         </div>
-
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 2 }}>
-          {DAY_LABELS.map(d => (
-            <div key={d} style={{ textAlign: 'center', fontSize: 14, fontWeight: 600, color: '#BBB', padding: '3px 0' }}>{d}</div>
-          ))}
+          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 14, fontWeight: 600, color: '#BBB', padding: '3px 0' }}>{d}</div>)}
         </div>
-
-        <div
-          ref={calGridRef}
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', touchAction: 'none' }}
-        >
+        <div ref={calRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none' }}>
           {Array.from({ length: firstDow }).map((_, i) => <div key={'e' + i} />)}
           {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => {
-            const { disabled, isStart, isEnd, inRange, isToday } = classFor(d);
-            const isSingleDay = isStart && effEnd && sameDay(effStart, effEnd);
+            const dt       = new Date(viewYear, viewMonth, d);
+            const key      = mkKey(dt);
+            const disabled = dt < today;
+            const selected = displaySet.has(key);
+            const isToday  = sameDay(dt, today);
             return (
-              <div
-                key={d}
-                data-day={d}
-                onMouseDown={() => handleMouseDown(d)}
-                onMouseEnter={() => handleMouseEnter(d)}
-                onTouchStart={() => handleMouseDown(d)}
-                style={{ position: 'relative', height: 36, cursor: disabled ? 'default' : 'pointer' }}
+              <div key={d}
+                data-dkey={disabled ? undefined : key}
+                onMouseDown={() => !disabled && mouseDown(key)}
+                onMouseEnter={() => !disabled && mouseEnter(key)}
+                style={{ height: 36, cursor: disabled ? 'default' : 'pointer' }}
               >
-                {inRange && <div style={{ position: 'absolute', inset: 0, background: '#e8eef1' }} />}
-                {isStart && effEnd && !isSingleDay && <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '50%', background: '#e8eef1' }} />}
-                {isEnd && effStart && !sameDay(effStart, effEnd) && <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '50%', background: '#e8eef1' }} />}
                 <div style={{
-                  position: 'relative', zIndex: 1,
                   width: 32, height: 32, borderRadius: 16, margin: '2px auto 0',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: isStart || isEnd ? '#8A9DA8' : 'transparent',
-                  border: isToday && !isStart && !isEnd ? '1.5px solid #8A9DA8' : 'none',
-                  fontSize: 16,
-                  fontWeight: isStart || isEnd || inRange ? 600 : 400,
-                  color: isStart || isEnd ? '#fff' : disabled ? '#DDD' : isToday ? '#8A9DA8' : inRange ? '#8A9DA8' : '#111',
-                  transition: 'background 0.1s',
-                }}>
-                  {d}
-                </div>
+                  background: selected ? '#8A9DA8' : 'transparent',
+                  border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none',
+                  fontSize: 16, fontWeight: selected ? 700 : 400,
+                  color: selected ? '#fff' : disabled ? '#DDD' : isToday ? '#8A9DA8' : '#111',
+                  transition: 'background 0.08s',
+                }}>{d}</div>
               </div>
             );
           })}
@@ -604,8 +542,11 @@ export default function CreateEvent() {
   const meetingIdRef = useRef(null);
   const [copied, setCopied] = useState(false);
   const [deadlineDate, setDeadlineDate] = useState(new Date(2026, 4, 9));
-  const [rangeStart, setRangeStart] = useState(new Date(2026, 4, 5));
-  const [rangeEnd, setRangeEnd] = useState(new Date(2026, 4, 9));
+  const [selectedDates, setSelectedDates] = useState(() => {
+    const days = [];
+    for (let d = 5; d <= 9; d++) days.push(new Date(2026, 4, d));
+    return days;
+  });
   const [startSlot, setStartSlot] = useState(18); // 9:00 AM
   const [endSlot, setEndSlot] = useState(36);     // 6:00 PM
   const [form, setForm] = useState({
@@ -628,11 +569,14 @@ export default function CreateEvent() {
   const handleSendInvite = async () => {
     setSubmitting(true);
     const id = Math.random().toString(36).slice(2, 10);
+    const rangeStart = selectedDates[0] ?? null;
+    const rangeEnd   = selectedDates[selectedDates.length - 1] ?? null;
     const { error } = await supabase.from('meetings').insert({
       id,
       name: form.name,
       range_start: rangeStart?.getTime() ?? null,
       range_end:   rangeEnd?.getTime()   ?? null,
+      date_list:   selectedDates.map(d => d.getTime()),
       start_slot:  startSlot,
       end_slot:    endSlot,
       all_day:     form.allDay,
@@ -761,11 +705,10 @@ export default function CreateEvent() {
                 </div>
               )}
 
-              <label className="form-label" style={{ display: 'block', marginBottom: 8 }}>選取日期範圍</label>
-              <RangePicker
-                startDate={rangeStart}
-                endDate={rangeEnd}
-                onChange={(s, e) => { setRangeStart(s); setRangeEnd(e); }}
+              <label className="form-label" style={{ display: 'block', marginBottom: 8 }}>選取候選日期</label>
+              <DateMultiPicker
+                selectedDates={selectedDates}
+                onChange={setSelectedDates}
               />
             </div>
           </div>
@@ -817,11 +760,13 @@ export default function CreateEvent() {
 
             {/* Info rows */}
             {[
-              { label: '調查時段', value: rangeStart && rangeEnd
-                  ? (sameDay(rangeStart, rangeEnd)
-                      ? `${SHORT_MONTHS[rangeStart.getMonth()]} ${rangeStart.getDate()}`
-                      : `${SHORT_MONTHS[rangeStart.getMonth()]} ${rangeStart.getDate()} – ${SHORT_MONTHS[rangeEnd.getMonth()]} ${rangeEnd.getDate()}`)
-                  : '未設定' },
+              { label: '調查時段', value: (() => {
+                  if (!selectedDates.length) return '未設定';
+                  const rs = selectedDates[0], re = selectedDates[selectedDates.length - 1];
+                  if (sameDay(rs, re)) return `${SHORT_MONTHS[rs.getMonth()]} ${rs.getDate()}`;
+                  if (selectedDates.length <= 3) return selectedDates.map(d => `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}`).join('、');
+                  return `${SHORT_MONTHS[rs.getMonth()]} ${rs.getDate()} – ${SHORT_MONTHS[re.getMonth()]} ${re.getDate()} (${selectedDates.length}天)`;
+                })() },
               { label: '活動時長', value: fmtDuration(form.duration) },
               { label: '截止日',   value: deadlineDate ? formatDate(deadlineDate) : '未設定' },
             ].map(({ label, value }) => (
