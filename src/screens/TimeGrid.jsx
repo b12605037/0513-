@@ -6,7 +6,7 @@ const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
 const SLOT_H = 28;
 const LABEL_W = 48;
-const SCROLL_W = 24;
+const SCROLL_W = 44;
 const DAYS_PER_PAGE = 4;
 const FREE_COLOR = '#8A9DA8';
 const SLOT_COLOR = 'rgba(47,65,86,0.28)';
@@ -424,7 +424,8 @@ export default function TimeGrid() {
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           <div
             ref={scrollContainerRef}
-            style={{ height: '100%', overflowY: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', paddingLeft: 10, paddingRight: 10 }}
+            className="grid-scroll"
+            style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingLeft: 10 }}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
             onTouchStart={handleContainerTouchStart}
@@ -471,7 +472,8 @@ export default function TimeGrid() {
       {tab === 'group' && (
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           <div
-            style={{ height: '100%', overflowY: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', paddingLeft: 10, paddingRight: 10 }}
+            className="grid-scroll"
+            style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingLeft: 10 }}
             onClick={() => setHoveredCell(null)}
             onScroll={(e) => { setHoveredCell(null); handleGridScroll(e); }}
           >
