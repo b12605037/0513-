@@ -106,6 +106,14 @@ export default function TimeGrid() {
   const [groupResponses, setGroupResponses] = useState([]);
   const [groupNames, setGroupNames] = useState([]);
   const [submittingResponse, setSubmittingResponse] = useState(false);
+  const [showBottomFade, setShowBottomFade] = useState(true);
+
+  useEffect(() => { setShowBottomFade(true); }, [tab, page]);
+
+  const handleGridScroll = (e) => {
+    const el = e.currentTarget;
+    setShowBottomFade(el.scrollHeight - el.scrollTop > el.clientHeight + 4);
+  };
 
   const pageRef  = useRef(page);
   const slotsRef = useRef(slots);
@@ -388,82 +396,89 @@ export default function TimeGrid() {
 
       {/* ── Mine tab ─────────────────────────────────────────────────────────── */}
       {tab === 'mine' && (
-        <div
-          ref={scrollContainerRef}
-          style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onTouchStart={handleContainerTouchStart}
-          onTouchEnd={handleContainerTouchEnd}
-        >
-          {DayHeader({ onDayClick: fillDay })}
-          <div style={{ display: 'flex', userSelect: 'none', WebkitUserSelect: 'none' }}>
-            <div style={{ width: LABEL_W, flexShrink: 0 }}>
-              {Array.from({ length: TOTAL }, (_, s) => (
-                <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0' }}>
-                  {s % SPH === 0 && <span style={{ fontSize: 11, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
-                </div>
-              ))}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          <div
+            ref={scrollContainerRef}
+            style={{ height: '100%', overflowY: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', paddingLeft: 10, paddingRight: 10 }}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleContainerTouchStart}
+            onTouchEnd={handleContainerTouchEnd}
+            onScroll={handleGridScroll}
+          >
+            {DayHeader({ onDayClick: fillDay })}
+            <div style={{ display: 'flex', userSelect: 'none', WebkitUserSelect: 'none' }}>
+              <div style={{ width: LABEL_W, flexShrink: 0 }}>
+                {Array.from({ length: TOTAL }, (_, s) => (
+                  <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0' }}>
+                    {s % SPH === 0 && <span style={{ fontSize: 11, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
+                  </div>
+                ))}
+              </div>
+              {pageDays.map((_, i) => {
+                const globalIdx = pageStart + i;
+                return (
+                  <div key={globalIdx} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
+                    {Array.from({ length: TOTAL }, (_, slot) => {
+                      const key  = `${globalIdx}-${slot}`;
+                      const free = slots[key] === 1;
+                      return (
+                        <div key={slot}
+                          id={`sl-${globalIdx}-${slot}`}
+                          data-day={globalIdx} data-slot={slot}
+                          onMouseDown={() => handleMouseDown(globalIdx, slot)}
+                          onMouseEnter={() => handleMouseEnter(globalIdx, slot)}
+                          style={{ height: SLOT_H, background: free ? SLOT_COLOR : 'transparent', borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0', cursor: 'pointer' }}
+                        />
+                      );
+                    })}
+                  </div>
+                );
+              })}
+              <div style={{ width: SCROLL_W, flexShrink: 0 }} />
             </div>
-            {pageDays.map((_, i) => {
-              const globalIdx = pageStart + i;
-              return (
-                <div key={globalIdx} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
-                  {Array.from({ length: TOTAL }, (_, slot) => {
-                    const key  = `${globalIdx}-${slot}`;
-                    const free = slots[key] === 1;
-                    return (
-                      <div key={slot}
-                        id={`sl-${globalIdx}-${slot}`}
-                        data-day={globalIdx} data-slot={slot}
-                        onMouseDown={() => handleMouseDown(globalIdx, slot)}
-                        onMouseEnter={() => handleMouseEnter(globalIdx, slot)}
-                        style={{ height: SLOT_H, background: free ? SLOT_COLOR : 'transparent', borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0', cursor: 'pointer' }}
-                      />
-                    );
-                  })}
-                </div>
-              );
-            })}
-            <div style={{ width: SCROLL_W, flexShrink: 0 }} />
           </div>
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
         </div>
       )}
 
       {/* ── Group tab ────────────────────────────────────────────────────────── */}
       {tab === 'group' && (
-        <div
-          style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
-          onClick={() => setHoveredCell(null)}
-          onScroll={() => setHoveredCell(null)}
-        >
-          {DayHeader({})}
-          <div style={{ display: 'flex', userSelect: 'none' }}>
-            <div style={{ width: LABEL_W, flexShrink: 0 }}>
-              {Array.from({ length: TOTAL }, (_, s) => (
-                <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent' }}>
-                  {s % SPH === 0 && <span style={{ fontSize: 11, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
-                </div>
-              ))}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          <div
+            style={{ height: '100%', overflowY: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', paddingLeft: 10, paddingRight: 10 }}
+            onClick={() => setHoveredCell(null)}
+            onScroll={(e) => { setHoveredCell(null); handleGridScroll(e); }}
+          >
+            {DayHeader({})}
+            <div style={{ display: 'flex', userSelect: 'none' }}>
+              <div style={{ width: LABEL_W, flexShrink: 0 }}>
+                {Array.from({ length: TOTAL }, (_, s) => (
+                  <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent' }}>
+                    {s % SPH === 0 && <span style={{ fontSize: 11, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
+                  </div>
+                ))}
+              </div>
+              {pageDays.map((_, i) => {
+                const globalIdx = pageStart + i;
+                return (
+                  <div key={globalIdx} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
+                    {Array.from({ length: TOTAL }, (_, slot) => {
+                      const key   = `${globalIdx}-${slot}`;
+                      const count = visibleRespondents.filter(r => r[key] === 1).length;
+                      return (
+                        <div key={slot} data-day={globalIdx} data-slot={slot}
+                          onClick={e => showGroupCell(e, globalIdx, slot)}
+                          style={{ height: SLOT_H, background: heatColor(count, visibleCount), borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent', cursor: 'pointer' }} />
+                      );
+                    })}
+                  </div>
+                );
+              })}
+              <div style={{ width: SCROLL_W, flexShrink: 0 }} />
             </div>
-            {pageDays.map((_, i) => {
-              const globalIdx = pageStart + i;
-              return (
-                <div key={globalIdx} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
-                  {Array.from({ length: TOTAL }, (_, slot) => {
-                    const key   = `${globalIdx}-${slot}`;
-                    const count = visibleRespondents.filter(r => r[key] === 1).length;
-                    return (
-                      <div key={slot} data-day={globalIdx} data-slot={slot}
-                        onClick={e => showGroupCell(e, globalIdx, slot)}
-                        style={{ height: SLOT_H, background: heatColor(count, visibleCount), borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent', cursor: 'pointer' }} />
-                    );
-                  })}
-                </div>
-              );
-            })}
-            <div style={{ width: SCROLL_W, flexShrink: 0 }} />
           </div>
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
         </div>
       )}
 
