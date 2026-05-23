@@ -129,8 +129,11 @@ export default function TimeGrid() {
     supabase.from('responses').select('respondent_name,slots').eq('meeting_id', state.meetingId)
       .then(({ data }) => {
         if (data && data.length > 0) {
-          setGroupNames(data.map(r => r.respondent_name));
-          setGroupResponses(data.map(r => r.slots));
+          const deduped = Object.values(
+            data.reduce((acc, r) => ({ ...acc, [r.respondent_name]: r }), {})
+          );
+          setGroupNames(deduped.map(r => r.respondent_name));
+          setGroupResponses(deduped.map(r => r.slots));
         }
       });
   }, [state?.meetingId]);
@@ -295,11 +298,20 @@ export default function TimeGrid() {
         .eq('respondent_name', name.trim())
         .limit(1);
 
-      if (existing && existing.length > 0) {
-        await supabase.from('responses')
+        if (existing && existing.length > 0) {
+        const { data: updated } = await supabase.from('responses')
           .update({ slots: slotsRef.current })
           .eq('meeting_id', state.meetingId)
-          .eq('respondent_name', name.trim());
+          .eq('respondent_name', name.trim())
+          .select('respondent_name');
+        // If update matched nothing (silent RLS block), insert new row
+        if (!updated || updated.length === 0) {
+          await supabase.from('responses').insert({
+            meeting_id: state.meetingId,
+            respondent_name: name.trim(),
+            slots: slotsRef.current,
+          });
+        }
       } else {
         await supabase.from('responses').insert({
           meeting_id: state.meetingId,

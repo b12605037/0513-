@@ -102,7 +102,12 @@ export default function Results() {
     supabase.from('responses').select('respondent_name,slots')
       .eq('meeting_id', state.meetingId)
       .then(({ data }) => {
-        if (data) setResponses(data);
+        if (data) {
+          const deduped = Object.values(
+            data.reduce((acc, r) => ({ ...acc, [r.respondent_name]: r }), {})
+          );
+          setResponses(deduped);
+        }
         setLoading(false);
       });
   }, [state?.meetingId]);
