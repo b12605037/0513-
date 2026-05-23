@@ -22,15 +22,16 @@ const fmtPeriod = (slot) => {
 };
 const TICK_LABELS = ['0','4','8','12','16','20','24'];
 const DOT_COLORS = ['#D6DDD9', '#BFCCD4', '#9FB5C3', '#8A9DA8', '#6D7B86'];
-const DURATION_TOTAL = 47;
-const dSlotToMins = (slot) => 30 + slot * 30;
-const dMinsToSlot = (mins) => Math.round(Math.max(0, Math.min(DURATION_TOTAL, (mins - 30) / 30)));
+const DURATION_TOTAL = 48;
+const dSlotToMins = (slot) => slot * 30;
+const dMinsToSlot = (mins) => Math.round(Math.max(0, Math.min(DURATION_TOTAL, mins / 30)));
 const DURATION_TICKS = [
-  { label: '2h',  slot: 3 },
-  { label: '4h',  slot: 7 },
-  { label: '8h',  slot: 15 },
-  { label: '12h', slot: 23 },
-  { label: '24h', slot: 47 },
+  { label: '不限', slot: 0 },
+  { label: '2h',   slot: 4 },
+  { label: '4h',   slot: 8 },
+  { label: '8h',   slot: 16 },
+  { label: '12h',  slot: 24 },
+  { label: '24h',  slot: 48 },
 ];
 
 function formatDate(date) {
@@ -39,6 +40,7 @@ function formatDate(date) {
 }
 function fmtDuration(d) {
   const n = Number(d);
+  if (n === 0) return '不限時長';
   if (n < 60) return `${n} min`;
   if (n % 60 === 0) return `${n / 60} hr`;
   return `${Math.floor(n / 60)}h ${n % 60}m`;
@@ -333,7 +335,9 @@ export default function Home() {
   const [startSlot, setStartSlot] = useState(18);
   const [endSlot, setEndSlot] = useState(36);
   const [allDay, setAllDay] = useState(false);
-  const [duration, setDuration] = useState(60);
+  const [duration, setDuration] = useState(0);
+  const [dateError, setDateError] = useState('');
+  const [timeError, setTimeError] = useState('');
   const [showAllRecent, setShowAllRecent] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [meetingName, setMeetingName] = useState('');
@@ -344,6 +348,10 @@ export default function Home() {
   const [linkCopied, setLinkCopied] = useState(false);
 
   const openNameModal = () => {
+    let hasError = false;
+    if (selectedDates.length === 0) { setDateError('請選取日期'); hasError = true; } else setDateError('');
+    if (!allDay && startSlot >= endSlot) { setTimeError('請選取調查時段'); hasError = true; } else setTimeError('');
+    if (hasError) return;
     setMeetingName('');
     setNameModalPhase('input');
     setGeneratedId(null);
@@ -440,16 +448,17 @@ export default function Home() {
         <div style={{ padding: '16px 16px 0' }}>
 
           <div className="form-field">
-            <label className="form-label">選取日期</label>
-            <DateMultiPicker selectedDates={selectedDates} onChange={setSelectedDates} />
+            <label className="form-label">選取日期 <span style={{ color: '#E53935' }}>*</span></label>
+            <DateMultiPicker selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
+            {dateError && <div style={{ fontSize: 13, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
           </div>
 
           <div className="form-field">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <label className="form-label" style={{ marginBottom: 0 }}>選取調查時段</label>
+              <label className="form-label" style={{ marginBottom: 0 }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 16, fontWeight: 500, color: '#888' }}>全天</span>
-                <div onClick={() => setAllDay(v => !v)} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+                <div onClick={() => { setAllDay(v => !v); setTimeError(''); }} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
                   <div style={{ position: 'absolute', top: 2, left: allDay ? 18 : 2, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
                 </div>
               </div>
@@ -458,13 +467,14 @@ export default function Home() {
               <TimeRangeSlider
                 startSlot={allDay ? 0 : startSlot}
                 endSlot={allDay ? SLIDER_TOTAL : endSlot}
-                onChange={(s, e) => { setStartSlot(s); setEndSlot(e); }}
+                onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }}
               />
             </div>
+            {timeError && <div style={{ fontSize: 13, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
           </div>
 
           <div className="form-field">
-            <label className="form-label">活動時長</label>
+            <label className="form-label">活動時長（選填）</label>
             <DurationSlider value={duration} onChange={setDuration} />
           </div>
 
