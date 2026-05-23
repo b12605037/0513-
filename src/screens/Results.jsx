@@ -206,7 +206,7 @@ export default function Results() {
           for (let l = 0; l < c.actualSlots; l++) blocked.add(`${c.d}-${c.s+l}`);
         }
       }
-      picked.sort((a, b) => a.d - b.d || a.s - b.s);
+      picked.sort((a, b) => b.actualSlots - a.actualSlots || b.count - a.count || a.d - b.d || a.s - b.s);
       return picked;
     };
 
