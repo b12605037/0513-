@@ -298,17 +298,34 @@ function DateMultiPicker({ selectedDates, onChange }) {
   const count       = displaySet.size;
   const label = count === 0
     ? '點擊或滑動選取日期'
-    : count === 1
-    ? (() => { const d = fromKey([...displaySet][0]); return `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; })()
-    : `已選 ${count} 天`;
+    : (() => { const d = fromKey([...displaySet][0]); return `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; })();
+  const sortedDates = count > 1
+    ? Array.from(displaySet).map(fromKey).sort((a, b) => a - b)
+    : [];
 
   return (
     <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16 }}>
-      <div style={{ padding: '10px 16px 8px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0', display: 'flex', alignItems: 'center', gap: 6 }}>
-        <div style={{ width: 6, height: 6, borderRadius: 3, background: count > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
-        <span style={{ fontSize: 15, fontWeight: 600, color: count > 0 ? '#8A9DA8' : '#F57F17' }}>{label}</span>
-        {count > 0 && (
-          <button onClick={() => onChangeRef.current([])} style={{ marginLeft: 'auto', fontSize: 15, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
+      <div style={{ padding: '10px 16px 8px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0' }}>
+        {count <= 1 ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 6, height: 6, borderRadius: 3, background: count > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
+            <span style={{ fontSize: 15, fontWeight: 600, color: count > 0 ? '#8A9DA8' : '#F57F17' }}>{label}</span>
+            {count > 0 && (
+              <button onClick={() => onChangeRef.current([])} style={{ marginLeft: 'auto', fontSize: 15, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+            <div style={{ width: 6, height: 6, borderRadius: 3, background: '#8A9DA8', flexShrink: 0, marginTop: 6 }} />
+            <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '4px 6px' }}>
+              {sortedDates.map((d, i) => (
+                <span key={i} style={{ fontSize: 13, fontWeight: 600, color: '#5F84A2', background: 'rgba(95,132,162,0.1)', borderRadius: 5, padding: '2px 7px' }}>
+                  {d.getMonth() + 1}/{d.getDate()}
+                </span>
+              ))}
+            </div>
+            <button onClick={() => onChangeRef.current([])} style={{ flexShrink: 0, fontSize: 15, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
+          </div>
         )}
       </div>
       <div style={{ padding: '12px 16px 14px' }}>
@@ -344,85 +361,6 @@ function DateMultiPicker({ selectedDates, onChange }) {
                   color: selected ? '#fff' : disabled ? '#DDD' : isToday ? '#8A9DA8' : '#111',
                   transition: 'background 0.08s',
                 }}>{d}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Survey deadline date picker (bottom sheet) ────────────────────────────────
-function DatePickerSheet({ selected, onSelect, onClose }) {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const [viewYear, setViewYear] = useState(selected ? selected.getFullYear() : today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(selected ? selected.getMonth() : today.getMonth());
-
-  const prevMonth = () => {
-    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
-    else setViewMonth(m => m - 1);
-  };
-  const nextMonth = () => {
-    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
-    else setViewMonth(m => m + 1);
-  };
-
-  const firstDow = new Date(viewYear, viewMonth, 1).getDay();
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-
-  const isSelected = (d) =>
-    selected && selected.getFullYear() === viewYear &&
-    selected.getMonth() === viewMonth && selected.getDate() === d;
-
-  const isToday = (d) =>
-    today.getFullYear() === viewYear && today.getMonth() === viewMonth && today.getDate() === d;
-
-  return (
-    <div className="bottom-sheet-overlay" onClick={onClose}>
-      <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
-        <div className="sheet-handle" />
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div style={{ fontSize: 21, fontWeight: 700, color: '#111' }}>回覆截止日</div>
-          {selected && <div style={{ fontSize: 16, fontWeight: 600, color: '#8A9DA8' }}>{formatDate(selected)}</div>}
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}>
-            <IcChevron dir="left" size={18} />
-          </button>
-          <span style={{ fontSize: 19, fontWeight: 700, color: '#111' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
-          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}>
-            <IcChevron dir="right" size={18} />
-          </button>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 4 }}>
-          {DAY_LABELS.map(d => (
-            <div key={d} style={{ textAlign: 'center', fontSize: 14, fontWeight: 600, color: '#BBB', padding: '4px 0' }}>{d}</div>
-          ))}
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '2px 0', marginBottom: 8 }}>
-          {Array.from({ length: firstDow }).map((_, i) => <div key={'e' + i} />)}
-          {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => {
-            const sel = isSelected(d);
-            const todayMark = isToday(d);
-            return (
-              <div key={d} onClick={() => { onSelect(new Date(viewYear, viewMonth, d)); onClose(); }}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 42, cursor: 'pointer' }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: 18,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: sel ? '#8A9DA8' : 'transparent',
-                  border: todayMark && !sel ? '1.5px solid #8A9DA8' : 'none',
-                  fontSize: 18, fontWeight: sel || todayMark ? 700 : 400,
-                  color: sel ? '#fff' : todayMark ? '#8A9DA8' : '#111',
-                  transition: 'background 0.12s',
-                }}>
-                  {d}
-                </div>
               </div>
             );
           })}
@@ -536,11 +474,9 @@ export default function CreateEvent() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [showTzSheet, setShowTzSheet] = useState(false);
-  const [showDeadlineSheet, setShowDeadlineSheet] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const meetingIdRef = useRef(null);
   const [copied, setCopied] = useState(false);
-  const [deadlineDate, setDeadlineDate] = useState(new Date(2026, 4, 9));
   const [selectedDates, setSelectedDates] = useState(() => {
     const days = [];
     for (let d = 5; d <= 9; d++) days.push(new Date(2026, 4, d));
@@ -584,7 +520,6 @@ export default function CreateEvent() {
       duration:    form.duration,
       timezone:    form.timezone,
       timezone_offset: form.timezoneOffset,
-      deadline:    deadlineDate?.getTime() ?? null,
     };
     let { error } = await supabase.from('meetings').insert(payload);
     // Fallback: retry without date_list if column doesn't exist yet
@@ -673,19 +608,6 @@ export default function CreateEvent() {
                   </span>
                 </div>
               </div>
-              <div className="form-field">
-                <label className="form-label">回覆截止日</label>
-                <div style={{ position: 'relative' }} onClick={() => setShowDeadlineSheet(true)}>
-                  <div className="form-input" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: deadlineDate ? '#111' : '#BEC0C4', paddingRight: 36 }}>
-                    {deadlineDate ? formatDate(deadlineDate) : '選取日期'}
-                  </div>
-                  <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#BBB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                  </span>
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -749,10 +671,6 @@ export default function CreateEvent() {
       {showTzSheet && (
         <TimezoneSheet current={form.timezone} onSelect={handleTzSelect} onClose={() => setShowTzSheet(false)} />
       )}
-      {showDeadlineSheet && (
-        <DatePickerSheet selected={deadlineDate} onSelect={setDeadlineDate} onClose={() => setShowDeadlineSheet(false)} />
-      )}
-
     </div>
 
     {showShareModal && (
@@ -785,7 +703,6 @@ export default function CreateEvent() {
                   return `${SHORT_MONTHS[rs.getMonth()]} ${rs.getDate()} – ${SHORT_MONTHS[re.getMonth()]} ${re.getDate()} (${selectedDates.length}天)`;
                 })() },
               { label: '活動時長', value: fmtDuration(form.duration) },
-              { label: '截止日',   value: deadlineDate ? formatDate(deadlineDate) : '未設定' },
             ].map(({ label, value }) => (
               <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                 <span style={{ fontSize: 16, color: '#AAA', fontWeight: 400 }}>{label}</span>
