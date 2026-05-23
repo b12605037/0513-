@@ -85,7 +85,7 @@ function DurationSlider({ value, onChange }) {
         <div style={{ position: 'absolute', left: 0, width: `${pct}%`, top: 0, bottom: 0, background: '#8A9DA8', borderRadius: 3 }} />
         <div onMouseDown={startDrag} onTouchStart={startDrag} style={{ position: 'absolute', left: `calc(${pct}% - 11px)`, top: -8, width: 22, height: 22, borderRadius: 11, background: '#8A9DA8', border: '3px solid #fff', boxShadow: '0 1px 6px rgba(138,157,168,0.45)', cursor: 'grab', zIndex: 2, touchAction: 'none' }} />
       </div>
-      <div style={{ position: 'relative', height: 16 }}>
+      <div style={{ position: 'relative', height: 16, margin: '0 11px' }}>
         {DURATION_TICKS.map(({ label, slot: s }, i) => {
           const p = (s / DURATION_TOTAL) * 100;
           const transform = i === 0 ? 'none' : i === DURATION_TICKS.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)';
@@ -148,7 +148,7 @@ function TimeRangeSlider({ startSlot, endSlot, onChange }) {
         <div onMouseDown={startDrag('start')} onTouchStart={startDrag('start')} style={{ position: 'absolute', left: `calc(${sPct}% - 11px)`, top: -8, width: 22, height: 22, borderRadius: 11, background: '#8A9DA8', border: '3px solid #fff', boxShadow: '0 1px 6px rgba(138,157,168,0.45)', cursor: 'grab', zIndex: 2, touchAction: 'none' }} />
         <div onMouseDown={startDrag('end')} onTouchStart={startDrag('end')} style={{ position: 'absolute', left: `calc(${ePct}% - 11px)`, top: -8, width: 22, height: 22, borderRadius: 11, background: '#8A9DA8', border: '3px solid #fff', boxShadow: '0 1px 6px rgba(138,157,168,0.45)', cursor: 'grab', zIndex: 2, touchAction: 'none' }} />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#CCC', fontWeight: 500, paddingLeft: 2, paddingRight: 2 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#CCC', fontWeight: 500, paddingLeft: 11, paddingRight: 11 }}>
         {TICK_LABELS.map(t => <span key={t}>{t}</span>)}
       </div>
     </div>
