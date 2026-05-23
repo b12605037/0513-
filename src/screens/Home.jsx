@@ -457,8 +457,7 @@ export default function Home() {
           onClick={() => setShowNameModal(false)}>
           <div style={{ width: '100%', maxWidth: 340, background: '#fff', borderRadius: 20, padding: '24px 20px 18px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}
             onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: '#111', letterSpacing: '-0.02em', marginBottom: 6 }}>活動名稱</div>
-            <div style={{ fontSize: 15, color: '#AAA', marginBottom: 18 }}>幫這次的會議調查取個名字</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: '#111', letterSpacing: '-0.02em', marginBottom: 18 }}>活動名稱</div>
             <input
               autoFocus
               className="form-input"
