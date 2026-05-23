@@ -98,7 +98,7 @@ export default function TimeGrid() {
 
   const [tab,  setTab]  = useState('mine'); // 'mine' | 'group'
   const [page, setPage] = useState(0);
-  const [slots, setSlots] = useState(() => initSlots(totalDays, TOTAL));
+  const [slots, setSlots] = useState(() => state?.mySlots ?? initSlots(totalDays, TOTAL));
   const [showNameModal, setShowNameModal] = useState(false);
   const [name, setName] = useState(state?.myName ?? '');
   const [hoveredCell, setHoveredCell] = useState(null); // { day, slot, cx, cy }
@@ -280,6 +280,10 @@ export default function TimeGrid() {
     if (!name.trim()) return;
     setSubmittingResponse(true);
     if (state?.meetingId) {
+      await supabase.from('responses')
+        .delete()
+        .eq('meeting_id', state.meetingId)
+        .eq('respondent_name', name.trim());
       await supabase.from('responses').insert({
         meeting_id: state.meetingId,
         respondent_name: name.trim(),
@@ -291,6 +295,7 @@ export default function TimeGrid() {
       state: {
         meetingId:  state?.meetingId,
         myName:     name.trim(),
+        mySlots:    slotsRef.current,
         duration:   state?.duration,
         rangeStart: state?.rangeStart,
         rangeEnd:   state?.rangeEnd,
