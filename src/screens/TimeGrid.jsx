@@ -6,9 +6,9 @@ import { useDesktop } from '../hooks/useDesktop';
 const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
 const SLOT_H = 28;
-const SLOT_H_DESKTOP = 44;
+const SLOT_H_DESKTOP = 56;
 const LABEL_W = 48;
-const LABEL_W_DESKTOP = 80;
+const LABEL_W_DESKTOP = 72;
 const SCROLL_W = 44;
 const DAYS_PER_PAGE = 4;
 const FREE_COLOR = '#8A9DA8';
@@ -379,16 +379,29 @@ export default function TimeGrid() {
 
   // ── Shared day-header — reads displayDays/displayStart/labelW/scrollW from closure
   const DayHeader = ({ onDayClick } = {}) => (
-    <div style={{ display: 'flex', position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: '1px solid #EBEBEB' }}>
+    <div style={{ display: 'flex', position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: isDesktop ? '2px solid #DDD' : '1px solid #EBEBEB' }}>
       <div style={{ width: labelW, flexShrink: 0 }} />
       {displayDays.map((d, i) => {
         const isToday = (displayStart + i) === todayIdx;
         const globalIdx = displayStart + i;
         return (
           <div key={i} onClick={() => onDayClick?.(globalIdx)}
-            style={{ flex: 1, textAlign: 'center', padding: '5px 0 6px', cursor: onDayClick ? 'pointer' : 'default', minWidth: isDesktop ? 60 : undefined }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: isToday ? '#8A9DA8' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
-            <div style={{ width: 22, height: 22, borderRadius: 11, margin: '2px auto 0', background: isToday ? '#8A9DA8' : 'transparent', color: isToday ? '#fff' : '#8A9DA8', fontSize: 15, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
+            style={{ flex: 1, textAlign: 'center', padding: isDesktop ? '10px 0 12px' : '5px 0 6px', cursor: onDayClick ? 'pointer' : 'default', minWidth: isDesktop ? 80 : undefined, borderLeft: isDesktop && i > 0 ? '1px solid #EBEBEB' : 'none' }}>
+            {isDesktop ? (
+              <>
+                <div style={{ fontSize: 15, fontWeight: 700, color: isToday ? '#8A9DA8' : '#222', letterSpacing: '-0.01em' }}>
+                  {MON[d.month]} {d.date}
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: isToday ? '#8A9DA8' : '#999', marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {d.label}
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 13, fontWeight: 600, color: isToday ? '#8A9DA8' : '#AAA', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.label}</div>
+                <div style={{ width: 22, height: 22, borderRadius: 11, margin: '2px auto 0', background: isToday ? '#8A9DA8' : 'transparent', color: isToday ? '#fff' : '#8A9DA8', fontSize: 15, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d.date}</div>
+              </>
+            )}
           </div>
         );
       })}
@@ -478,8 +491,8 @@ export default function TimeGrid() {
             <div style={{ display: 'flex', userSelect: 'none', WebkitUserSelect: 'none' }}>
               <div style={{ width: labelW, flexShrink: 0 }}>
                 {Array.from({ length: TOTAL }, (_, s) => (
-                  <div key={s} style={{ height: slotH, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0' }}>
-                    {s % SPH === 0 && <span style={{ fontSize: 11, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
+                  <div key={s} style={{ height: slotH, display: 'flex', alignItems: 'flex-start', justifyContent: isDesktop ? 'flex-start' : 'flex-end', paddingLeft: isDesktop ? 10 : undefined, paddingRight: isDesktop ? undefined : 5, paddingTop: isDesktop ? 4 : 2, borderTop: s % SPH === 0 ? (isDesktop ? '1px solid #CCC' : '1px solid #EBEBEB') : '1px dashed #F0F0F0' }}>
+                    {s % SPH === 0 && <span style={{ fontSize: isDesktop ? 13 : 11, fontWeight: 700, color: isDesktop ? '#888' : '#BBB', letterSpacing: isDesktop ? '0.02em' : undefined }}>{isDesktop ? fmtH(G_START + s / SPH).toUpperCase() : fmtH(G_START + s / SPH)}</span>}
                   </div>
                 ))}
               </div>
@@ -500,7 +513,7 @@ export default function TimeGrid() {
                             if (isDesktop) setDesktopMineTooltip({ day: globalIdx, slot, cx: e.clientX, cy: e.clientY });
                           }}
                           onMouseLeave={isDesktop ? () => setDesktopMineTooltip(null) : undefined}
-                          style={{ height: slotH, background: free ? SLOT_COLOR : 'transparent', borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0', cursor: 'pointer' }}
+                          style={{ height: slotH, background: free ? SLOT_COLOR : 'transparent', borderTop: slot % SPH === 0 ? (isDesktop ? '1px solid #CCC' : '1px solid #EBEBEB') : '1px dashed #F0F0F0', cursor: 'pointer' }}
                         />
                       );
                     })}
@@ -557,8 +570,8 @@ export default function TimeGrid() {
             <div style={{ display: 'flex', userSelect: 'none' }}>
               <div style={{ width: labelW, flexShrink: 0 }}>
                 {Array.from({ length: TOTAL }, (_, s) => (
-                  <div key={s} style={{ height: slotH, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0' }}>
-                    {s % SPH === 0 && <span style={{ fontSize: 11, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
+                  <div key={s} style={{ height: slotH, display: 'flex', alignItems: 'flex-start', justifyContent: isDesktop ? 'flex-start' : 'flex-end', paddingLeft: isDesktop ? 10 : undefined, paddingRight: isDesktop ? undefined : 5, paddingTop: isDesktop ? 4 : 2, borderTop: s % SPH === 0 ? (isDesktop ? '1px solid #CCC' : '1px solid #EBEBEB') : '1px dashed #F0F0F0' }}>
+                    {s % SPH === 0 && <span style={{ fontSize: isDesktop ? 13 : 11, fontWeight: 700, color: isDesktop ? '#888' : '#BBB', letterSpacing: isDesktop ? '0.02em' : undefined }}>{isDesktop ? fmtH(G_START + s / SPH).toUpperCase() : fmtH(G_START + s / SPH)}</span>}
                   </div>
                 ))}
               </div>
