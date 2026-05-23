@@ -565,13 +565,15 @@ export default function CreateEvent() {
   };
 
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const handleSendInvite = async () => {
     setSubmitting(true);
+    setSubmitError('');
     const id = Math.random().toString(36).slice(2, 10);
     const rangeStart = selectedDates[0] ?? null;
     const rangeEnd   = selectedDates[selectedDates.length - 1] ?? null;
-    const { error } = await supabase.from('meetings').insert({
+    const payload = {
       id,
       name: form.name,
       range_start: rangeStart?.getTime() ?? null,
@@ -584,9 +586,15 @@ export default function CreateEvent() {
       timezone:    form.timezone,
       timezone_offset: form.timezoneOffset,
       deadline:    deadlineDate?.getTime() ?? null,
-    });
+    };
+    let { error } = await supabase.from('meetings').insert(payload);
+    // Fallback: retry without date_list if column doesn't exist yet
+    if (error && error.message?.includes('date_list')) {
+      const { date_list, ...payloadWithout } = payload;
+      ({ error } = await supabase.from('meetings').insert(payloadWithout));
+    }
     setSubmitting(false);
-    if (error) { alert('儲存失敗：' + error.message); return; }
+    if (error) { setSubmitError(error.message); return; }
     meetingIdRef.current = id;
     setShowShareModal(true);
   };
@@ -715,6 +723,11 @@ export default function CreateEvent() {
         )}
 
         <div style={{ padding: '8px 16px 32px' }}>
+          {submitError && (
+            <div style={{ fontSize: 14, color: '#E53935', marginBottom: 10, background: '#FFF5F5', borderRadius: 8, padding: '8px 12px', border: '1px solid #FFCDD2' }}>
+              儲存失敗：{submitError}
+            </div>
+          )}
           {step < 2
             ? <button className="btn-primary" onClick={() => setStep(s => s + 1)}>
                 下一步 <IcChevron dir="right" size={16} />
