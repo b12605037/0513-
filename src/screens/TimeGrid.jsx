@@ -476,7 +476,7 @@ export default function TimeGrid() {
                 送出
               </button>
             </div>
-            <div style={{ fontSize: 14, color: '#AAA', textAlign: 'center' }}>點按・拖曳塗色・左右滑動換頁</div>
+
           </>
         ) : (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
