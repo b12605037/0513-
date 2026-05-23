@@ -366,7 +366,7 @@ export default function Results() {
             </div>
             <button onClick={handleShareLine} style={{
               flexShrink: 0, padding: '8px 14px', borderRadius: 10, border: 'none',
-              background: '#06C755',
+              background: '#8FA99A',
               color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
               fontFamily: 'inherit', whiteSpace: 'nowrap',
               display: 'flex', alignItems: 'center', gap: 6,
