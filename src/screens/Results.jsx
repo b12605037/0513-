@@ -236,7 +236,7 @@ export default function Results() {
 
   const shareMessage = selectedList.length === 0 ? '' :
     selectedList.length === 1
-      ? `嗨大家！會議時間確定囉 🎉\n\n📅 ${DOW_ZH[DOW_IDX[selectedList[0].day.label]]} ${selectedList[0].day.date} ${fmtH24(G_START + selectedList[0].rawS / SPH)}–${fmtH24(G_START + (selectedList[0].rawS + selectedList[0].actualSlots) / SPH)}`
+      ? `嗨大家！會議時間確定囉\n\n📅 ${DOW_ZH[DOW_IDX[selectedList[0].day.label]]} ${selectedList[0].day.date} ${fmtH24(G_START + selectedList[0].rawS / SPH)}–${fmtH24(G_START + (selectedList[0].rawS + selectedList[0].actualSlots) / SPH)}`
       : `嗨大家！以下是我們的會議時間 📅\n\n` +
         selectedList.map(s => `• ${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + s.actualSlots) / SPH)}`).join('\n');
 
