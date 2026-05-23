@@ -337,6 +337,14 @@ export default function Home() {
   const [endSlot, setEndSlot] = useState(36);
   const [allDay, setAllDay] = useState(false);
   const [duration, setDuration] = useState(60);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [meetingName, setMeetingName] = useState('');
+
+  const handleConfirmName = () => {
+    if (!meetingName.trim()) return;
+    setShowNameModal(false);
+    navigate('/grid', { state: { eventName: meetingName.trim(), rangeStart: rangeStart?.getTime() ?? null, rangeEnd: rangeEnd?.getTime() ?? null, startSlot, endSlot, allDay, duration } });
+  };
 
   return (
     <div className="app-container" style={{ background: '#fff' }}>
@@ -430,7 +438,7 @@ export default function Home() {
         </div>
 
         <div style={{ padding: '4px 16px 40px' }}>
-          <button className="btn-primary" onClick={() => navigate('/grid', { state: { rangeStart: rangeStart?.getTime() ?? null, rangeEnd: rangeEnd?.getTime() ?? null, startSlot, endSlot, allDay, duration } })}>
+          <button className="btn-primary" onClick={() => { setMeetingName(''); setShowNameModal(true); }}>
             送出
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -442,6 +450,30 @@ export default function Home() {
 
       {showDeadlineSheet && (
         <DatePickerSheet selected={deadlineDate} onSelect={setDeadlineDate} onClose={() => setShowDeadlineSheet(false)} />
+      )}
+
+      {showNameModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}
+          onClick={() => setShowNameModal(false)}>
+          <div style={{ width: '100%', maxWidth: 340, background: '#fff', borderRadius: 20, padding: '24px 20px 18px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: '#111', letterSpacing: '-0.02em', marginBottom: 6 }}>活動名稱</div>
+            <div style={{ fontSize: 15, color: '#AAA', marginBottom: 18 }}>幫這次的會議調查取個名字</div>
+            <input
+              autoFocus
+              className="form-input"
+              placeholder="例：週會、Q2 規劃討論"
+              value={meetingName}
+              onChange={e => setMeetingName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleConfirmName(); }}
+              style={{ marginBottom: 16 }}
+            />
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setShowNameModal(false)} style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: '#F0F0F0', color: '#555', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>取消</button>
+              <button onClick={handleConfirmName} disabled={!meetingName.trim()} style={{ flex: 2, padding: '13px', borderRadius: 12, border: 'none', background: meetingName.trim() ? '#8A9DA8' : '#D0D8DC', color: '#fff', fontSize: 16, fontWeight: 700, cursor: meetingName.trim() ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'background 0.2s' }}>確認</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
