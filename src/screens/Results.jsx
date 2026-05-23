@@ -120,7 +120,7 @@ export default function Results() {
   const todayM = _today.getMonth();
   const todayD = _today.getDate();
 
-  const hasDuration = (state?.duration ?? 0) > 0;
+  const hasDuration = (state?.duration ?? 0) > 0 && (state?.duration ?? 0) < 1440;
 
   const [page, setPage]                   = useState(0);
   const [selected, setSelected]           = useState(new Set());
