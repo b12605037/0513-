@@ -338,6 +338,7 @@ export default function Home() {
   const [endSlot, setEndSlot] = useState(36);
   const [allDay, setAllDay] = useState(false);
   const [duration, setDuration] = useState(60);
+  const [showAllRecent, setShowAllRecent] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [meetingName, setMeetingName] = useState('');
   const [nameModalPhase, setNameModalPhase] = useState('input'); // 'input' | 'link'
@@ -413,21 +414,28 @@ export default function Home() {
           {recentEvents.length === 0 ? (
             <div style={{ textAlign: 'center', color: '#CCC', fontSize: 16, padding: '20px 0' }}>尚無建立紀錄</div>
           ) : (
-            recentEvents.map((ev, i) => {
-              const daysAgo = Math.floor((Date.now() - ev.time) / 86400000);
-              const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
-              const color = DOT_COLORS[i % DOT_COLORS.length];
-              return (
-                <div key={ev.id} onClick={() => navigate(`/view/${ev.id}`)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 10, cursor: 'pointer' }}>
-                  <div style={{ width: 10, height: 10, borderRadius: 5, background: color, flexShrink: 0 }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 16, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
+            <>
+              {(showAllRecent ? recentEvents : recentEvents.slice(0, 2)).map((ev, i) => {
+                const daysAgo = Math.floor((Date.now() - ev.time) / 86400000);
+                const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
+                const color = DOT_COLORS[i % DOT_COLORS.length];
+                return (
+                  <div key={ev.id} onClick={() => navigate(`/view/${ev.id}`)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 10, cursor: 'pointer' }}>
+                    <div style={{ width: 10, height: 10, borderRadius: 5, background: color, flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 16, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
+                    </div>
+                    <div style={{ fontSize: 14, color: '#CCC', flexShrink: 0 }}>{timeLabel}</div>
                   </div>
-                  <div style={{ fontSize: 14, color: '#CCC', flexShrink: 0 }}>{timeLabel}</div>
-                </div>
-              );
-            })
+                );
+              })}
+              {recentEvents.length > 2 && (
+                <button onClick={() => setShowAllRecent(v => !v)} style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', padding: '4px 0 2px', textAlign: 'center' }}>
+                  {showAllRecent ? '收起' : `顯示其他 ${recentEvents.length - 2} 筆`}
+                </button>
+              )}
+            </>
           )}
         </div>
 
