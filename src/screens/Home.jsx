@@ -39,7 +39,7 @@ function formatDate(date) {
 }
 function fmtDuration(d) {
   const n = Number(d);
-  if (n === 0) return '不限時長';
+  if (n === 0) return '0 hr';
   if (n < 60) return `${n} min`;
   if (n % 60 === 0) return `${n / 60} hr`;
   return `${Math.floor(n / 60)}h ${n % 60}m`;
