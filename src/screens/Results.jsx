@@ -119,7 +119,6 @@ export default function Results() {
   const [selected, setSelected]           = useState(new Set());
   const [selectedSlots, setSelectedSlots] = useState(new Set());
   const [heatmapExpanded, setHeatmapExpanded] = useState(false);
-  const [copiedMsg, setCopiedMsg]         = useState(false);
 
   useEffect(() => {
     setSelected(new Set(responses.map((_, i) => i)));
@@ -241,11 +240,8 @@ export default function Results() {
       : `嗨大家！以下是我們的會議時間 📅\n\n` +
         selectedList.map(s => `• ${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + s.actualSlots) / SPH)}`).join('\n');
 
-  const handleCopyMsg = () => {
-    navigator.clipboard.writeText(shareMessage).then(() => {
-      setCopiedMsg(true);
-      setTimeout(() => setCopiedMsg(false), 2000);
-    });
+  const handleShareLine = () => {
+    window.open(`https://line.me/R/msg/text/?${encodeURIComponent(shareMessage)}`, '_blank');
   };
 
   // Per-day peak heat for preview strip
@@ -368,13 +364,17 @@ export default function Results() {
             <div style={{ flex: 1, fontSize: 15, color: '#555', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
               {selectedList.map(s => `${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} · ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + s.actualSlots) / SPH)}`).join('、')}
             </div>
-            <button onClick={handleCopyMsg} style={{
+            <button onClick={handleShareLine} style={{
               flexShrink: 0, padding: '8px 14px', borderRadius: 10, border: 'none',
-              background: copiedMsg ? '#5F84A2' : '#8A9DA8',
+              background: '#06C755',
               color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
-              fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap',
+              fontFamily: 'inherit', whiteSpace: 'nowrap',
+              display: 'flex', alignItems: 'center', gap: 6,
             }}>
-              {copiedMsg ? '已複製 ✓' : '複製訊息'}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+              </svg>
+              傳送至 LINE
             </button>
           </div>
         </div>
