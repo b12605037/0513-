@@ -454,7 +454,7 @@ export default function TimeGrid() {
             <div style={{ display: 'flex', userSelect: 'none' }}>
               <div style={{ width: LABEL_W, flexShrink: 0 }}>
                 {Array.from({ length: TOTAL }, (_, s) => (
-                  <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent' }}>
+                  <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 5, paddingTop: 2, borderTop: s % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0' }}>
                     {s % SPH === 0 && <span style={{ fontSize: 11, fontWeight: 600, color: '#BBB' }}>{fmtH(G_START + s / SPH)}</span>}
                   </div>
                 ))}
@@ -469,7 +469,7 @@ export default function TimeGrid() {
                       return (
                         <div key={slot} data-day={globalIdx} data-slot={slot}
                           onClick={e => showGroupCell(e, globalIdx, slot)}
-                          style={{ height: SLOT_H, background: heatColor(count, visibleCount), borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px solid transparent', cursor: 'pointer' }} />
+                          style={{ height: SLOT_H, background: heatColor(count, visibleCount), borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0', cursor: 'pointer' }} />
                       );
                     })}
                   </div>
