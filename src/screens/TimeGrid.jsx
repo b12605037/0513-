@@ -288,15 +288,25 @@ export default function TimeGrid() {
     if (!name.trim()) return;
     setSubmittingResponse(true);
     if (state?.meetingId) {
-      await supabase.from('responses')
-        .delete()
+      const { data: existing } = await supabase
+        .from('responses')
+        .select('respondent_name')
         .eq('meeting_id', state.meetingId)
-        .eq('respondent_name', name.trim());
-      await supabase.from('responses').insert({
-        meeting_id: state.meetingId,
-        respondent_name: name.trim(),
-        slots: slotsRef.current,
-      });
+        .eq('respondent_name', name.trim())
+        .limit(1);
+
+      if (existing && existing.length > 0) {
+        await supabase.from('responses')
+          .update({ slots: slotsRef.current })
+          .eq('meeting_id', state.meetingId)
+          .eq('respondent_name', name.trim());
+      } else {
+        await supabase.from('responses').insert({
+          meeting_id: state.meetingId,
+          respondent_name: name.trim(),
+          slots: slotsRef.current,
+        });
+      }
     }
     setSubmittingResponse(false);
     navigate('/results', {
