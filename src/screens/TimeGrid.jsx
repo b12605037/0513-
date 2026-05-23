@@ -425,13 +425,14 @@ export default function TimeGrid() {
           <div
             ref={scrollContainerRef}
             className="grid-scroll"
-            style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingLeft: 10 }}
+            style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', direction: 'rtl' }}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
             onTouchStart={handleContainerTouchStart}
             onTouchEnd={handleContainerTouchEnd}
             onScroll={handleGridScroll}
           >
+          <div style={{ direction: 'ltr' }}>
             {DayHeader({ onDayClick: fillDay })}
             <div style={{ display: 'flex', userSelect: 'none', WebkitUserSelect: 'none' }}>
               <div style={{ width: LABEL_W, flexShrink: 0 }}>
@@ -464,6 +465,7 @@ export default function TimeGrid() {
               <div style={{ width: SCROLL_W, flexShrink: 0 }} />
             </div>
           </div>
+          </div>
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
         </div>
       )}
@@ -473,10 +475,11 @@ export default function TimeGrid() {
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           <div
             className="grid-scroll"
-            style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingLeft: 10 }}
+            style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', direction: 'rtl' }}
             onClick={() => setHoveredCell(null)}
             onScroll={(e) => { setHoveredCell(null); handleGridScroll(e); }}
           >
+          <div style={{ direction: 'ltr' }}>
             {DayHeader({})}
             <div style={{ display: 'flex', userSelect: 'none' }}>
               <div style={{ width: LABEL_W, flexShrink: 0 }}>
@@ -504,6 +507,7 @@ export default function TimeGrid() {
               })}
               <div style={{ width: SCROLL_W, flexShrink: 0 }} />
             </div>
+          </div>
           </div>
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
         </div>
