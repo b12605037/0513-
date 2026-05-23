@@ -29,6 +29,13 @@ const fmtH = h => {
   return min === 0 ? `${dh}${period}` : `${dh}:${String(min).padStart(2, '0')}${period}`;
 };
 
+const fmtDur = (slots) => {
+  const mins = slots * SLOT_MIN;
+  if (mins < 60) return `${mins} 分鐘`;
+  const h = mins / 60;
+  return `${h} 小時`;
+};
+
 function buildAllDays(rangeStartTs, rangeEndTs, dateList) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   if (dateList && dateList.length > 0) {
@@ -128,53 +135,111 @@ export default function Results() {
   const visibleCount = visibleRespondents.length;
   const slotsNeeded  = Math.max(1, Math.ceil((state?.duration ?? 30) / SLOT_MIN));
 
-  // All non-overlapping best slots, sorted by count desc then chronologically
-  const allBestSlots = useMemo(() => {
-    if (visibleCount === 0) return [];
+  const { bestSlots, isDegrade } = useMemo(() => {
+    if (visibleCount === 0) return { bestSlots: [], isDegrade: false };
     const vwi = allRespondents.map((r, i) => ({ r, i })).filter(({ i }) => selected.has(i));
-    const candidates = [];
-    for (let d = 0; d < totalDays; d++) {
-      for (let s = 0; s <= TOTAL - slotsNeeded; s++) {
-        const free = vwi.filter(({ r }) => {
-          for (let len = 0; len < slotsNeeded; len++)
-            if (r[`${d}-${s + len}`] !== 1) return false;
-          return true;
-        });
-        if (free.length === vwi.length) {
-          candidates.push({
-            key: `${d}-${s}`, d, s, rawS: s,
-            count: free.length,
-            freeNames: free.map(({ i }) => respondentNames[i]),
-            day: allDays[d],
-            time: fmtH(G_START + s / SPH),
-            endTime: fmtH(G_START + (s + slotsNeeded) / SPH),
+    const N = vwi.length;
+
+    const findFullSlots = (minCount) => {
+      const candidates = [];
+      for (let d = 0; d < totalDays; d++) {
+        for (let s = 0; s <= TOTAL - slotsNeeded; s++) {
+          const free = vwi.filter(({ r }) => {
+            for (let l = 0; l < slotsNeeded; l++)
+              if (r[`${d}-${s+l}`] !== 1) return false;
+            return true;
           });
+          if (free.length >= minCount) {
+            candidates.push({
+              key: `${d}-${s}`, d, s, rawS: s,
+              count: free.length, actualSlots: slotsNeeded,
+              freeNames: free.map(({ i }) => respondentNames[i]),
+              day: allDays[d],
+              time: fmtH(G_START + s / SPH),
+              endTime: fmtH(G_START + (s + slotsNeeded) / SPH),
+            });
+          }
         }
       }
-    }
-    candidates.sort((a, b) => b.count - a.count || a.d - b.d || a.s - b.s);
-    const picked = [], blocked = new Set();
-    for (const c of candidates) {
-      let skip = false;
-      for (let len = 0; len < slotsNeeded; len++) { if (blocked.has(`${c.d}-${c.s+len}`)) { skip = true; break; } }
-      if (!skip) {
-        picked.push(c);
-        for (let len = 0; len < slotsNeeded; len++) blocked.add(`${c.d}-${c.s+len}`);
+      return candidates;
+    };
+
+    const findShorterSlots = (minCount) => {
+      const candidates = [];
+      for (let d = 0; d < totalDays; d++) {
+        for (let s = 0; s < TOTAL; s++) {
+          let free = vwi, maxLen = 0, bestFree = [];
+          for (let l = 0; s + l < TOTAL; l++) {
+            free = free.filter(({ r }) => r[`${d}-${s+l}`] === 1);
+            if (free.length >= minCount) { maxLen = l + 1; bestFree = free; }
+            else break;
+          }
+          if (maxLen > 0 && maxLen < slotsNeeded) {
+            candidates.push({
+              key: `${d}-${s}`, d, s, rawS: s,
+              count: bestFree.length, actualSlots: maxLen,
+              freeNames: bestFree.map(({ i }) => respondentNames[i]),
+              day: allDays[d],
+              time: fmtH(G_START + s / SPH),
+              endTime: fmtH(G_START + (s + maxLen) / SPH),
+            });
+          }
+        }
       }
+      return candidates;
+    };
+
+    const pickNonOverlapping = (candidates) => {
+      candidates.sort((a, b) => b.count - a.count || b.actualSlots - a.actualSlots || a.d - b.d || a.s - b.s);
+      const picked = [], blocked = new Set();
+      for (const c of candidates) {
+        let skip = false;
+        for (let l = 0; l < c.actualSlots; l++) { if (blocked.has(`${c.d}-${c.s+l}`)) { skip = true; break; } }
+        if (!skip) {
+          picked.push(c);
+          for (let l = 0; l < c.actualSlots; l++) blocked.add(`${c.d}-${c.s+l}`);
+        }
+      }
+      picked.sort((a, b) => a.d - b.d || a.s - b.s);
+      return picked;
+    };
+
+    const tagSlots = (slots, fullDur, allPeople) => slots.map(c => ({
+      ...c,
+      isPerfect: allPeople && fullDur,
+      label: (allPeople && fullDur ? '✓ ' : '⚠️ ') +
+        (fullDur
+          ? `${c.count}/${N} 人・${fmtDur(slotsNeeded)}`
+          : `${c.count}/${N} 人・僅 ${fmtDur(c.actualSlots)}`),
+    }));
+
+    const p1 = findFullSlots(N);
+    if (p1.length > 0) return { bestSlots: tagSlots(pickNonOverlapping(p1), true, true), isDegrade: false };
+
+    const p2 = findShorterSlots(N);
+    if (p2.length > 0) return { bestSlots: tagSlots(pickNonOverlapping(p2), false, true), isDegrade: true };
+
+    if (N > 1) {
+      const p3 = findFullSlots(N - 1);
+      if (p3.length > 0) return { bestSlots: tagSlots(pickNonOverlapping(p3), true, false), isDegrade: true };
+
+      const p4 = findShorterSlots(N - 1);
+      if (p4.length > 0) return { bestSlots: tagSlots(pickNonOverlapping(p4), false, false), isDegrade: true };
     }
-    return picked;
+
+    return { bestSlots: [], isDegrade: false };
   }, [selected, responses, slotsNeeded, totalDays, TOTAL, G_START]);
 
   const toggleSlot = (key) =>
     setSelectedSlots(prev => { const s = new Set(prev); s.has(key) ? s.delete(key) : s.add(key); return s; });
 
-  const selectedList = allBestSlots.filter(s => selectedSlots.has(s.key));
+  const selectedList = bestSlots.filter(s => selectedSlots.has(s.key));
 
   const shareMessage = selectedList.length === 0 ? '' :
     selectedList.length === 1
-      ? `嗨大家！會議時間確定囉 🎉\n\n📅 ${DOW_ZH[DOW_IDX[selectedList[0].day.label]]} ${selectedList[0].day.date} ${fmtH24(G_START + selectedList[0].rawS / SPH)}–${fmtH24(G_START + (selectedList[0].rawS + slotsNeeded) / SPH)}`
+      ? `嗨大家！會議時間確定囉 🎉\n\n📅 ${DOW_ZH[DOW_IDX[selectedList[0].day.label]]} ${selectedList[0].day.date} ${fmtH24(G_START + selectedList[0].rawS / SPH)}–${fmtH24(G_START + (selectedList[0].rawS + selectedList[0].actualSlots) / SPH)}`
       : `嗨大家！以下是我們的會議時間 📅\n\n` +
-        selectedList.map(s => `• ${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + slotsNeeded) / SPH)}`).join('\n');
+        selectedList.map(s => `• ${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + s.actualSlots) / SPH)}`).join('\n');
 
   const handleCopyMsg = () => {
     navigator.clipboard.writeText(shareMessage).then(() => {
@@ -228,13 +293,21 @@ export default function Results() {
       <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', padding: '10px 16px', background: '#F8F8F8' }}>
         {loading ? (
           <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, paddingTop: 48 }}>載入中…</div>
-        ) : allBestSlots.length === 0 ? (
+        ) : bestSlots.length === 0 ? (
           <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, paddingTop: 48, lineHeight: 2 }}>
             {visibleCount === 0 ? '請先選取成員' : '沒有找到共同空閒時段'}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {allBestSlots.map((slot, idx) => {
+            {isDegrade && (
+              <div style={{
+                background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10,
+                padding: '8px 12px', fontSize: 13, color: '#92400E', fontWeight: 500, lineHeight: 1.5,
+              }}>
+                找不到完全符合的時段，以下是最接近的選項
+              </div>
+            )}
+            {bestSlots.map((slot) => {
               const isSel = selectedSlots.has(slot.key);
               return (
                 <div key={slot.key} onClick={() => toggleSlot(slot.key)} style={{
@@ -247,8 +320,18 @@ export default function Results() {
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ fontSize: 16, fontWeight: 700, color: '#111' }}>
-                      {DOW_ZH[DOW_IDX[slot.day.label]]} {slot.day.date} · {fmtH24(G_START + slot.rawS / SPH)}–{fmtH24(G_START + (slot.rawS + slotsNeeded) / SPH)}
+                      {DOW_ZH[DOW_IDX[slot.day.label]]} {slot.day.date} · {fmtH24(G_START + slot.rawS / SPH)}–{fmtH24(G_START + (slot.rawS + slot.actualSlots) / SPH)}
                     </span>
+                    <div style={{ marginTop: 4 }}>
+                      <span style={{
+                        fontSize: 12, fontWeight: 600,
+                        color: slot.isPerfect ? '#5F84A2' : '#92400E',
+                        background: slot.isPerfect ? 'rgba(95,132,162,0.12)' : 'rgba(253,230,138,0.5)',
+                        borderRadius: 6, padding: '2px 7px',
+                      }}>
+                        {slot.label}
+                      </span>
+                    </div>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
                       {slot.freeNames.map(n => (
                         <span key={n} style={{ fontSize: 13, color: '#888', background: '#F5F5F5', borderRadius: 6, padding: '1px 6px' }}>{n}</span>
@@ -283,7 +366,7 @@ export default function Results() {
         <div style={{ padding: '8px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
           <div style={{ background: '#F5F5F5', borderRadius: 12, padding: '10px 10px 10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ flex: 1, fontSize: 15, color: '#555', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-              {selectedList.map(s => `${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} · ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + slotsNeeded) / SPH)}`).join('、')}
+              {selectedList.map(s => `${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} · ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + s.actualSlots) / SPH)}`).join('、')}
             </div>
             <button onClick={handleCopyMsg} style={{
               flexShrink: 0, padding: '8px 14px', borderRadius: 10, border: 'none',
