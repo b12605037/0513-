@@ -21,7 +21,7 @@ const fmtPeriod = (slot) => {
   return (m < 12 * 60 || m >= 24 * 60) ? 'AM' : 'PM';
 };
 const TICK_LABELS = ['0','4','8','12','16','20','24'];
-const DOT_COLORS = ['#E57373', '#FFB300', '#66BB6A', '#5F84A2', '#BA68C8'];
+const DOT_COLORS = ['#D6DDD9', '#BFCCD4', '#9FB5C3', '#8A9DA8', '#6D7B86'];
 const DURATION_TOTAL = 47;
 const dSlotToMins = (slot) => 30 + slot * 30;
 const dMinsToSlot = (mins) => Math.round(Math.max(0, Math.min(DURATION_TOTAL, (mins - 30) / 30)));
