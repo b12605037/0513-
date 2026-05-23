@@ -126,17 +126,20 @@ export default function TimeGrid() {
 
   useEffect(() => {
     if (!state?.meetingId) return;
+    const savedName = (state?.myName ?? '').trim();
     supabase.from('responses').select('respondent_name,slots').eq('meeting_id', state.meetingId)
       .then(({ data }) => {
-        if (data && data.length > 0) {
-          const deduped = Object.values(
-            data.reduce((acc, r) => ({ ...acc, [r.respondent_name]: r }), {})
-          );
-          setGroupNames(deduped.map(r => r.respondent_name));
-          setGroupResponses(deduped.map(r => r.slots));
-        }
+        const rows = data ?? [];
+        const deduped = Object.values(
+          rows.reduce((acc, r) => ({ ...acc, [r.respondent_name]: r }), {})
+        );
+        const others = savedName
+          ? deduped.filter(r => r.respondent_name !== savedName)
+          : deduped;
+        setGroupNames(others.map(r => r.respondent_name));
+        setGroupResponses(others.map(r => r.slots));
       });
-  }, [state?.meetingId]);
+  }, [state?.meetingId, tab]);
 
   useEffect(() => {
     setSelectedRespondents(prev => {
