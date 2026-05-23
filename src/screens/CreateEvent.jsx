@@ -31,6 +31,7 @@ function formatDate(date) {
 
 function fmtDuration(d) {
   const n = Number(d);
+  if (n === 0) return '不限時長';
   if (n < 60) return `${n} min`;
   if (n % 60 === 0) return `${n / 60} hr`;
   return `${Math.floor(n / 60)}h ${n % 60}m`;
@@ -41,17 +42,17 @@ function sameDay(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-// Duration slider: 30 min – 24h (1440 min), 30-min steps (slots 0–47)
-const DURATION_TOTAL = 47;
-const dSlotToMins = (slot) => 30 + slot * 30;
-const dMinsToSlot = (mins) => Math.round(Math.max(0, Math.min(DURATION_TOTAL, (mins - 30) / 30)));
+// Duration slider: 0 (不限) – 24h (1440 min), 30-min steps (slots 0–48)
+const DURATION_TOTAL = 48;
+const dSlotToMins = (slot) => slot * 30;
+const dMinsToSlot = (mins) => Math.round(Math.max(0, Math.min(DURATION_TOTAL, mins / 30)));
 const DURATION_TICKS = [
-  { label: '30m', slot: 0 },
-  { label: '2h',  slot: 3 },
-  { label: '4h',  slot: 7 },
-  { label: '8h',  slot: 15 },
-  { label: '12h', slot: 23 },
-  { label: '24h', slot: 47 },
+  { label: '不限', slot: 0 },
+  { label: '2h',   slot: 4 },
+  { label: '4h',   slot: 8 },
+  { label: '8h',   slot: 16 },
+  { label: '12h',  slot: 24 },
+  { label: '24h',  slot: 48 },
 ];
 
 function DurationSlider({ value, onChange }) {
@@ -495,8 +496,8 @@ export default function CreateEvent() {
   });
   const [startSlot, setStartSlot] = useState(18); // 9:00 AM
   const [endSlot, setEndSlot] = useState(36);     // 6:00 PM
-  const [durationEnabled, setDurationEnabled] = useState(false);
-  const [step2Error, setStep2Error] = useState('');
+  const [dateError, setDateError] = useState(false);
+  const [timeError, setTimeError] = useState(false);
   const [form, setForm] = useState({
     name: 'Q2 Planning Kickoff',
     duration: 0,
@@ -516,11 +517,11 @@ export default function CreateEvent() {
   const [submitError, setSubmitError] = useState('');
 
   const handleSendInvite = async () => {
-    if (selectedDates.length === 0) {
-      setStep2Error('請先選取候選日期');
-      return;
-    }
-    setStep2Error('');
+    const dErr = selectedDates.length === 0;
+    const tErr = !form.allDay && startSlot >= endSlot;
+    setDateError(dErr);
+    setTimeError(tErr);
+    if (dErr || tErr) return;
     setSubmitting(true);
     setSubmitError('');
     const id = Math.random().toString(36).slice(2, 10);
@@ -611,27 +612,8 @@ export default function CreateEvent() {
                 <input className="form-input" value={form.name} onChange={e => up('name', e.target.value)} placeholder="例：週會、團隊討論" />
               </div>
               <div className="form-field">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <label className="form-label" style={{ marginBottom: 0 }}>活動時長</label>
-                  <span style={{ fontSize: 13, color: '#AAA', fontWeight: 500 }}>非必填</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', borderRadius: 10, padding: '12px 14px', marginBottom: durationEnabled ? 10 : 0, border: '1.5px solid #F0F0F0' }}>
-                  <span style={{ fontSize: 16, color: durationEnabled ? '#111' : '#CCC' }}>
-                    {durationEnabled ? fmtDuration(form.duration) : '未設定活動時長'}
-                  </span>
-                  <div
-                    onClick={() => {
-                      const next = !durationEnabled;
-                      setDurationEnabled(next);
-                      if (next && form.duration === 0) up('duration', 60);
-                      if (!next) up('duration', 0);
-                    }}
-                    style={{ width: 44, height: 26, borderRadius: 13, background: durationEnabled ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}
-                  >
-                    <div style={{ position: 'absolute', top: 3, left: durationEnabled ? 20 : 3, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
-                  </div>
-                </div>
-                {durationEnabled && <DurationSlider value={form.duration} onChange={(v) => up('duration', v)} />}
+                <label className="form-label">活動時長（選填）</label>
+                <DurationSlider value={form.duration} onChange={(v) => up('duration', v)} />
               </div>
               <div className="form-field">
                 <label className="form-label">時區</label>
@@ -674,8 +656,13 @@ export default function CreateEvent() {
                   <TimeRangeSlider
                     startSlot={startSlot}
                     endSlot={endSlot}
-                    onChange={(s, e) => { setStartSlot(s); setEndSlot(e); }}
+                    onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(false); }}
                   />
+                  {timeError && (
+                    <div style={{ fontSize: 14, color: '#E53935', marginTop: 8, background: '#FFF5F5', borderRadius: 8, padding: '8px 12px', border: '1px solid #FFCDD2' }}>
+                      請選取調查時段
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -685,11 +672,11 @@ export default function CreateEvent() {
               </div>
               <DateMultiPicker
                 selectedDates={selectedDates}
-                onChange={(dates) => { setSelectedDates(dates); if (dates.length > 0) setStep2Error(''); }}
+                onChange={(dates) => { setSelectedDates(dates); if (dates.length > 0) setDateError(false); }}
               />
-              {step2Error && (
+              {dateError && (
                 <div style={{ fontSize: 14, color: '#E53935', marginTop: -8, marginBottom: 10, background: '#FFF5F5', borderRadius: 8, padding: '8px 12px', border: '1px solid #FFCDD2' }}>
-                  {step2Error}
+                  請選取日期
                 </div>
               )}
             </div>
@@ -750,7 +737,7 @@ export default function CreateEvent() {
                   if (selectedDates.length <= 3) return selectedDates.map(d => `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}`).join('、');
                   return `${SHORT_MONTHS[rs.getMonth()]} ${rs.getDate()} – ${SHORT_MONTHS[re.getMonth()]} ${re.getDate()} (${selectedDates.length}天)`;
                 })() },
-              { label: '活動時長', value: form.duration > 0 ? fmtDuration(form.duration) : '未設定' },
+              { label: '活動時長', value: fmtDuration(form.duration) },
             ].map(({ label, value }) => (
               <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                 <span style={{ fontSize: 16, color: '#AAA', fontWeight: 400 }}>{label}</span>
