@@ -250,6 +250,10 @@ function DateMultiPicker({ selectedDates, onChange }) {
   const sortedDates = count > 1
     ? Array.from(displaySet).map(fromKey).sort((a, b) => a - b)
     : [];
+  const dateRanges = sortedDates.reduce((acc, d) => {
+    if (!acc.length || (d - acc[acc.length - 1][1]) / 86400000 !== 1) return [...acc, [d, d]];
+    return [...acc.slice(0, -1), [acc[acc.length - 1][0], d]];
+  }, []);
 
   return (
     <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16 }}>
@@ -264,11 +268,18 @@ function DateMultiPicker({ selectedDates, onChange }) {
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: 3, background: '#8A9DA8', flexShrink: 0, marginTop: 6 }} />
             <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '4px 6px' }}>
-              {sortedDates.map((d, i) => (
-                <span key={i} style={{ fontSize: 13, fontWeight: 600, color: '#5F84A2', background: 'rgba(95,132,162,0.1)', borderRadius: 5, padding: '2px 7px' }}>
-                  {d.getMonth() + 1}/{d.getDate()}
-                </span>
-              ))}
+              {dateRanges.map(([s, e], i) => {
+                const label = s.getTime() === e.getTime()
+                  ? `${s.getMonth()+1}/${s.getDate()}`
+                  : s.getMonth() === e.getMonth()
+                  ? `${s.getMonth()+1}/${s.getDate()}–${e.getDate()}`
+                  : `${s.getMonth()+1}/${s.getDate()}–${e.getMonth()+1}/${e.getDate()}`;
+                return (
+                  <span key={i} style={{ fontSize: 13, fontWeight: 600, color: '#5F84A2', background: 'rgba(95,132,162,0.1)', borderRadius: 5, padding: '2px 7px' }}>
+                    {label}
+                  </span>
+                );
+              })}
             </div>
             <button onClick={() => onChangeRef.current([])} style={{ flexShrink: 0, fontSize: 15, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
           </div>
