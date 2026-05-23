@@ -469,9 +469,6 @@ export default function Results() {
           }}>
             重新填寫
           </button>
-          <button className="btn-primary" onClick={() => navigate('/')} style={{ flex: 1, padding: '13px' }}>
-            完成
-          </button>
         </div>
       </div>
 
