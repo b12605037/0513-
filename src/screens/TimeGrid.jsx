@@ -107,12 +107,24 @@ export default function TimeGrid() {
   const [groupNames, setGroupNames] = useState([]);
   const [submittingResponse, setSubmittingResponse] = useState(false);
   const [showBottomFade, setShowBottomFade] = useState(true);
+  const [scrollThumb, setScrollThumb] = useState({ top: 0, h: 100 });
 
-  useEffect(() => { setShowBottomFade(true); }, [tab, page]);
+  const updateThumb = (el) => {
+    if (!el || el.scrollHeight <= el.clientHeight + 1) { setScrollThumb({ top: 0, h: 100 }); return; }
+    const h = (el.clientHeight / el.scrollHeight) * 100;
+    const top = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * (100 - h);
+    setScrollThumb({ top, h });
+  };
+
+  useEffect(() => {
+    setShowBottomFade(true);
+    setScrollThumb({ top: 0, h: 100 });
+  }, [tab, page]);
 
   const handleGridScroll = (e) => {
     const el = e.currentTarget;
     setShowBottomFade(el.scrollHeight - el.scrollTop > el.clientHeight + 4);
+    updateThumb(el);
   };
 
   const pageRef  = useRef(page);
@@ -123,6 +135,7 @@ export default function TimeGrid() {
   const dragRef         = useRef({ active: false, target: 0, lastKey: null });
   const gestureRef      = useRef({ phase: 'idle', startX: 0, startY: 0, startDay: null, startSlot: null });
   const scrollContainerRef  = useRef(null);
+  const groupScrollRef      = useRef(null);
 
   useEffect(() => {
     if (!state?.meetingId) return;
@@ -425,14 +438,13 @@ export default function TimeGrid() {
           <div
             ref={scrollContainerRef}
             className="grid-scroll"
-            style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', direction: 'rtl' }}
+            style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
             onTouchStart={handleContainerTouchStart}
             onTouchEnd={handleContainerTouchEnd}
             onScroll={handleGridScroll}
           >
-          <div style={{ direction: 'ltr' }}>
             {DayHeader({ onDayClick: fillDay })}
             <div style={{ display: 'flex', userSelect: 'none', WebkitUserSelect: 'none' }}>
               <div style={{ width: LABEL_W, flexShrink: 0 }}>
@@ -465,7 +477,11 @@ export default function TimeGrid() {
               <div style={{ width: SCROLL_W, flexShrink: 0 }} />
             </div>
           </div>
-          </div>
+          {scrollThumb.h < 96 && (
+            <div style={{ position: 'absolute', left: 6, top: 8, bottom: 8, width: 7, pointerEvents: 'none', zIndex: 10 }}>
+              <div style={{ position: 'absolute', left: 0, right: 0, top: `${scrollThumb.top}%`, height: `${scrollThumb.h}%`, background: '#8A9DA8', borderRadius: 4, opacity: 0.55 }} />
+            </div>
+          )}
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
         </div>
       )}
@@ -474,12 +490,12 @@ export default function TimeGrid() {
       {tab === 'group' && (
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           <div
+            ref={groupScrollRef}
             className="grid-scroll"
-            style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', direction: 'rtl' }}
+            style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
             onClick={() => setHoveredCell(null)}
             onScroll={(e) => { setHoveredCell(null); handleGridScroll(e); }}
           >
-          <div style={{ direction: 'ltr' }}>
             {DayHeader({})}
             <div style={{ display: 'flex', userSelect: 'none' }}>
               <div style={{ width: LABEL_W, flexShrink: 0 }}>
@@ -508,7 +524,11 @@ export default function TimeGrid() {
               <div style={{ width: SCROLL_W, flexShrink: 0 }} />
             </div>
           </div>
-          </div>
+          {scrollThumb.h < 96 && (
+            <div style={{ position: 'absolute', left: 6, top: 8, bottom: 8, width: 7, pointerEvents: 'none', zIndex: 10 }}>
+              <div style={{ position: 'absolute', left: 0, right: 0, top: `${scrollThumb.top}%`, height: `${scrollThumb.h}%`, background: '#8A9DA8', borderRadius: 4, opacity: 0.55 }} />
+            </div>
+          )}
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
         </div>
       )}

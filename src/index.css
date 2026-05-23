@@ -262,10 +262,8 @@ body {
 .tl-time { font-size: 15px; color: #AAA; margin-top: 2px; }
 
 /* ── GRID SCROLL ── */
-.grid-scroll { scrollbar-width: thin; scrollbar-color: #C8D5DB transparent; }
-.grid-scroll::-webkit-scrollbar { width: 4px; }
-.grid-scroll::-webkit-scrollbar-track { background: transparent; }
-.grid-scroll::-webkit-scrollbar-thumb { background: #C8D5DB; border-radius: 2px; }
+.grid-scroll { scrollbar-width: none; }
+.grid-scroll::-webkit-scrollbar { display: none; }
 
 /* ── DIVIDER ── */
 .divider { height: 8px; background: #F5F5F5; flex-shrink: 0; }
