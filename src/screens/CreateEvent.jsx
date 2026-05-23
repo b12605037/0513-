@@ -229,8 +229,7 @@ function DateMultiPicker({ selectedDates, onChange }) {
     const onStart = (e) => {
       e.preventDefault();
       document.body.style.overflow = 'hidden';
-      const { clientX, clientY } = e.touches[0];
-      const key = getKey(clientX, clientY);
+      const key = e.target.closest('[data-dkey]')?.dataset?.dkey ?? null;
       if (!key) return;
       const dt = fromKey(key);
       if (dt < today) return;
