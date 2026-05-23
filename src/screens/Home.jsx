@@ -275,7 +275,7 @@ function DateMultiPicker({ selectedDates, onChange }) {
                   ? `${s.getMonth()+1}/${s.getDate()}–${e.getDate()}`
                   : `${s.getMonth()+1}/${s.getDate()}–${e.getMonth()+1}/${e.getDate()}`;
                 return (
-                  <span key={i} style={{ fontSize: 13, fontWeight: 600, color: '#5F84A2', background: 'rgba(95,132,162,0.1)', borderRadius: 5, padding: '2px 7px' }}>
+                  <span key={i} style={{ fontSize: 13, fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 5, padding: '2px 7px' }}>
                     {label}
                   </span>
                 );
