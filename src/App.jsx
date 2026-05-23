@@ -8,6 +8,7 @@ import TimeGrid from './screens/TimeGrid';
 import Results from './screens/Results';
 import Confirm from './screens/Confirm';
 import Join from './screens/Join';
+import ViewResults from './screens/ViewResults';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/results" element={<Results />} />
           <Route path="/confirm" element={<Confirm />} />
           <Route path="/join/:id" element={<Join />} />
+          <Route path="/view/:id" element={<ViewResults />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

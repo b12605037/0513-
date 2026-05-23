@@ -20,6 +20,7 @@ const fmtPeriod = (slot) => {
   return (m < 12 * 60 || m >= 24 * 60) ? 'AM' : 'PM';
 };
 const TICK_LABELS = ['0','4','8','12','16','20','24'];
+const DOT_COLORS = ['#E57373', '#FFB300', '#66BB6A', '#5F84A2', '#BA68C8'];
 const DURATION_TOTAL = 47;
 const dSlotToMins = (slot) => 30 + slot * 30;
 const dMinsToSlot = (mins) => Math.round(Math.max(0, Math.min(DURATION_TOTAL, (mins - 30) / 30)));
@@ -319,6 +320,15 @@ function DatePickerSheet({ selected, onSelect, onClose }) {
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function Home() {
   const navigate = useNavigate();
+  const [recentEvents, setRecentEvents] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('meetime_recent') || '[]'); }
+    catch { return []; }
+  });
+  const handleClearHistory = () => {
+    if (!window.confirm('確定要清除全部紀錄嗎？')) return;
+    localStorage.removeItem('meetime_recent');
+    setRecentEvents([]);
+  };
   const [showDeadlineSheet, setShowDeadlineSheet] = useState(false);
   const [deadlineDate, setDeadlineDate] = useState(() => { const d = new Date(); d.setHours(0,0,0,0); return d; });
   const [rangeStart, setRangeStart] = useState(null);
@@ -396,6 +406,35 @@ export default function Home() {
               <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
             </svg>
           </button>
+        </div>
+
+        {/* Recent Events */}
+        <div style={{ padding: '0 16px 40px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontSize: 17, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
+            {recentEvents.length > 0 && (
+              <button onClick={handleClearHistory} style={{ fontSize: 14, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
+            )}
+          </div>
+          {recentEvents.length === 0 ? (
+            <div style={{ textAlign: 'center', color: '#CCC', fontSize: 16, padding: '20px 0' }}>尚無建立紀錄</div>
+          ) : (
+            recentEvents.map((ev, i) => {
+              const daysAgo = Math.floor((Date.now() - ev.time) / 86400000);
+              const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
+              const color = DOT_COLORS[i % DOT_COLORS.length];
+              return (
+                <div key={ev.id} onClick={() => navigate(`/view/${ev.id}`)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 10, cursor: 'pointer' }}>
+                  <div style={{ width: 10, height: 10, borderRadius: 5, background: color, flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 16, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
+                  </div>
+                  <div style={{ fontSize: 14, color: '#CCC', flexShrink: 0 }}>{timeLabel}</div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 

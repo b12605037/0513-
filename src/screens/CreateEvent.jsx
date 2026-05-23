@@ -595,6 +595,11 @@ export default function CreateEvent() {
     }
     setSubmitting(false);
     if (error) { setSubmitError(error.message); return; }
+    try {
+      const prev = JSON.parse(localStorage.getItem('meetime_recent') || '[]');
+      prev.unshift({ id, name: form.name, time: Date.now() });
+      localStorage.setItem('meetime_recent', JSON.stringify(prev.slice(0, 10)));
+    } catch {}
     meetingIdRef.current = id;
     setShowShareModal(true);
   };
