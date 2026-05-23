@@ -492,7 +492,7 @@ export default function TimeGrid() {
                 background: 'transparent', color: FREE_COLOR, fontSize: 15, fontWeight: 600,
                 fontFamily: 'inherit', cursor: 'pointer',
               }}>填入目前最佳時段</button>
-              <button className="btn-primary" onClick={() => setShowNameModal(true)} style={{ flex: 1, padding: '12px' }}>
+              <button className="btn-primary" onClick={() => name.trim() ? submitResponse() : setShowNameModal(true)} style={{ flex: 1, padding: '12px' }}>
                 送出
               </button>
             </div>
