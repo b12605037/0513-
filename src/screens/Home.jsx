@@ -562,54 +562,91 @@ export default function Home() {
           {/* Two-column body */}
           <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-            {/* Left (60%): form */}
-            <div style={{ width: '60%', overflowY: 'auto', padding: '40px 56px 56px' }}>
+            {/* Left (60%): form + sticky submit */}
+            <div style={{ width: '60%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
-              {/* Date picker */}
-              <div style={{ marginBottom: 36 }}>
-                <label style={{ fontSize: 18, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
-                <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
-                {dateError && <div style={{ fontSize: 14, color: '#E53935', marginTop: 8 }}>{dateError}</div>}
-              </div>
+              {/* Scrollable form fields */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '36px 48px 0' }}>
 
-              {/* Time range */}
-              <div style={{ marginBottom: 36 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <label style={{ fontSize: 18, fontWeight: 700, color: '#555' }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 16, fontWeight: 500, color: '#888' }}>全天</span>
-                    <div onClick={() => { setAllDay(v => !v); setTimeError(''); }} style={{ width: 44, height: 26, borderRadius: 13, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
-                      <div style={{ position: 'absolute', top: 3, left: allDay ? 20 : 3, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
+                {/* Date picker */}
+                <div style={{ marginBottom: 24 }}>
+                  <label style={{ fontSize: 18, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
+                  <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
+                  {dateError && <div style={{ fontSize: 14, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
+                </div>
+
+                {/* Time range */}
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <label style={{ fontSize: 18, fontWeight: 700, color: '#555' }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 16, fontWeight: 500, color: '#888' }}>全天</span>
+                      <div onClick={() => { setAllDay(v => !v); setTimeError(''); }} style={{ width: 44, height: 26, borderRadius: 13, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+                        <div style={{ position: 'absolute', top: 3, left: allDay ? 20 : 3, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
+                      </div>
                     </div>
                   </div>
+                  <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
+                    <TimeRangeSlider startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} />
+                  </div>
+                  {timeError && <div style={{ fontSize: 14, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
                 </div>
-                <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-                  <TimeRangeSlider startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} />
+
+                {/* Duration */}
+                <div style={{ marginBottom: 24 }}>
+                  <label style={{ fontSize: 18, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>活動時長（選填）</label>
+                  <DurationSlider value={duration} onChange={setDuration} />
                 </div>
-                {timeError && <div style={{ fontSize: 14, color: '#E53935', marginTop: 8 }}>{timeError}</div>}
+
               </div>
 
-              {/* Duration */}
-              <div style={{ marginBottom: 40 }}>
-                <label style={{ fontSize: 18, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>活動時長（選填）</label>
-                <DurationSlider value={duration} onChange={setDuration} />
+              {/* Submit — sticky at bottom of left column */}
+              <div style={{ padding: '16px 48px 32px', borderTop: '1px solid #F5F5F5', flexShrink: 0 }}>
+                <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 18 }}>
+                  建立活動
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                </button>
               </div>
-
-              {/* Submit */}
-              <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 18 }}>
-                建立活動
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                </svg>
-              </button>
             </div>
 
-            {/* Divider */}
+            {/* 1px vertical divider */}
             <div style={{ width: 1, background: '#F0F0F0', flexShrink: 0 }} />
 
-            {/* Right (40%): recent events — same card style as mobile */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '40px 36px 56px' }}>
-              {recentEventsBlock}
+            {/* Right (40%): recent events */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+              {/* Header */}
+              <div style={{ padding: '36px 48px 16px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 18, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
+                {recentEvents.length > 0 && (
+                  <button onClick={handleClearHistory} style={{ fontSize: 14, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
+                )}
+              </div>
+
+              {/* Scrollable list */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '0 48px 32px' }}>
+                {recentEvents.length === 0 ? (
+                  <div style={{ textAlign: 'center', color: '#CCC', fontSize: 16, padding: '32px 0' }}>尚無建立紀錄</div>
+                ) : (
+                  recentEvents.map((ev, i) => {
+                    const daysAgo = Math.floor((Date.now() - ev.time) / 86400000);
+                    const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
+                    const color = DOT_COLORS[i % DOT_COLORS.length];
+                    return (
+                      <div key={ev.id} onClick={() => navigate(`/view/${ev.id}`)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 12, cursor: 'pointer' }}>
+                        <div style={{ width: 10, height: 10, borderRadius: 5, background: color, flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 16, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
+                        </div>
+                        <div style={{ fontSize: 14, color: '#CCC', flexShrink: 0, marginLeft: 8 }}>{timeLabel}</div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </div>
         </>
