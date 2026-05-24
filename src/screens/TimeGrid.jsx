@@ -428,8 +428,8 @@ export default function TimeGrid() {
           </div>
           <span className="nav-title">填寫我的時間</span>
           {tab === 'mine' ? (
-            <button className="btn-primary" onClick={() => name.trim() ? submitResponse() : setShowNameModal(true)}
-              style={{ padding: '7px 18px', fontSize: 14, minWidth: 80 }}>
+            <button onClick={() => name.trim() ? submitResponse() : setShowNameModal(true)}
+              style={{ padding: '8px 20px', fontSize: 14, fontWeight: 700, background: '#8A9DA8', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>
               送出我的時間
             </button>
           ) : (
@@ -483,7 +483,7 @@ export default function TimeGrid() {
 
       {/* ── Mine tab ─────────────────────────────────────────────────────────── */}
       {tab === 'mine' && (
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', ...(isDesktop ? { maxHeight: 480 } : {}) }}>
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           <div
             ref={scrollContainerRef}
             className="grid-scroll"
@@ -565,7 +565,7 @@ export default function TimeGrid() {
 
       {/* ── Group tab ────────────────────────────────────────────────────────── */}
       {tab === 'group' && (
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', ...(isDesktop ? { maxHeight: 480 } : {}) }}>
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           <div
             ref={groupScrollRef}
             className="grid-scroll"

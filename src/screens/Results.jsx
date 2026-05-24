@@ -348,8 +348,8 @@ export default function Results() {
           </div>
         );
 
-        if (isDesktop) {
-          /* ── Desktop: two-column layout ── */
+        if (isDesktop && hasDuration) {
+          /* ── Desktop with duration: two-column layout ── */
           return (
             <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
               {/* Left: slot cards */}
