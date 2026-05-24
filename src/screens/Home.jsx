@@ -157,7 +157,7 @@ function TimeRangeSlider({ startSlot, endSlot, onChange }) {
 }
 
 // ── Date Multi-select Picker ───────────────────────────────────────────────────
-function DateMultiPicker({ selectedDates, onChange }) {
+function DateMultiPicker({ selectedDates, onChange, large = false }) {
   const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
   const mkKey  = (dt) => `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
   const fromKey = (k)  => { const [y,m,d] = k.split('-').map(Number); return new Date(y,m,d); };
@@ -308,8 +308,8 @@ function DateMultiPicker({ selectedDates, onChange }) {
               <div key={d} data-dkey={disabled ? undefined : key}
                 onMouseDown={() => !disabled && mouseDown(key)}
                 onMouseEnter={() => !disabled && mouseEnter(key)}
-                style={{ height: 36, cursor: disabled ? 'default' : 'pointer' }}>
-                <div style={{ width: 32, height: 32, borderRadius: 16, margin: '2px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: 16, fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8', transition: 'background 0.08s' }}>{d}</div>
+                style={{ height: large ? 52 : 36, cursor: disabled ? 'default' : 'pointer' }}>
+                <div style={{ width: large ? 44 : 32, height: large ? 44 : 32, borderRadius: large ? 22 : 16, margin: '2px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: large ? 18 : 16, fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8', transition: 'background 0.08s' }}>{d}</div>
               </div>
             );
           })}
@@ -413,7 +413,7 @@ export default function Home() {
         <div style={{ textAlign: 'center', color: '#CCC', fontSize: 16, padding: '20px 0' }}>尚無建立紀錄</div>
       ) : (
         <>
-          {(showAllRecent ? recentEvents : recentEvents.slice(0, 2)).map((ev, i) => {
+          {(isDesktop || showAllRecent ? recentEvents : recentEvents.slice(0, 2)).map((ev, i) => {
             const daysAgo = Math.floor((Date.now() - ev.time) / 86400000);
             const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
             const color = DOT_COLORS[i % DOT_COLORS.length];
@@ -428,7 +428,7 @@ export default function Home() {
               </div>
             );
           })}
-          {recentEvents.length > 2 && (
+          {!isDesktop && recentEvents.length > 2 && (
             <button onClick={() => setShowAllRecent(v => !v)} style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', padding: '4px 0 2px', textAlign: 'center' }}>
               {showAllRecent ? '收起' : `顯示其他 ${recentEvents.length - 2} 筆`}
             </button>
@@ -555,26 +555,69 @@ export default function Home() {
         /* ── Desktop: two-column layout ── */
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-          {/* Left column: form */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', background: '#fff' }}>
-            {formBlock}
-            <div style={{ flex: 1 }} />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 8, paddingBottom: 8 }}>
-              <button className="btn-primary" onClick={openNameModal} style={{ width: 'auto', padding: '12px 28px' }}>
-                送出
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                </svg>
-              </button>
+          {/* Left column (55%): calendar only */}
+          <div style={{ width: '55%', overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+            <div className="form-field">
+              <label className="form-label">選取日期 <span style={{ color: '#E53935' }}>*</span></label>
+              <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
+              {dateError && <div style={{ fontSize: 13, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
             </div>
           </div>
 
-          {/* Divider */}
+          {/* Vertical divider */}
           <div style={{ width: 1, background: '#E0E4E8', flexShrink: 0 }} />
 
-          {/* Right column: recent events */}
-          <div style={{ width: '42%', overflowY: 'auto', padding: '20px 20px', background: '#fff' }}>
-            {recentEventsBlock}
+          {/* Right column (45%): sliders + recent + submit */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+
+            {/* Time range */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <label className="form-label" style={{ marginBottom: 0 }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 16, fontWeight: 500, color: '#888' }}>全天</span>
+                  <div onClick={() => { setAllDay(v => !v); setTimeError(''); }} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+                    <div style={{ position: 'absolute', top: 2, left: allDay ? 18 : 2, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
+                  </div>
+                </div>
+              </div>
+              <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
+                <TimeRangeSlider
+                  startSlot={allDay ? 0 : startSlot}
+                  endSlot={allDay ? SLIDER_TOTAL : endSlot}
+                  onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }}
+                />
+              </div>
+              {timeError && <div style={{ fontSize: 13, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
+            </div>
+
+            {/* Divider */}
+            <div style={{ height: 1, background: '#F0F0F0', marginBottom: 16 }} />
+
+            {/* Duration */}
+            <div style={{ marginBottom: 16 }}>
+              <label className="form-label">活動時長（選填）</label>
+              <DurationSlider value={duration} onChange={setDuration} />
+            </div>
+
+            {/* Divider */}
+            <div style={{ height: 1, background: '#F0F0F0', marginBottom: 16 }} />
+
+            {/* Recent events (scrollable, max 200px) */}
+            <div style={{ maxHeight: 200, overflowY: 'auto', marginBottom: 16 }}>
+              {recentEventsBlock}
+            </div>
+
+            {/* Spacer */}
+            <div style={{ flex: 1 }} />
+
+            {/* Submit button */}
+            <button className="btn-primary" onClick={openNameModal} style={{ padding: '13px' }}>
+              送出
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
           </div>
         </div>
       ) : (
