@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IcChevron } from '../components/Icons';
 import { supabase } from '../lib/supabase';
+import { useDesktop } from '../hooks/useDesktop';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -321,6 +322,7 @@ function DateMultiPicker({ selectedDates, onChange }) {
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function Home() {
   const navigate = useNavigate();
+  const isDesktop = useDesktop();
   const [recentEvents, setRecentEvents] = useState(() => {
     try { return JSON.parse(localStorage.getItem('meetime_recent') || '[]'); }
     catch { return []; }
@@ -397,172 +399,224 @@ export default function Home() {
     });
   };
 
+  // ── Shared JSX blocks ──────────────────────────────────────────────────────
+
+  const recentEventsBlock = (
+    <>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <span style={{ fontSize: 17, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
+        {recentEvents.length > 0 && (
+          <button onClick={handleClearHistory} style={{ fontSize: 14, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
+        )}
+      </div>
+      {recentEvents.length === 0 ? (
+        <div style={{ textAlign: 'center', color: '#CCC', fontSize: 16, padding: '20px 0' }}>尚無建立紀錄</div>
+      ) : (
+        <>
+          {(showAllRecent ? recentEvents : recentEvents.slice(0, 2)).map((ev, i) => {
+            const daysAgo = Math.floor((Date.now() - ev.time) / 86400000);
+            const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
+            const color = DOT_COLORS[i % DOT_COLORS.length];
+            return (
+              <div key={ev.id} onClick={() => navigate(`/view/${ev.id}`)}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 10, cursor: 'pointer' }}>
+                <div style={{ width: 10, height: 10, borderRadius: 5, background: color, flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
+                </div>
+                <div style={{ fontSize: 14, color: '#CCC', flexShrink: 0 }}>{timeLabel}</div>
+              </div>
+            );
+          })}
+          {recentEvents.length > 2 && (
+            <button onClick={() => setShowAllRecent(v => !v)} style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', padding: '4px 0 2px', textAlign: 'center' }}>
+              {showAllRecent ? '收起' : `顯示其他 ${recentEvents.length - 2} 筆`}
+            </button>
+          )}
+        </>
+      )}
+    </>
+  );
+
+  const formBlock = (
+    <>
+      <div className="form-field">
+        <label className="form-label">選取日期 <span style={{ color: '#E53935' }}>*</span></label>
+        <DateMultiPicker selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
+        {dateError && <div style={{ fontSize: 13, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
+      </div>
+
+      <div className="form-field">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <label className="form-label" style={{ marginBottom: 0 }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 16, fontWeight: 500, color: '#888' }}>全天</span>
+            <div onClick={() => { setAllDay(v => !v); setTimeError(''); }} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+              <div style={{ position: 'absolute', top: 2, left: allDay ? 18 : 2, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
+            </div>
+          </div>
+        </div>
+        <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
+          <TimeRangeSlider
+            startSlot={allDay ? 0 : startSlot}
+            endSlot={allDay ? SLIDER_TOTAL : endSlot}
+            onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }}
+          />
+        </div>
+        {timeError && <div style={{ fontSize: 13, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
+      </div>
+
+      <div className="form-field">
+        <label className="form-label">活動時長（選填）</label>
+        <DurationSlider value={duration} onChange={setDuration} />
+      </div>
+    </>
+  );
+
+  const modalContent = (
+    <>
+      {nameModalPhase === 'input' ? (<>
+        <div style={{ fontSize: 20, fontWeight: 800, color: '#111', letterSpacing: '-0.02em', marginBottom: 14 }}>活動名稱</div>
+        <input
+          autoFocus
+          className="form-input"
+          value={meetingName}
+          onChange={e => setMeetingName(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') handleConfirmName(); }}
+          style={{ marginBottom: 16 }}
+        />
+
+        {/* Summary */}
+        <div style={{ background: '#F8F9FA', borderRadius: 12, padding: '12px 14px', marginBottom: 16 }}>
+          {[
+            { label: '調查日期', value: selectedDates.length === 0 ? '未設定'
+              : selectedDates.length === 1 ? `${SHORT_MONTHS[selectedDates[0].getMonth()]} ${selectedDates[0].getDate()}`
+              : selectedDates.length <= 3 ? selectedDates.map(d => `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}`).join('、')
+              : `${SHORT_MONTHS[selectedDates[0].getMonth()]} ${selectedDates[0].getDate()} – ${SHORT_MONTHS[selectedDates[selectedDates.length-1].getMonth()]} ${selectedDates[selectedDates.length-1].getDate()} (${selectedDates.length}天)` },
+            { label: '調查時段', value: allDay ? '全天' : `${fmtSlot(startSlot)} ${fmtPeriod(startSlot)} – ${fmtSlot(endSlot)} ${fmtPeriod(endSlot)}` },
+            { label: '活動時長', value: fmtDuration(duration) },
+          ].map(({ label, value }) => (
+            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0' }}>
+              <span style={{ fontSize: 14, color: '#AAA' }}>{label}</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#555' }}>{value}</span>
+            </div>
+          ))}
+        </div>
+
+        {saveError && <div style={{ fontSize: 13, color: '#E53935', marginBottom: 10 }}>{saveError}</div>}
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={() => setShowNameModal(false)} style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: '#F0F0F0', color: '#555', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>取消</button>
+          <button onClick={handleConfirmName} disabled={!meetingName.trim() || saving} style={{ flex: 2, padding: '13px', borderRadius: 12, border: 'none', background: meetingName.trim() && !saving ? '#8A9DA8' : '#D0D8DC', color: '#fff', fontSize: 16, fontWeight: 700, cursor: meetingName.trim() && !saving ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'background 0.2s' }}>
+            {saving ? '建立中…' : '確認'}
+          </button>
+        </div>
+      </>) : (<>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: '#E8EEF1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A9DA8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: '#111', letterSpacing: '-0.02em' }}>邀請連結已建立</div>
+        </div>
+
+        <div style={{ background: '#E8EEF1', borderRadius: 12, padding: '10px 8px 10px 14px', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <div style={{ flex: 1, fontSize: 13, color: '#5F84A2', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            meetime-sigma.vercel.app/join/{generatedId}
+          </div>
+          <button onClick={handleCopyLink} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 9, border: 'none', background: linkCopied ? '#8A9DA8' : '#7A8C9C', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap' }}>
+            {linkCopied ? '已複製 ✓' : '複製'}
+          </button>
+        </div>
+
+        <button onClick={() => {
+          window.open(`https://line.me/R/msg/text/${encodeURIComponent(`https://meetime-sigma.vercel.app/join/${generatedId}`)}`);
+        }} style={{ width: '100%', padding: '13px', borderRadius: 12, border: 'none', background: '#8FA99A', color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+            <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+          </svg>
+          傳送至 LINE
+        </button>
+        <button onClick={() => { setShowNameModal(false); navigate('/grid', { state: { meetingId: generatedId, eventName: meetingName.trim(), rangeStart: selectedDates[0]?.getTime() ?? null, rangeEnd: selectedDates[selectedDates.length-1]?.getTime() ?? null, dateList: selectedDates.map(d => d.getTime()), startSlot, endSlot, allDay, duration } }); }}
+          style={{ width: '100%', padding: '12px', borderRadius: 12, border: '1.5px solid #8A9DA8', background: 'transparent', color: '#8A9DA8', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+          填寫我的時間
+        </button>
+      </>)}
+    </>
+  );
+
   return (
-    <div className="app-container" style={{ background: '#fff' }}>
+    <div className="app-container" style={!isDesktop ? { background: '#fff' } : undefined}>
 
       {/* Header */}
       <div style={{ padding: '12px 20px 0', flexShrink: 0 }}>
         <span style={{ fontSize: 30, fontWeight: 700, color: '#6d7b86', letterSpacing: '-0.04em' }}>meetime</span>
       </div>
 
-      {/* Single scrollable form */}
-      <div className="screen-content">
+      {isDesktop ? (
+        /* ── Desktop: two-column layout ── */
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-        {/* Recent Events */}
-        <div style={{ padding: '16px 16px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontSize: 17, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
-            {recentEvents.length > 0 && (
-              <button onClick={handleClearHistory} style={{ fontSize: 14, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
-            )}
-          </div>
-          {recentEvents.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#CCC', fontSize: 16, padding: '20px 0' }}>尚無建立紀錄</div>
-          ) : (
-            <>
-              {(showAllRecent ? recentEvents : recentEvents.slice(0, 2)).map((ev, i) => {
-                const daysAgo = Math.floor((Date.now() - ev.time) / 86400000);
-                const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
-                const color = DOT_COLORS[i % DOT_COLORS.length];
-                return (
-                  <div key={ev.id} onClick={() => navigate(`/view/${ev.id}`)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 10, cursor: 'pointer' }}>
-                    <div style={{ width: 10, height: 10, borderRadius: 5, background: color, flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 16, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
-                    </div>
-                    <div style={{ fontSize: 14, color: '#CCC', flexShrink: 0 }}>{timeLabel}</div>
-                  </div>
-                );
-              })}
-              {recentEvents.length > 2 && (
-                <button onClick={() => setShowAllRecent(v => !v)} style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', padding: '4px 0 2px', textAlign: 'center' }}>
-                  {showAllRecent ? '收起' : `顯示其他 ${recentEvents.length - 2} 筆`}
-                </button>
-              )}
-            </>
-          )}
-        </div>
-
-        <div style={{ padding: '16px 16px 0' }}>
-
-          <div className="form-field">
-            <label className="form-label">選取日期 <span style={{ color: '#E53935' }}>*</span></label>
-            <DateMultiPicker selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
-            {dateError && <div style={{ fontSize: 13, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
-          </div>
-
-          <div className="form-field">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <label className="form-label" style={{ marginBottom: 0 }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 16, fontWeight: 500, color: '#888' }}>全天</span>
-                <div onClick={() => { setAllDay(v => !v); setTimeError(''); }} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
-                  <div style={{ position: 'absolute', top: 2, left: allDay ? 18 : 2, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
-                </div>
-              </div>
-            </div>
-            <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-              <TimeRangeSlider
-                startSlot={allDay ? 0 : startSlot}
-                endSlot={allDay ? SLIDER_TOTAL : endSlot}
-                onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }}
-              />
-            </div>
-            {timeError && <div style={{ fontSize: 13, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
-          </div>
-
-          <div className="form-field">
-            <label className="form-label">活動時長（選填）</label>
-            <DurationSlider value={duration} onChange={setDuration} />
-          </div>
-
-        </div>
-
-        <div style={{ padding: '4px 16px 40px' }}>
-          <button className="btn-primary" onClick={openNameModal}>
-            送出
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
-          </button>
-        </div>
-
-      </div>
-
-      {showNameModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}
-          onClick={() => nameModalPhase === 'input' && setShowNameModal(false)}>
-          <div style={{ width: '100%', maxWidth: 340, background: '#fff', borderRadius: 20, padding: '24px 20px 18px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}
-            onClick={e => e.stopPropagation()}>
-
-            {nameModalPhase === 'input' ? (<>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#111', letterSpacing: '-0.02em', marginBottom: 14 }}>活動名稱</div>
-              <input
-                autoFocus
-                className="form-input"
-                value={meetingName}
-                onChange={e => setMeetingName(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleConfirmName(); }}
-                style={{ marginBottom: 16 }}
-              />
-
-              {/* Summary */}
-              <div style={{ background: '#F8F9FA', borderRadius: 12, padding: '12px 14px', marginBottom: 16 }}>
-                {[
-                  { label: '調查日期', value: selectedDates.length === 0 ? '未設定'
-                    : selectedDates.length === 1 ? `${SHORT_MONTHS[selectedDates[0].getMonth()]} ${selectedDates[0].getDate()}`
-                    : selectedDates.length <= 3 ? selectedDates.map(d => `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}`).join('、')
-                    : `${SHORT_MONTHS[selectedDates[0].getMonth()]} ${selectedDates[0].getDate()} – ${SHORT_MONTHS[selectedDates[selectedDates.length-1].getMonth()]} ${selectedDates[selectedDates.length-1].getDate()} (${selectedDates.length}天)` },
-                  { label: '調查時段', value: allDay ? '全天' : `${fmtSlot(startSlot)} ${fmtPeriod(startSlot)} – ${fmtSlot(endSlot)} ${fmtPeriod(endSlot)}` },
-                  { label: '活動時長', value: fmtDuration(duration) },
-                ].map(({ label, value }) => (
-                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0' }}>
-                    <span style={{ fontSize: 14, color: '#AAA' }}>{label}</span>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: '#555' }}>{value}</span>
-                  </div>
-                ))}
-              </div>
-
-              {saveError && <div style={{ fontSize: 13, color: '#E53935', marginBottom: 10 }}>{saveError}</div>}
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={() => setShowNameModal(false)} style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: '#F0F0F0', color: '#555', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>取消</button>
-                <button onClick={handleConfirmName} disabled={!meetingName.trim() || saving} style={{ flex: 2, padding: '13px', borderRadius: 12, border: 'none', background: meetingName.trim() && !saving ? '#8A9DA8' : '#D0D8DC', color: '#fff', fontSize: 16, fontWeight: 700, cursor: meetingName.trim() && !saving ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'background 0.2s' }}>
-                  {saving ? '建立中…' : '確認'}
-                </button>
-              </div>
-            </>) : (<>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: '#E8EEF1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A9DA8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#111', letterSpacing: '-0.02em' }}>邀請連結已建立</div>
-              </div>
-
-              <div style={{ background: '#E8EEF1', borderRadius: 12, padding: '10px 8px 10px 14px', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                <div style={{ flex: 1, fontSize: 13, color: '#5F84A2', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  meetime-sigma.vercel.app/join/{generatedId}
-                </div>
-                <button onClick={handleCopyLink} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 9, border: 'none', background: linkCopied ? '#8A9DA8' : '#7A8C9C', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap' }}>
-                  {linkCopied ? '已複製 ✓' : '複製'}
-                </button>
-              </div>
-
-              <button onClick={() => {
-                window.open(`https://line.me/R/msg/text/${encodeURIComponent(`https://meetime-sigma.vercel.app/join/${generatedId}`)}`);
-              }} style={{ width: '100%', padding: '13px', borderRadius: 12, border: 'none', background: '#8FA99A', color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                  <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+          {/* Left column: form */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+            {formBlock}
+            <div style={{ flex: 1 }} />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 8, paddingBottom: 8 }}>
+              <button className="btn-primary" onClick={openNameModal} style={{ width: 'auto', padding: '12px 28px' }}>
+                送出
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
                 </svg>
-                傳送至 LINE
               </button>
-              <button onClick={() => { setShowNameModal(false); navigate('/grid', { state: { meetingId: generatedId, eventName: meetingName.trim(), rangeStart: selectedDates[0]?.getTime() ?? null, rangeEnd: selectedDates[selectedDates.length-1]?.getTime() ?? null, dateList: selectedDates.map(d => d.getTime()), startSlot, endSlot, allDay, duration } }); }}
-                style={{ width: '100%', padding: '12px', borderRadius: 12, border: '1.5px solid #8A9DA8', background: 'transparent', color: '#8A9DA8', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                填寫我的時間
-              </button>
-            </>)}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div style={{ width: 1, background: '#E0E4E8', flexShrink: 0 }} />
+
+          {/* Right column: recent events */}
+          <div style={{ width: '42%', overflowY: 'auto', padding: '20px 20px', background: '#fff' }}>
+            {recentEventsBlock}
           </div>
         </div>
+      ) : (
+        /* ── Mobile: single scrollable column ── */
+        <div className="screen-content">
+          <div style={{ padding: '16px 16px 0' }}>
+            {recentEventsBlock}
+          </div>
+          <div style={{ padding: '16px 16px 0' }}>
+            {formBlock}
+          </div>
+          <div style={{ padding: '4px 16px 40px' }}>
+            <button className="btn-primary" onClick={openNameModal}>
+              送出
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal */}
+      {showNameModal && (
+        isDesktop ? (
+          /* Desktop: right-side sliding panel */
+          <div className="desktop-sidebar-overlay"
+            onClick={() => nameModalPhase === 'input' && setShowNameModal(false)}>
+            <div className="desktop-sidebar-panel" onClick={e => e.stopPropagation()}>
+              {modalContent}
+            </div>
+          </div>
+        ) : (
+          /* Mobile: centered popup */
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}
+            onClick={() => nameModalPhase === 'input' && setShowNameModal(false)}>
+            <div style={{ width: '100%', maxWidth: 340, background: '#fff', borderRadius: 20, padding: '24px 20px 18px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}
+              onClick={e => e.stopPropagation()}>
+              {modalContent}
+            </div>
+          </div>
+        )
       )}
     </div>
   );

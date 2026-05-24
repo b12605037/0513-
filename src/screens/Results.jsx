@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useDesktop } from '../hooks/useDesktop';
 
 const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
@@ -85,6 +86,7 @@ function heatColor(n, total) {
 export default function Results() {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const isDesktop = useDesktop();
 
   const G_START = state?.allDay ? 0  : Math.floor((state?.startSlot ?? 16) / 2);
   const G_END   = state?.allDay ? 24 : Math.ceil((state?.endSlot   ?? 36) / 2);
@@ -292,248 +294,269 @@ export default function Results() {
         </div>
       </div>
 
-      {/* Best slots list — only when duration is set */}
-      {hasDuration && (
-        <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', padding: '10px 16px', background: '#F8F8F8' }}>
-          {loading ? (
-            <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, paddingTop: 48 }}>載入中…</div>
-          ) : bestSlots.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, paddingTop: 48, lineHeight: 2 }}>
-              {visibleCount === 0 ? '請先選取成員' : '沒有找到共同空閒時段'}
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {isDegrade && (
-                <div style={{
-                  background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10,
-                  padding: '8px 12px', fontSize: 13, color: '#92400E', fontWeight: 500, lineHeight: 1.5,
-                }}>
-                  找不到完全符合的時段，以下是最接近的選項
-                </div>
-              )}
-              {bestSlots.map((slot) => {
-                const isSel = selectedSlots.has(slot.key);
+      {/* ── Heatmap grid (shared between mobile inline and desktop right column) ── */}
+      {(() => {
+        const heatmapGrid = (
+          <>
+            <div style={{ display: 'flex', paddingLeft: LABEL_W, background: '#fff', borderBottom: '1px solid #E0E0E0', flexShrink: 0 }}>
+              {pageDays.map((d, i) => {
+                const isToday = Number(d.date) === todayD && d.month === todayM;
                 return (
-                  <div key={slot.key} onClick={() => toggleSlot(slot.key)} style={{
-                    background: '#fff', borderRadius: 14, padding: '11px 12px',
-                    border: isSel ? '2px solid #8A9DA8' : '1.5px solid #EBEBEB',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
-                    boxShadow: isSel ? '0 2px 12px rgba(47,65,86,0.1)' : 'none',
-                    transition: 'all 0.15s',
-                  }}>
-                    {/* Info */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: 16, fontWeight: 700, color: '#111' }}>
-                        {DOW_ZH[DOW_IDX[slot.day.label]]} {slot.day.date} · {fmtH24(G_START + slot.rawS / SPH)}–{fmtH24(G_START + (slot.rawS + slot.actualSlots) / SPH)}
-                      </span>
-                      <div style={{ marginTop: 4 }}>
-                        <span style={{
-                          fontSize: 12, fontWeight: 600,
-                          color: slot.isPerfect ? '#5F84A2' : '#92400E',
-                          background: slot.isPerfect ? 'rgba(95,132,162,0.12)' : 'rgba(253,230,138,0.5)',
-                          borderRadius: 6, padding: '2px 7px',
-                        }}>
-                          {slot.label}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
-                        {slot.freeNames.map(n => (
-                          <span key={n} style={{ fontSize: 13, color: '#888', background: '#F5F5F5', borderRadius: 6, padding: '1px 6px' }}>{n}</span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Checkbox */}
-                    <div style={{ flexShrink: 0 }}>
-                      <div style={{
-                        width: 22, height: 22, borderRadius: 11,
-                        border: isSel ? 'none' : '1.5px solid #DDD',
-                        background: isSel ? '#8A9DA8' : '#fff',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        {isSel && (
-                          <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="1.5,5.5 4.5,8.5 9.5,2.5"/>
-                          </svg>
-                        )}
-                      </div>
+                  <div key={i} style={{ flex: 1, textAlign: 'center', padding: '8px 0' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#8A9DA8', letterSpacing: '0.06em', marginBottom: 4 }}>{DOW_ZH[DOW_IDX[d.label]]}</div>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 14, background: isToday ? '#8A9DA8' : 'transparent' }}>
+                      <span style={{ fontSize: 18, fontWeight: 700, color: isToday ? '#fff' : '#8A9DA8' }}>{d.date}</span>
                     </div>
                   </div>
                 );
               })}
             </div>
-          )}
-        </div>
-      )}
+            <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', userSelect: 'none' }}>
+                <div style={{ width: LABEL_W, flexShrink: 0 }}>
+                  {Array.from({ length: TOTAL }, (_, s) => (
+                    <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', paddingLeft: 8, paddingTop: 3, borderTop: s % SPH === 0 ? '1px solid #E0E0E0' : '1px dashed #EBEBEB' }}>
+                      {s % SPH === 0 && <span style={{ fontSize: 13, fontWeight: 600, color: '#AAA', lineHeight: 1 }}>{fmtHLabel(G_START + s / SPH)}</span>}
+                    </div>
+                  ))}
+                </div>
+                {pageDays.map((_, i) => {
+                  const gi = pageStart + i;
+                  return (
+                    <div key={gi} style={{ flex: 1, borderLeft: '1px solid #E0E0E0' }}>
+                      {Array.from({ length: TOTAL }, (_, slot) => {
+                        const key = `${gi}-${slot}`;
+                        const count = visibleRespondents.filter(r => r[key] === 1).length;
+                        return (
+                          <div key={slot} style={{ height: SLOT_H, background: heatColor(count, visibleCount), borderTop: slot % SPH === 0 ? '1px solid #E0E0E0' : '1px dashed #EBEBEB' }} />
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        );
 
-      {/* No-duration: heatmap fills all remaining space inline */}
-      {!hasDuration && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        const heatmapNav = (
           <div style={{ display: 'flex', alignItems: 'center', padding: '14px 6px 10px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
             <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{ background: 'none', border: 'none', fontSize: 28, color: page > 0 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page > 0 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>‹</button>
             <span style={{ flex: 1, textAlign: 'center', fontSize: 19, fontWeight: 700, color: '#111' }}>{pageNavLabel(pageDays)}</span>
             <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{ background: 'none', border: 'none', fontSize: 28, color: page < totalPages - 1 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page < totalPages - 1 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>›</button>
             <span style={{ width: 38 }} />
           </div>
-          <div style={{ display: 'flex', paddingLeft: LABEL_W, background: '#fff', borderBottom: '1px solid #E0E0E0', flexShrink: 0 }}>
-            {pageDays.map((d, i) => {
-              const isToday = Number(d.date) === todayD && d.month === todayM;
-              return (
-                <div key={i} style={{ flex: 1, textAlign: 'center', padding: '8px 0' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#8A9DA8', letterSpacing: '0.06em', marginBottom: 4 }}>{DOW_ZH[DOW_IDX[d.label]]}</div>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 14, background: isToday ? '#8A9DA8' : 'transparent' }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: isToday ? '#fff' : '#8A9DA8' }}>{d.date}</span>
+        );
+
+        if (isDesktop) {
+          /* ── Desktop: two-column layout ── */
+          return (
+            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+              {/* Left: slot cards */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                {hasDuration ? (
+                  <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', padding: '10px 16px', background: '#F8F8F8' }}>
+                    {loading ? (
+                      <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, paddingTop: 48 }}>載入中…</div>
+                    ) : bestSlots.length === 0 ? (
+                      <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, paddingTop: 48, lineHeight: 2 }}>
+                        {visibleCount === 0 ? '請先選取成員' : '沒有找到共同空閒時段'}
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {isDegrade && (
+                          <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '8px 12px', fontSize: 13, color: '#92400E', fontWeight: 500, lineHeight: 1.5 }}>
+                            找不到完全符合的時段，以下是最接近的選項
+                          </div>
+                        )}
+                        {bestSlots.map((slot) => {
+                          const isSel = selectedSlots.has(slot.key);
+                          return (
+                            <div key={slot.key} onClick={() => toggleSlot(slot.key)} style={{ background: '#fff', borderRadius: 14, padding: '11px 12px', border: isSel ? '2px solid #8A9DA8' : '1.5px solid #EBEBEB', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, boxShadow: isSel ? '0 2px 12px rgba(47,65,86,0.1)' : 'none', transition: 'all 0.15s' }}>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <span style={{ fontSize: 16, fontWeight: 700, color: '#111' }}>
+                                  {DOW_ZH[DOW_IDX[slot.day.label]]} {slot.day.date} · {fmtH24(G_START + slot.rawS / SPH)}–{fmtH24(G_START + (slot.rawS + slot.actualSlots) / SPH)}
+                                </span>
+                                <div style={{ marginTop: 4 }}>
+                                  <span style={{ fontSize: 12, fontWeight: 600, color: slot.isPerfect ? '#5F84A2' : '#92400E', background: slot.isPerfect ? 'rgba(95,132,162,0.12)' : 'rgba(253,230,138,0.5)', borderRadius: 6, padding: '2px 7px' }}>
+                                    {slot.label}
+                                  </span>
+                                </div>
+                                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
+                                  {slot.freeNames.map(n => (
+                                    <span key={n} style={{ fontSize: 13, color: '#888', background: '#F5F5F5', borderRadius: 6, padding: '1px 6px' }}>{n}</span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div style={{ flexShrink: 0 }}>
+                                <div style={{ width: 22, height: 22, borderRadius: 11, border: isSel ? 'none' : '1.5px solid #DDD', background: isSel ? '#8A9DA8' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  {isSel && <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1.5,5.5 4.5,8.5 9.5,2.5"/></svg>}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
+                ) : (
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#CCC', fontSize: 16, background: '#F8F8F8' }}>
+                    選取時段查看詳情
+                  </div>
+                )}
+
+                {/* Share bar */}
+                {hasDuration && selectedList.length > 0 && (
+                  <div style={{ padding: '8px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
+                    <div style={{ background: '#F5F5F5', borderRadius: 12, padding: '10px 10px 10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ flex: 1, fontSize: 15, color: '#555', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                        {selectedList.map(s => `${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} · ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + s.actualSlots) / SPH)}`).join('、')}
+                      </div>
+                      <button onClick={handleShareLine} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 10, border: 'none', background: '#8FA99A', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+                        傳送至 LINE
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bottom button */}
+                <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
+                  <button onClick={() => navigate('/grid', { state })} style={{ width: '100%', padding: '13px', borderRadius: 14, border: '1.5px solid #5F84A2', background: 'transparent', color: '#5F84A2', fontSize: 19, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>
+                    重新填寫
+                  </button>
                 </div>
-              );
-            })}
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', userSelect: 'none' }}>
-              <div style={{ width: LABEL_W, flexShrink: 0 }}>
-                {Array.from({ length: TOTAL }, (_, s) => (
-                  <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', paddingLeft: 8, paddingTop: 3, borderTop: s % SPH === 0 ? '1px solid #E0E0E0' : '1px dashed #EBEBEB' }}>
-                    {s % SPH === 0 && <span style={{ fontSize: 13, fontWeight: 600, color: '#AAA', lineHeight: 1 }}>{fmtHLabel(G_START + s / SPH)}</span>}
-                  </div>
-                ))}
               </div>
-              {pageDays.map((_, i) => {
-                const gi = pageStart + i;
-                return (
-                  <div key={gi} style={{ flex: 1, borderLeft: '1px solid #E0E0E0' }}>
-                    {Array.from({ length: TOTAL }, (_, slot) => {
-                      const key = `${gi}-${slot}`;
-                      const count = visibleRespondents.filter(r => r[key] === 1).length;
+
+              {/* Divider */}
+              <div style={{ width: 1, background: '#E0E4E8', flexShrink: 0 }} />
+
+              {/* Right: heatmap */}
+              <div style={{ width: '48%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                {heatmapNav}
+                {heatmapGrid}
+              </div>
+            </div>
+          );
+        }
+
+        /* ── Mobile layout ── */
+        return (
+          <>
+            {/* Best slots list — only when duration is set */}
+            {hasDuration && (
+              <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', padding: '10px 16px', background: '#F8F8F8' }}>
+                {loading ? (
+                  <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, paddingTop: 48 }}>載入中…</div>
+                ) : bestSlots.length === 0 ? (
+                  <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, paddingTop: 48, lineHeight: 2 }}>
+                    {visibleCount === 0 ? '請先選取成員' : '沒有找到共同空閒時段'}
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {isDegrade && (
+                      <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '8px 12px', fontSize: 13, color: '#92400E', fontWeight: 500, lineHeight: 1.5 }}>
+                        找不到完全符合的時段，以下是最接近的選項
+                      </div>
+                    )}
+                    {bestSlots.map((slot) => {
+                      const isSel = selectedSlots.has(slot.key);
                       return (
-                        <div key={slot} style={{ height: SLOT_H, background: heatColor(count, visibleCount), borderTop: slot % SPH === 0 ? '1px solid #E0E0E0' : '1px dashed #EBEBEB' }} />
+                        <div key={slot.key} onClick={() => toggleSlot(slot.key)} style={{ background: '#fff', borderRadius: 14, padding: '11px 12px', border: isSel ? '2px solid #8A9DA8' : '1.5px solid #EBEBEB', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, boxShadow: isSel ? '0 2px 12px rgba(47,65,86,0.1)' : 'none', transition: 'all 0.15s' }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <span style={{ fontSize: 16, fontWeight: 700, color: '#111' }}>
+                              {DOW_ZH[DOW_IDX[slot.day.label]]} {slot.day.date} · {fmtH24(G_START + slot.rawS / SPH)}–{fmtH24(G_START + (slot.rawS + slot.actualSlots) / SPH)}
+                            </span>
+                            <div style={{ marginTop: 4 }}>
+                              <span style={{ fontSize: 12, fontWeight: 600, color: slot.isPerfect ? '#5F84A2' : '#92400E', background: slot.isPerfect ? 'rgba(95,132,162,0.12)' : 'rgba(253,230,138,0.5)', borderRadius: 6, padding: '2px 7px' }}>
+                                {slot.label}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
+                              {slot.freeNames.map(n => (
+                                <span key={n} style={{ fontSize: 13, color: '#888', background: '#F5F5F5', borderRadius: 6, padding: '1px 6px' }}>{n}</span>
+                              ))}
+                            </div>
+                          </div>
+                          <div style={{ flexShrink: 0 }}>
+                            <div style={{ width: 22, height: 22, borderRadius: 11, border: isSel ? 'none' : '1.5px solid #DDD', background: isSel ? '#8A9DA8' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {isSel && <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1.5,5.5 4.5,8.5 9.5,2.5"/></svg>}
+                            </div>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Copy message panel — shown when ≥1 slot selected */}
-      {hasDuration && selectedList.length > 0 && (
-        <div style={{ padding: '8px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
-          <div style={{ background: '#F5F5F5', borderRadius: 12, padding: '10px 10px 10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ flex: 1, fontSize: 15, color: '#555', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-              {selectedList.map(s => `${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} · ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + s.actualSlots) / SPH)}`).join('、')}
-            </div>
-            <button onClick={handleShareLine} style={{
-              flexShrink: 0, padding: '8px 14px', borderRadius: 10, border: 'none',
-              background: '#8FA99A',
-              color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
-              fontFamily: 'inherit', whiteSpace: 'nowrap',
-              display: 'flex', alignItems: 'center', gap: 6,
-            }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-                <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
-              </svg>
-              傳送至 LINE
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Heatmap collapsed preview strip — only when duration is set */}
-      {hasDuration && <div style={{ background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
-        <button onClick={() => setHeatmapExpanded(true)} style={{
-          width: '100%', padding: '8px 16px', display: 'flex', alignItems: 'center',
-          gap: 10, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-        }}>
-          <div style={{ display: 'flex', gap: 3, flex: 1, alignItems: 'center' }}>
-            {pageDays.map((d, i) => (
-              <div key={i} style={{ flex: 1 }}>
-                <div style={{ height: 12, borderRadius: 3, background: dayPeaks[i] > 0 ? heatColor(dayPeaks[i], visibleCount) : '#EFEFEF' }} />
+                )}
               </div>
-            ))}
-          </div>
-          <span style={{ fontSize: 14, color: '#999', fontWeight: 500, flexShrink: 0 }}>時段熱圖</span>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
-            <polyline points="2,9 7,4 12,9"/>
-          </svg>
-        </button>
-      </div>}
+            )}
 
-      {/* Bottom buttons */}
-      <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => navigate('/grid', { state })} style={{
-            flex: 1, padding: '13px', borderRadius: 14, border: '1.5px solid #5F84A2',
-            background: 'transparent', color: '#5F84A2', fontSize: 19, fontWeight: 600,
-            fontFamily: 'inherit', cursor: 'pointer',
-          }}>
-            重新填寫
-          </button>
-        </div>
-      </div>
+            {/* No-duration: heatmap fills all remaining space inline */}
+            {!hasDuration && (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                {heatmapNav}
+                {heatmapGrid}
+              </div>
+            )}
 
-      {/* Heatmap bottom-sheet overlay — only when duration is set */}
-      {hasDuration && heatmapExpanded && (
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '82%', background: '#fff', zIndex: 100, borderRadius: '20px 20px 0 0', boxShadow: '0 -4px 24px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column' }}>
-          {/* Nav */}
-          <div style={{ display: 'flex', alignItems: 'center', padding: '14px 6px 10px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
-            <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{ background: 'none', border: 'none', fontSize: 28, color: page > 0 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page > 0 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>‹</button>
-            <span style={{ flex: 1, textAlign: 'center', fontSize: 19, fontWeight: 700, color: '#111' }}>{pageNavLabel(pageDays)}</span>
-            <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{ background: 'none', border: 'none', fontSize: 28, color: page < totalPages - 1 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page < totalPages - 1 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>›</button>
-            <button onClick={() => setHeatmapExpanded(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 12px 4px 0', display: 'flex', alignItems: 'center' }}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round">
-                <polyline points="2,5 7,10 12,5"/>
-              </svg>
-            </button>
-          </div>
-
-          {/* Day headers */}
-          <div style={{ display: 'flex', paddingLeft: LABEL_W, background: '#fff', borderBottom: '1px solid #E0E0E0', flexShrink: 0 }}>
-            {pageDays.map((d, i) => {
-              const isToday = Number(d.date) === todayD && d.month === todayM;
-              return (
-                <div key={i} style={{ flex: 1, textAlign: 'center', padding: '8px 0' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#8A9DA8', letterSpacing: '0.06em', marginBottom: 4 }}>{DOW_ZH[DOW_IDX[d.label]]}</div>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 14, background: isToday ? '#8A9DA8' : 'transparent' }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: isToday ? '#fff' : '#8A9DA8' }}>{d.date}</span>
+            {/* Copy message panel — shown when ≥1 slot selected */}
+            {hasDuration && selectedList.length > 0 && (
+              <div style={{ padding: '8px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
+                <div style={{ background: '#F5F5F5', borderRadius: 12, padding: '10px 10px 10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ flex: 1, fontSize: 15, color: '#555', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                    {selectedList.map(s => `${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} · ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + s.actualSlots) / SPH)}`).join('、')}
                   </div>
+                  <button onClick={handleShareLine} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 10, border: 'none', background: '#8FA99A', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+                    傳送至 LINE
+                  </button>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Scrollable grid */}
-          <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', userSelect: 'none', marginTop: 'auto' }}>
-              <div style={{ width: LABEL_W, flexShrink: 0 }}>
-                {Array.from({ length: TOTAL }, (_, s) => (
-                  <div key={s} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', paddingLeft: 8, paddingTop: 3, borderTop: s % SPH === 0 ? '1px solid #E0E0E0' : '1px dashed #EBEBEB' }}>
-                    {s % SPH === 0 && <span style={{ fontSize: 13, fontWeight: 600, color: '#AAA', lineHeight: 1 }}>{fmtHLabel(G_START + s / SPH)}</span>}
-                  </div>
-                ))}
               </div>
-              {pageDays.map((_, i) => {
-                const gi = pageStart + i;
-                return (
-                  <div key={gi} style={{ flex: 1, borderLeft: '1px solid #E0E0E0' }}>
-                    {Array.from({ length: TOTAL }, (_, slot) => {
-                      const key = `${gi}-${slot}`;
-                      const count = visibleRespondents.filter(r => r[key] === 1).length;
-                      return (
-                        <div key={slot} style={{
-                          height: SLOT_H,
-                          background: heatColor(count, visibleCount),
-                          borderTop: slot % SPH === 0 ? '1px solid #E0E0E0' : '1px dashed #EBEBEB',
-                        }} />
-                      );
-                    })}
-                  </div>
-                );
-              })}
+            )}
+
+            {/* Heatmap collapsed preview strip — only when duration is set */}
+            {hasDuration && <div style={{ background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
+              <button onClick={() => setHeatmapExpanded(true)} style={{ width: '100%', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <div style={{ display: 'flex', gap: 3, flex: 1, alignItems: 'center' }}>
+                  {pageDays.map((d, i) => (
+                    <div key={i} style={{ flex: 1 }}>
+                      <div style={{ height: 12, borderRadius: 3, background: dayPeaks[i] > 0 ? heatColor(dayPeaks[i], visibleCount) : '#EFEFEF' }} />
+                    </div>
+                  ))}
+                </div>
+                <span style={{ fontSize: 14, color: '#999', fontWeight: 500, flexShrink: 0 }}>時段熱圖</span>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
+                  <polyline points="2,9 7,4 12,9"/>
+                </svg>
+              </button>
+            </div>}
+
+            {/* Bottom buttons */}
+            <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
+              <button onClick={() => navigate('/grid', { state })} style={{ width: '100%', padding: '13px', borderRadius: 14, border: '1.5px solid #5F84A2', background: 'transparent', color: '#5F84A2', fontSize: 19, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>
+                重新填寫
+              </button>
             </div>
-          </div>
-        </div>
-      )}
+
+            {/* Heatmap bottom-sheet overlay — only when duration is set */}
+            {hasDuration && heatmapExpanded && (
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '82%', background: '#fff', zIndex: 100, borderRadius: '20px 20px 0 0', boxShadow: '0 -4px 24px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'center', padding: '14px 6px 10px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
+                  <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{ background: 'none', border: 'none', fontSize: 28, color: page > 0 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page > 0 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>‹</button>
+                  <span style={{ flex: 1, textAlign: 'center', fontSize: 19, fontWeight: 700, color: '#111' }}>{pageNavLabel(pageDays)}</span>
+                  <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{ background: 'none', border: 'none', fontSize: 28, color: page < totalPages - 1 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page < totalPages - 1 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>›</button>
+                  <button onClick={() => setHeatmapExpanded(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 12px 4px 0', display: 'flex', alignItems: 'center' }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round">
+                      <polyline points="2,5 7,10 12,5"/>
+                    </svg>
+                  </button>
+                </div>
+                {heatmapGrid}
+              </div>
+            )}
+          </>
+        );
+      })()}
     </div>
   );
 }

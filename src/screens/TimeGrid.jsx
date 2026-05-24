@@ -6,7 +6,7 @@ import { useDesktop } from '../hooks/useDesktop';
 const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
 const SLOT_H = 28;
-const SLOT_H_DESKTOP = 56;
+const SLOT_H_DESKTOP = 36;
 const LABEL_W = 48;
 const LABEL_W_DESKTOP = 72;
 const SCROLL_W = 44;
@@ -427,7 +427,14 @@ export default function TimeGrid() {
             ))}
           </div>
           <span className="nav-title">填寫我的時間</span>
-          <span style={{ fontSize: 15, color: '#8A9DA8', fontWeight: 600, minWidth: 80, textAlign: 'right' }}>{surveyLabel}</span>
+          {tab === 'mine' ? (
+            <button className="btn-primary" onClick={() => name.trim() ? submitResponse() : setShowNameModal(true)}
+              style={{ padding: '7px 18px', fontSize: 14, minWidth: 80 }}>
+              送出我的時間
+            </button>
+          ) : (
+            <span style={{ fontSize: 15, color: '#8A9DA8', fontWeight: 600, minWidth: 80, textAlign: 'right' }}>{surveyLabel}</span>
+          )}
         </div>
       ) : (
         <>
@@ -476,7 +483,7 @@ export default function TimeGrid() {
 
       {/* ── Mine tab ─────────────────────────────────────────────────────────── */}
       {tab === 'mine' && (
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', ...(isDesktop ? { maxHeight: 480 } : {}) }}>
           <div
             ref={scrollContainerRef}
             className="grid-scroll"
@@ -558,7 +565,7 @@ export default function TimeGrid() {
 
       {/* ── Group tab ────────────────────────────────────────────────────────── */}
       {tab === 'group' && (
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', ...(isDesktop ? { maxHeight: 480 } : {}) }}>
           <div
             ref={groupScrollRef}
             className="grid-scroll"
@@ -618,9 +625,11 @@ export default function TimeGrid() {
                 background: 'transparent', color: FREE_COLOR, fontSize: 15, fontWeight: 600,
                 fontFamily: 'inherit', cursor: 'pointer',
               }}>填入目前最佳時段</button>
-              <button className="btn-primary" onClick={() => name.trim() ? submitResponse() : setShowNameModal(true)} style={{ flex: 1, padding: '12px' }}>
-                送出
-              </button>
+              {!isDesktop && (
+                <button className="btn-primary" onClick={() => name.trim() ? submitResponse() : setShowNameModal(true)} style={{ flex: 1, padding: '12px' }}>
+                  送出
+                </button>
+              )}
             </div>
           </>
         ) : (
