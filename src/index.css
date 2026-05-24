@@ -294,13 +294,13 @@ body {
   }
   .app-container {
     width: 100%;
-    max-width: none;
+    max-width: 1200px;
     height: 100vh;
     height: 100dvh;
     border-radius: 0;
     box-shadow: none;
     background: #fff;
-    margin: 0;
+    margin: 0 auto;
     flex-shrink: 1;
   }
   .app-nav {
