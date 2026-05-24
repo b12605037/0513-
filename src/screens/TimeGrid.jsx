@@ -15,6 +15,15 @@ const FREE_COLOR = '#8A9DA8';
 const SLOT_COLOR = 'rgba(47,65,86,0.28)';
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const TIMEZONES = [
+  { label: 'Asia/Taipei (GMT+8)', value: 'Asia/Taipei' },
+  { label: 'Asia/Tokyo (GMT+9)', value: 'Asia/Tokyo' },
+  { label: 'Asia/Shanghai (GMT+8)', value: 'Asia/Shanghai' },
+  { label: 'America/New_York (GMT-5)', value: 'America/New_York' },
+  { label: 'America/Los_Angeles (GMT-8)', value: 'America/Los_Angeles' },
+  { label: 'Europe/London (GMT+0)', value: 'Europe/London' },
+  { label: 'Europe/Paris (GMT+1)', value: 'Europe/Paris' },
+];
 
 const fmtH = h => {
   const hr = Math.floor(h), min = Math.round((h - hr) * 60);
@@ -103,6 +112,7 @@ export default function TimeGrid() {
   const scrollW = isDesktop ? 0 : SCROLL_W;
 
   const [tab,  setTab]  = useState('mine');
+  const [timezone, setTimezone] = useState('Asia/Taipei');
   const [page, setPage] = useState(0);
   const [slots, setSlots] = useState(() => state?.mySlots ?? initSlots(totalDays, TOTAL));
   const [showNameModal, setShowNameModal] = useState(false);
@@ -412,40 +422,32 @@ export default function TimeGrid() {
   return (
     <div className="app-container">
 
-      {/* ── Desktop Nav: tabs left | title center | date range right ── */}
+      {/* ── Nav ── */}
       {isDesktop ? (
-        <div className="app-nav">
-          <div style={{ display: 'flex', background: '#F0F0F0', borderRadius: 10, padding: 3 }}>
-            {[['mine', '我的'], ['group', '群組']].map(([key, label]) => (
-              <button key={key} onClick={() => setTab(key)} style={{
-                padding: '6px 18px', borderRadius: 8, border: 'none', fontFamily: 'inherit',
-                fontSize: 15, fontWeight: 600, cursor: 'pointer', transition: 'all 0.18s',
-                background: tab === key ? '#fff' : 'transparent',
-                color: tab === key ? FREE_COLOR : '#AAA',
-                boxShadow: tab === key ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              }}>{label}</button>
-            ))}
-          </div>
-          <span className="nav-title">填寫我的時間</span>
-          {tab === 'mine' ? (
-            <button onClick={() => name.trim() ? submitResponse() : setShowNameModal(true)}
-              style={{ padding: '8px 20px', fontSize: 14, fontWeight: 700, background: '#8A9DA8', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>
-              送出我的時間
+        /* Desktop: activity name + name input + submit */
+        <div style={{ height: 64, borderBottom: '1px solid #F0F0F0', flexShrink: 0, display: 'flex', alignItems: 'center', background: '#fff' }}>
+          <div style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '0 48px', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <span style={{ flex: 1, fontSize: '1rem', fontWeight: 700, color: '#111', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {state?.eventName ?? '填寫時間'}
+            </span>
+            <input value={name} onChange={e => setName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && name.trim() && !submittingResponse && submitResponse()}
+              placeholder="你的名字"
+              style={{ padding: '8px 14px', borderRadius: 8, border: '1.5px solid #E0E0E0', fontSize: 15, fontFamily: 'inherit', outline: 'none', width: 160, transition: 'border-color 0.15s' }} />
+            <button onClick={() => name.trim() && !submittingResponse && submitResponse()}
+              style={{ padding: '9px 22px', borderRadius: 8, background: name.trim() ? '#8A9DA8' : '#D0D8DC', color: '#fff', border: 'none', fontSize: 15, fontWeight: 700, cursor: name.trim() ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap' }}>
+              {submittingResponse ? '送出中…' : '送出'}
             </button>
-          ) : (
-            <span style={{ fontSize: 15, color: '#8A9DA8', fontWeight: 600, minWidth: 80, textAlign: 'right' }}>{surveyLabel}</span>
-          )}
+          </div>
         </div>
       ) : (
+        /* Mobile nav */
         <>
-          {/* Mobile Nav */}
           <div className="app-nav">
             <span style={{ fontSize: 16, color: '#888', fontWeight: 500 }}>{surveyLabel}</span>
             <span className="nav-title">填寫我的時間</span>
             <span style={{ width: 48 }} />
           </div>
-
-          {/* Mobile Tab switcher */}
           <div style={{ padding: '8px 16px', background: '#fff', borderBottom: '1px solid #F5F5F5', flexShrink: 0 }}>
             <div style={{ display: 'flex', background: '#F0F0F0', borderRadius: 10, padding: 3 }}>
               {[['mine', '我的'], ['group', '群組']].map(([key, label]) => (
@@ -459,8 +461,6 @@ export default function TimeGrid() {
               ))}
             </div>
           </div>
-
-          {/* Mobile Page navigation */}
           {totalPages > 1 && (
             <div style={{ display: 'flex', alignItems: 'center', background: '#FAFAFA', borderBottom: '1px solid #F0F0F0', flexShrink: 0, padding: '0 4px' }}>
               <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{
@@ -481,6 +481,38 @@ export default function TimeGrid() {
         </>
       )}
 
+      {/* Desktop controls bar: tabs + autofill + timezone */}
+      {isDesktop && (
+        <div style={{ borderBottom: '1px solid #F0F0F0', flexShrink: 0, background: '#fff' }}>
+          <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 48px', display: 'flex', alignItems: 'center', height: 52, gap: 16 }}>
+            <div style={{ display: 'flex', background: '#F0F0F0', borderRadius: 8, padding: 3 }}>
+              {[['mine', 'Your Time'], ['group', 'Group Time']].map(([key, label]) => (
+                <button key={key} onClick={() => setTab(key)} style={{
+                  padding: '5px 16px', borderRadius: 6, border: 'none', fontFamily: 'inherit',
+                  fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.18s',
+                  background: tab === key ? '#fff' : 'transparent',
+                  color: tab === key ? FREE_COLOR : '#AAA',
+                  boxShadow: tab === key ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                }}>{label}</button>
+              ))}
+            </div>
+            {tab === 'mine' && (
+              <button onClick={autofillBestTime}
+                style={{ padding: '5px 14px', borderRadius: 8, border: `1px solid ${FREE_COLOR}`, background: 'transparent', color: FREE_COLOR, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                填入最佳時段
+              </button>
+            )}
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 13, color: '#AAA', fontWeight: 500, whiteSpace: 'nowrap' }}>時區</span>
+              <select value={timezone} onChange={e => setTimezone(e.target.value)}
+                style={{ padding: '4px 8px', borderRadius: 6, border: '1.5px solid #E8E8E8', fontSize: 12, fontFamily: 'inherit', color: '#555', background: '#fff', cursor: 'pointer', outline: 'none' }}>
+                {TIMEZONES.map(tz => <option key={tz.value} value={tz.value}>{tz.label}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Mine tab ─────────────────────────────────────────────────────────── */}
       {tab === 'mine' && (
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
@@ -494,6 +526,7 @@ export default function TimeGrid() {
             onTouchEnd={handleContainerTouchEnd}
             onScroll={handleGridScroll}
           >
+            <div style={isDesktop ? { maxWidth: 900, margin: '0 auto', padding: '0 48px' } : undefined}>
             {DayHeader({ onDayClick: fillDay })}
             <div style={{ display: 'flex', userSelect: 'none', WebkitUserSelect: 'none' }}>
               <div style={{ width: labelW, flexShrink: 0 }}>
@@ -529,7 +562,8 @@ export default function TimeGrid() {
               })}
               {scrollW > 0 && <div style={{ width: scrollW, flexShrink: 0 }} />}
             </div>
-          </div>
+            </div>{/* /desktop maxWidth wrapper */}
+          </div>{/* /scrollContainerRef */}
 
           {/* Custom scroll thumb — mobile only */}
           {!isDesktop && scrollThumb.h < 96 && (
@@ -573,6 +607,7 @@ export default function TimeGrid() {
             onClick={!isDesktop ? () => setHoveredCell(null) : undefined}
             onScroll={(e) => { setHoveredCell(null); handleGridScroll(e); }}
           >
+            <div style={isDesktop ? { maxWidth: 900, margin: '0 auto', padding: '0 48px' } : undefined}>
             {DayHeader({})}
             <div style={{ display: 'flex', userSelect: 'none' }}>
               <div style={{ width: labelW, flexShrink: 0 }}>
@@ -602,7 +637,8 @@ export default function TimeGrid() {
               })}
               {scrollW > 0 && <div style={{ width: scrollW, flexShrink: 0 }} />}
             </div>
-          </div>
+            </div>{/* /desktop maxWidth wrapper */}
+          </div>{/* /groupScrollRef */}
 
           {/* Custom scroll thumb — mobile only */}
           {!isDesktop && scrollThumb.h < 96 && (
@@ -619,18 +655,18 @@ export default function TimeGrid() {
       <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
         {tab === 'mine' ? (
           <>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-              <button onClick={autofillBestTime} style={{
-                flex: 1, padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${FREE_COLOR}`,
-                background: 'transparent', color: FREE_COLOR, fontSize: 15, fontWeight: 600,
-                fontFamily: 'inherit', cursor: 'pointer',
-              }}>填入目前最佳時段</button>
-              {!isDesktop && (
+            {!isDesktop && (
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <button onClick={autofillBestTime} style={{
+                  flex: 1, padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${FREE_COLOR}`,
+                  background: 'transparent', color: FREE_COLOR, fontSize: 15, fontWeight: 600,
+                  fontFamily: 'inherit', cursor: 'pointer',
+                }}>填入目前最佳時段</button>
                 <button className="btn-primary" onClick={() => name.trim() ? submitResponse() : setShowNameModal(true)} style={{ flex: 1, padding: '12px' }}>
                   送出
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </>
         ) : (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>

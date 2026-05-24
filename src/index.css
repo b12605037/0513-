@@ -288,24 +288,24 @@ body {
 /* ── DESKTOP RWD (>= 768px) ── */
 @media (min-width: 768px) {
   body {
-    background: #f0f4f7;
+    background: #fff;
     align-items: flex-start;
     min-height: 100vh;
   }
   .app-container {
     width: 100%;
-    max-width: 1100px;
+    max-width: none;
     height: 100vh;
     height: 100dvh;
     border-radius: 0;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.06);
+    box-shadow: none;
     background: #fff;
-    margin: 0 auto;
+    margin: 0;
     flex-shrink: 1;
   }
   .app-nav {
     background: #fff;
-    border-bottom: 1px solid #E0E4E8;
+    border-bottom: 1px solid #F0F0F0;
   }
 
   /* Grid scroll — show thin scrollbar on desktop */
@@ -332,10 +332,10 @@ body {
     animation: fadeIn 0.2s ease;
   }
   .desktop-sidebar-panel {
-    width: 400px; background: #fff; height: 100%;
+    width: 420px; background: #fff; height: 100%;
     overflow-y: auto; box-shadow: -8px 0 32px rgba(0,0,0,0.12);
     animation: slideInRight 0.28s cubic-bezier(0.32,0.72,0,1);
-    padding: 40px 28px 40px;
+    padding: 40px 32px 40px;
     display: flex; flex-direction: column;
   }
 }
