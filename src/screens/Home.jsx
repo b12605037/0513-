@@ -305,36 +305,22 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) 
             const disabled = dt < today;
             const selected = displaySet.has(key);
             const isToday  = sameDay(dt, today);
-
-            // Range-band: check row boundaries and neighbours
             const dow          = (d - 1 + firstDow) % 7;
             const isFirstInRow = dow === 0;
             const isLastInRow  = dow === 6;
             const prevSel = selected && displaySet.has(mkKey(new Date(viewYear, viewMonth, d - 1)));
             const nextSel = selected && displaySet.has(mkKey(new Date(viewYear, viewMonth, d + 1)));
-            // Band stretches left if prev is selected (and not at row start), right if next is selected
             const bandExt = large ? '-3px' : '-1px';
             const bandL = (!prevSel || isFirstInRow) ? '50%' : bandExt;
             const bandR = (!nextSel || isLastInRow)  ? '50%' : bandExt;
-
             return (
               <div key={d} data-dkey={disabled ? undefined : key}
                 onMouseDown={() => !disabled && mouseDown(key)}
                 onMouseEnter={() => !disabled && mouseEnter(key)}
                 style={{ height: large ? 82 : 36, cursor: disabled ? 'default' : 'pointer', position: 'relative' }}>
-
-                {/* Range highlight band */}
                 {selected && (
-                  <div style={{
-                    position: 'absolute',
-                    left: bandL, right: bandR,
-                    top: 2, height: large ? 65 : 32,
-                    background: 'rgba(138, 157, 168, 0.18)',
-                    pointerEvents: 'none',
-                  }} />
+                  <div style={{ position: 'absolute', left: bandL, right: bandR, top: 2, height: large ? 65 : 32, background: 'rgba(138, 157, 168, 0.18)', pointerEvents: 'none' }} />
                 )}
-
-                {/* Date circle */}
                 <div style={{ width: large ? 65 : 32, height: large ? 65 : 32, borderRadius: large ? 33 : 16, margin: '2px auto 0', position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: large ? 31 : Math.round(16 * scale), fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8', transition: 'background 0.08s' }}>{d}</div>
               </div>
             );
@@ -370,7 +356,7 @@ export default function Home() {
   const [showAllRecent, setShowAllRecent] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [meetingName, setMeetingName] = useState('');
-  const [nameModalPhase, setNameModalPhase] = useState('input'); // 'input' | 'link'
+  const [nameModalPhase, setNameModalPhase] = useState('input');
   const [generatedId, setGeneratedId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -421,12 +407,21 @@ export default function Home() {
       localStorage.setItem('meetime_recent', JSON.stringify(next));
       setRecentEvents(next);
     } catch {}
+    // ── Mixpanel: 活動建立 ──
+    mixpanel.track('活動建立', {
+      活動名稱: meetingName.trim(),
+      日期數量: selectedDates.length,
+      時段: allDay ? '全天' : `${fmtSlot(startSlot)}-${fmtSlot(endSlot)}`,
+      有設定時長: duration > 0,
+    });
     setGeneratedId(id);
     setNameModalPhase('link');
   };
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(`https://meetime-sigma.vercel.app/join/${generatedId}`).then(() => {
+      // ── Mixpanel: 邀請連結複製 ──
+      mixpanel.track('邀請連結複製', { 活動id: generatedId });
       setLinkCopied(true);
       setTimeout(() => setLinkCopied(false), 1800);
     });
@@ -519,8 +514,6 @@ export default function Home() {
           onKeyDown={e => { if (e.key === 'Enter') handleConfirmName(); }}
           style={{ marginBottom: 20, fontSize: 20 }}
         />
-
-        {/* Summary */}
         <div style={{ background: '#F8F9FA', borderRadius: 14, padding: '16px 18px', marginBottom: 20 }}>
           {[
             { label: '調查日期', value: selectedDates.length === 0 ? '未設定'
@@ -536,7 +529,6 @@ export default function Home() {
             </div>
           ))}
         </div>
-
         {saveError && <div style={{ fontSize: 17, color: '#E53935', marginBottom: 14 }}>{saveError}</div>}
         <div style={{ display: 'flex', gap: 12 }}>
           <button onClick={() => setShowNameModal(false)} style={{ flex: 1, padding: '16px', borderRadius: 14, border: 'none', background: '#F0F0F0', color: '#555', fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>取消</button>
@@ -562,6 +554,8 @@ export default function Home() {
         </div>
 
         <button onClick={() => {
+          // ── Mixpanel: 分享至LINE ──
+          mixpanel.track('分享至LINE', { 來源: 'home', 活動id: generatedId });
           window.open(`https://line.me/R/msg/text/${encodeURIComponent(`https://meetime-sigma.vercel.app/join/${generatedId}`)}`);
         }} style={{ width: '100%', padding: '18px', borderRadius: 14, border: 'none', background: '#8FA99A', color: '#fff', fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
@@ -581,17 +575,12 @@ export default function Home() {
     <div className="app-container" style={isDesktop ? { overflowY: 'auto', height: 'auto', minHeight: '100vh' } : { background: '#fff' }}>
 
       {isDesktop ? (
-        /* ── Desktop: single-column, full page scroll ── */
         <>
-          {/* Nav */}
           <div style={{ height: 86, display: 'flex', alignItems: 'center', padding: '0 40px', borderBottom: '1px solid #F0F0F0' }}>
             <span style={{ fontSize: 48, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
           </div>
 
-          {/* Single-column body */}
           <div style={{ maxWidth: 1400, margin: '0 auto', padding: '40px 48px 60px' }}>
-
-            {/* 最近活動 — top, show 3, collapsible */}
             <div style={{ marginBottom: 40 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <span style={{ fontSize: 26, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
@@ -628,14 +617,12 @@ export default function Home() {
               )}
             </div>
 
-            {/* Date picker */}
             <div style={{ marginBottom: 32 }}>
               <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
               <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
               {dateError && <div style={{ fontSize: 17, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
             </div>
 
-            {/* Time range */}
             <div style={{ marginBottom: 32 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <label style={{ fontSize: 24, fontWeight: 700, color: '#555' }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
@@ -652,13 +639,11 @@ export default function Home() {
               {timeError && <div style={{ fontSize: 17, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
             </div>
 
-            {/* Duration */}
             <div style={{ marginBottom: 32 }}>
               <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>活動時長（選填）</label>
               <DurationSlider value={duration} onChange={setDuration} />
             </div>
 
-            {/* Submit */}
             <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 24 }}>
               建立活動
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -668,7 +653,6 @@ export default function Home() {
           </div>
         </>
       ) : (
-        /* ── Mobile ── */
         <>
           <div style={{ padding: '12px 20px 0', flexShrink: 0 }}>
             <span style={{ fontSize: 30, fontWeight: 700, color: '#6d7b86', letterSpacing: '-0.04em' }}>meetime</span>
@@ -688,7 +672,6 @@ export default function Home() {
         </>
       )}
 
-      {/* Modal */}
       {showNameModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}
           onClick={() => nameModalPhase === 'input' && setShowNameModal(false)}>
