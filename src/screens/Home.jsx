@@ -586,7 +586,7 @@ export default function Home() {
           </div>
 
           {/* Single-column body */}
-          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 48px 60px' }}>
+          <div style={{ maxWidth: 1400, margin: '0 auto', padding: '40px 48px 60px' }}>
 
             {/* 最近活動 — top, show 3, collapsible */}
             <div style={{ marginBottom: 40 }}>
