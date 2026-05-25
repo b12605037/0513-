@@ -557,15 +557,15 @@ export default function Home() {
         /* ── Desktop: two-column, full page scroll ── */
         <>
           {/* Nav: logo only */}
-          <div style={{ height: 60, display: 'flex', alignItems: 'center', padding: '0 60px', borderBottom: '1px solid #F0F0F0' }}>
+          <div style={{ height: 60, display: 'flex', alignItems: 'center', padding: '0 40px', borderBottom: '1px solid #F0F0F0' }}>
             <span style={{ fontSize: 22, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
           </div>
 
           {/* Two-column body */}
-          <div style={{ maxWidth: 1300, margin: '0 auto', padding: '40px 60px 60px', display: 'flex', gap: 48, alignItems: 'flex-start' }}>
+          <div style={{ maxWidth: 1300, margin: '0 auto', padding: '40px 40px 60px', display: 'flex', gap: 40, alignItems: 'flex-start' }}>
 
-            {/* Left (65%): form + submit */}
-            <div style={{ flex: 65, minWidth: 0 }}>
+            {/* Left (70%): form + submit */}
+            <div style={{ flex: '0 0 70%', minWidth: 0, width: '70%' }}>
 
               {/* Date picker */}
               <div style={{ marginBottom: 32 }}>
@@ -606,8 +606,8 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Right (35%): recent events, sticky */}
-            <div style={{ flex: 35, minWidth: 0 }}>
+            {/* Right (30%): recent events, sticky */}
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ position: 'sticky', top: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                   <span style={{ fontSize: 17, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
