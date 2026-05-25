@@ -6,9 +6,10 @@ import { useDesktop } from '../hooks/useDesktop';
 const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
 const SLOT_H = 28;
-const SLOT_H_DESKTOP = 36;
+const SLOT_H_DESKTOP = 54;
 const LABEL_W = 48;
 const LABEL_W_DESKTOP = 72;
+const DOW_ZH_MAP = { Sun: '日', Mon: '一', Tue: '二', Wed: '三', Thu: '四', Fri: '五', Sat: '六' };
 const SCROLL_W = 44;
 const DAYS_PER_PAGE = 4;
 const DESKTOP_DAYS_PER_PAGE = 7;
@@ -385,6 +386,13 @@ export default function TimeGrid() {
   // ── Shared day-header — reads displayDays/displayStart/labelW/scrollW from closure
   const DayHeader = ({ onDayClick } = {}) => (
     <div style={{ display: 'flex', position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: isDesktop ? '2px solid #DDD' : '1px solid #EBEBEB' }}>
+      {/* Desktop: left prev-week arrow, overlays the label spacer */}
+      {isDesktop && desktopTotalPages > 1 && (
+        <button onClick={() => setDesktopPage(p => Math.max(0, p - 1))}
+          style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: labelW, zIndex: 5,
+            background: 'none', border: 'none', fontSize: 30, color: desktopPage > 0 ? FREE_COLOR : '#DDD',
+            cursor: desktopPage > 0 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
+      )}
       <div style={{ width: labelW, flexShrink: 0 }} />
       {displayDays.map((d, i) => {
         const isToday = (displayStart + i) === todayIdx;
@@ -394,11 +402,11 @@ export default function TimeGrid() {
             style={{ flex: 1, textAlign: 'center', padding: isDesktop ? '10px 0 12px' : '5px 0 6px', cursor: onDayClick ? 'pointer' : 'default', minWidth: isDesktop ? 80 : undefined, borderLeft: isDesktop && i > 0 ? '1px solid #EBEBEB' : 'none' }}>
             {isDesktop ? (
               <>
-                <div style={{ fontSize: 15, fontWeight: 700, color: isToday ? '#8A9DA8' : '#222', letterSpacing: '-0.01em' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: isToday ? '#8A9DA8' : '#888', letterSpacing: '-0.01em' }}>
                   {MON[d.month]} {d.date}
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 500, color: isToday ? '#8A9DA8' : '#999', marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  {d.label}
+                <div style={{ fontSize: 13, fontWeight: 600, color: isToday ? '#8A9DA8' : '#AAA', marginTop: 3, letterSpacing: '0.03em' }}>
+                  週{DOW_ZH_MAP[d.label]}
                 </div>
               </>
             ) : (
@@ -410,6 +418,13 @@ export default function TimeGrid() {
           </div>
         );
       })}
+      {/* Desktop: right next-week arrow */}
+      {isDesktop && desktopTotalPages > 1 && (
+        <button onClick={() => setDesktopPage(p => Math.min(desktopTotalPages - 1, p + 1))}
+          style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 50, zIndex: 5,
+            background: 'none', border: 'none', fontSize: 30, color: desktopPage < desktopTotalPages - 1 ? FREE_COLOR : '#DDD',
+            cursor: desktopPage < desktopTotalPages - 1 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
+      )}
       {scrollW > 0 && <div style={{ width: scrollW, flexShrink: 0 }} />}
     </div>
   );
@@ -498,22 +513,6 @@ export default function TimeGrid() {
                 style={{ padding: '10px 22px', borderRadius: 10, border: `2px solid ${FREE_COLOR}`, background: 'transparent', color: FREE_COLOR, fontSize: 16, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 填入最佳時段
               </button>
-            )}
-            {/* Week navigation */}
-            {desktopTotalPages > 1 && (
-              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <button onClick={() => setDesktopPage(p => Math.max(0, p - 1))} style={{
-                  background: 'none', border: 'none', fontSize: 26, color: desktopPage > 0 ? FREE_COLOR : '#DDD',
-                  padding: '4px 10px', cursor: desktopPage > 0 ? 'pointer' : 'default', lineHeight: 1,
-                }}>‹</button>
-                <span style={{ fontSize: 15, fontWeight: 600, color: '#888', minWidth: 120, textAlign: 'center' }}>
-                  {pageNavLabel(desktopPageDays)}
-                </span>
-                <button onClick={() => setDesktopPage(p => Math.min(desktopTotalPages - 1, p + 1))} style={{
-                  background: 'none', border: 'none', fontSize: 26, color: desktopPage < desktopTotalPages - 1 ? FREE_COLOR : '#DDD',
-                  padding: '4px 10px', cursor: desktopPage < desktopTotalPages - 1 ? 'pointer' : 'default', lineHeight: 1,
-                }}>›</button>
-              </div>
             )}
           </div>
         </div>

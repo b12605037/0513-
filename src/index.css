@@ -308,21 +308,12 @@ body {
     border-bottom: 1px solid #F0F0F0;
   }
 
-  /* Grid scroll — show thin scrollbar on desktop */
+  /* Grid scroll — hide scrollbar on desktop */
   .grid-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(138,157,168,0.45) transparent;
+    scrollbar-width: none;
   }
   .grid-scroll::-webkit-scrollbar {
-    display: block;
-    width: 5px;
-  }
-  .grid-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .grid-scroll::-webkit-scrollbar-thumb {
-    background: rgba(138,157,168,0.45);
-    border-radius: 3px;
+    display: none;
   }
 
   /* Desktop modal → right sidebar */
