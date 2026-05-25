@@ -296,7 +296,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 4 }}>
           {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 22, fontWeight: 600, color: '#91AEC4', padding: '4px 0' }}>{d}</div>)}
         </div>
-        <div ref={calRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', rowGap: large ? 4 : 2 }}>
+        <div ref={calRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', rowGap: large ? 10 : 4, columnGap: large ? 6 : 2 }}>
           {Array.from({ length: firstDow }).map((_, i) => <div key={'e' + i} />)}
           {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => {
             const dt = new Date(viewYear, viewMonth, d);
@@ -312,8 +312,8 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
             const prevSel = selected && displaySet.has(mkKey(new Date(viewYear, viewMonth, d - 1)));
             const nextSel = selected && displaySet.has(mkKey(new Date(viewYear, viewMonth, d + 1)));
             // Band stretches left if prev is selected (and not at row start), right if next is selected
-            const bandL = (!prevSel || isFirstInRow) ? '50%' : '0%';
-            const bandR = (!nextSel || isLastInRow)  ? '50%' : '0%';
+            const bandL = (!prevSel || isFirstInRow) ? '50%' : '-3px';
+            const bandR = (!nextSel || isLastInRow)  ? '50%' : '-3px';
 
             return (
               <div key={d} data-dkey={disabled ? undefined : key}
@@ -507,18 +507,18 @@ export default function Home() {
   const modalContent = (
     <>
       {nameModalPhase === 'input' ? (<>
-        <div style={{ fontSize: 20, fontWeight: 800, color: '#111', letterSpacing: '-0.02em', marginBottom: 14 }}>活動名稱</div>
+        <div style={{ fontSize: 30, fontWeight: 800, color: '#111', letterSpacing: '-0.02em', marginBottom: 20 }}>活動名稱</div>
         <input
           autoFocus
           className="form-input"
           value={meetingName}
           onChange={e => setMeetingName(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleConfirmName(); }}
-          style={{ marginBottom: 16 }}
+          style={{ marginBottom: 20, fontSize: 20 }}
         />
 
         {/* Summary */}
-        <div style={{ background: '#F8F9FA', borderRadius: 12, padding: '12px 14px', marginBottom: 16 }}>
+        <div style={{ background: '#F8F9FA', borderRadius: 14, padding: '16px 18px', marginBottom: 20 }}>
           {[
             { label: '調查日期', value: selectedDates.length === 0 ? '未設定'
               : selectedDates.length === 1 ? `${SHORT_MONTHS[selectedDates[0].getMonth()]} ${selectedDates[0].getDate()}`
@@ -527,47 +527,47 @@ export default function Home() {
             { label: '調查時段', value: allDay ? '全天' : `${fmtSlot(startSlot)} ${fmtPeriod(startSlot)} – ${fmtSlot(endSlot)} ${fmtPeriod(endSlot)}` },
             { label: '活動時長', value: fmtDuration(duration) },
           ].map(({ label, value }) => (
-            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0' }}>
-              <span style={{ fontSize: 14, color: '#AAA' }}>{label}</span>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#555' }}>{value}</span>
+            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0' }}>
+              <span style={{ fontSize: 18, color: '#AAA' }}>{label}</span>
+              <span style={{ fontSize: 18, fontWeight: 600, color: '#555' }}>{value}</span>
             </div>
           ))}
         </div>
 
-        {saveError && <div style={{ fontSize: 13, color: '#E53935', marginBottom: 10 }}>{saveError}</div>}
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => setShowNameModal(false)} style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: '#F0F0F0', color: '#555', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>取消</button>
-          <button onClick={handleConfirmName} disabled={!meetingName.trim() || saving} style={{ flex: 2, padding: '13px', borderRadius: 12, border: 'none', background: meetingName.trim() && !saving ? '#8A9DA8' : '#D0D8DC', color: '#fff', fontSize: 16, fontWeight: 700, cursor: meetingName.trim() && !saving ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'background 0.2s' }}>
+        {saveError && <div style={{ fontSize: 17, color: '#E53935', marginBottom: 14 }}>{saveError}</div>}
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button onClick={() => setShowNameModal(false)} style={{ flex: 1, padding: '16px', borderRadius: 14, border: 'none', background: '#F0F0F0', color: '#555', fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>取消</button>
+          <button onClick={handleConfirmName} disabled={!meetingName.trim() || saving} style={{ flex: 2, padding: '16px', borderRadius: 14, border: 'none', background: meetingName.trim() && !saving ? '#8A9DA8' : '#D0D8DC', color: '#fff', fontSize: 20, fontWeight: 700, cursor: meetingName.trim() && !saving ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'background 0.2s' }}>
             {saving ? '建立中…' : '確認'}
           </button>
         </div>
       </>) : (<>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: '#E8EEF1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A9DA8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
+          <div style={{ width: 54, height: 54, borderRadius: 15, background: '#E8EEF1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#8A9DA8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: '#111', letterSpacing: '-0.02em' }}>邀請連結已建立</div>
+          <div style={{ fontSize: 27, fontWeight: 800, color: '#111', letterSpacing: '-0.02em' }}>邀請連結已建立</div>
         </div>
 
-        <div style={{ background: '#E8EEF1', borderRadius: 12, padding: '10px 8px 10px 14px', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <div style={{ flex: 1, fontSize: 13, color: '#5F84A2', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ background: '#E8EEF1', borderRadius: 14, padding: '14px 12px 14px 18px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+          <div style={{ flex: 1, fontSize: 17, color: '#5F84A2', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             meetime-sigma.vercel.app/join/{generatedId}
           </div>
-          <button onClick={handleCopyLink} style={{ flexShrink: 0, padding: '7px 12px', borderRadius: 9, border: 'none', background: linkCopied ? '#8A9DA8' : '#7A8C9C', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap' }}>
+          <button onClick={handleCopyLink} style={{ flexShrink: 0, padding: '10px 16px', borderRadius: 10, border: 'none', background: linkCopied ? '#8A9DA8' : '#7A8C9C', color: '#fff', fontSize: 18, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap' }}>
             {linkCopied ? '已複製 ✓' : '複製'}
           </button>
         </div>
 
         <button onClick={() => {
           window.open(`https://line.me/R/msg/text/${encodeURIComponent(`https://meetime-sigma.vercel.app/join/${generatedId}`)}`);
-        }} style={{ width: '100%', padding: '13px', borderRadius: 12, border: 'none', background: '#8FA99A', color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+        }} style={{ width: '100%', padding: '18px', borderRadius: 14, border: 'none', background: '#8FA99A', color: '#fff', fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
             <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
           </svg>
           傳送至 LINE
         </button>
         <button onClick={() => { setShowNameModal(false); navigate('/grid', { state: { meetingId: generatedId, eventName: meetingName.trim(), rangeStart: selectedDates[0]?.getTime() ?? null, rangeEnd: selectedDates[selectedDates.length-1]?.getTime() ?? null, dateList: selectedDates.map(d => d.getTime()), startSlot, endSlot, allDay, duration } }); }}
-          style={{ width: '100%', padding: '12px', borderRadius: 12, border: '1.5px solid #8A9DA8', background: 'transparent', color: '#8A9DA8', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+          style={{ width: '100%', padding: '16px', borderRadius: 14, border: '1.5px solid #8A9DA8', background: 'transparent', color: '#8A9DA8', fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
           填寫我的時間
         </button>
       </>)}
@@ -586,7 +586,7 @@ export default function Home() {
           </div>
 
           {/* Single-column body */}
-          <div style={{ maxWidth: 960, margin: '0 auto', padding: '40px 40px 60px' }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 48px 60px' }}>
 
             {/* 最近活動 — top, show 3, collapsible */}
             <div style={{ marginBottom: 40 }}>
@@ -689,7 +689,7 @@ export default function Home() {
       {showNameModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}
           onClick={() => nameModalPhase === 'input' && setShowNameModal(false)}>
-          <div style={{ width: '100%', maxWidth: isDesktop ? 480 : 340, background: '#fff', borderRadius: 20, padding: isDesktop ? '32px 28px 24px' : '24px 20px 18px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}
+          <div style={{ width: '100%', maxWidth: isDesktop ? 600 : 340, background: '#fff', borderRadius: 24, padding: isDesktop ? '44px 40px 36px' : '24px 20px 18px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}
             onClick={e => e.stopPropagation()}>
             {modalContent}
           </div>
