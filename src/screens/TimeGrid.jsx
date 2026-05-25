@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useDesktop } from '../hooks/useDesktop';
+import mixpanel from '../lib/mixpanel';
 
 const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
@@ -98,7 +99,6 @@ export default function TimeGrid() {
   const G_END   = state?.allDay ? 24 : Math.ceil((state?.endSlot   ?? 36) / 2);
   const TOTAL   = (G_END - G_START) * SPH;
 
-  // Desktop-specific derived values
   const slotH   = isDesktop ? SLOT_H_DESKTOP : SLOT_H;
   const labelW  = isDesktop ? LABEL_W_DESKTOP : LABEL_W;
   const scrollW = isDesktop ? 0 : SCROLL_W;
@@ -186,7 +186,6 @@ export default function TimeGrid() {
     });
   };
 
-  // ── Paint logic ───────────────────────────────────────────────────────────────
   const paintSlot = (key, val) => {
     slotsRef.current[key] = val;
     const [d, s] = key.split('-');
@@ -279,7 +278,6 @@ export default function TimeGrid() {
   const handleMouseEnter = (d, s) => moveDrag(d, s);
   const handleMouseUp    = () => { dragRef.current.active = false; flushSlots(); };
 
-  // Desktop: track swipe on non-cell areas (label col, day header)
   const handleContainerMouseDown = (e) => {
     if (!e.target.dataset.day) desktopSwipeRef.current = e.clientX;
   };
@@ -340,7 +338,7 @@ export default function TimeGrid() {
         .eq('respondent_name', name.trim())
         .limit(1);
 
-        if (existing && existing.length > 0) {
+      if (existing && existing.length > 0) {
         const { data: updated } = await supabase.from('responses')
           .update({ slots: slotsRef.current })
           .eq('meeting_id', state.meetingId)
@@ -361,6 +359,15 @@ export default function TimeGrid() {
         });
       }
     }
+
+    // ── Mixpanel: 填寫時間送出 ──
+    const filledCount = Object.values(slotsRef.current).filter(v => v === 1).length;
+    mixpanel.track('填寫時間送出', {
+      活動id: state?.meetingId,
+      姓名: name.trim(),
+      填寫格數: filledCount,
+    });
+
     setSubmittingResponse(false);
     navigate('/results', {
       state: {
@@ -383,7 +390,6 @@ export default function TimeGrid() {
     setHoveredCell({ day, slot, cx: e.clientX, cy: e.clientY });
   };
 
-  // Mobile: paginated 4 days; Desktop: paginated 7 days
   const pageStart         = page * DAYS_PER_PAGE;
   const pageDays          = allDays.slice(pageStart, pageStart + DAYS_PER_PAGE);
   const desktopPageStart  = desktopPage * DESKTOP_DAYS_PER_PAGE;
@@ -402,7 +408,6 @@ export default function TimeGrid() {
       : `${MON[sm]} ${start.getDate()} – ${MON[em]} ${end.getDate()}`;
   }, [state]);
 
-  // ── Shared day-header — reads displayDays/displayStart/labelW/scrollW from closure
   const DayHeader = ({ onDayClick } = {}) => (
     <div style={{ display: 'flex', position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: isDesktop ? '2px solid #DDD' : '1px solid #EBEBEB' }}>
       <div style={{ width: labelW, flexShrink: 0, borderRight: isDesktop ? '1px solid #E0E0E0' : 'none' }} />
@@ -414,12 +419,8 @@ export default function TimeGrid() {
             style={{ flex: 1, textAlign: 'center', padding: isDesktop ? '10px 0 12px' : '5px 0 6px', cursor: onDayClick ? 'pointer' : 'default', minWidth: isDesktop ? 100 : undefined, borderLeft: isDesktop && i > 0 ? '1px solid #EBEBEB' : 'none' }}>
             {isDesktop ? (
               <>
-                <div style={{ fontSize: 15, fontWeight: 700, color: isToday ? '#8A9DA8' : '#888', letterSpacing: '-0.01em' }}>
-                  {MON[d.month]} {d.date}
-                </div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: isToday ? '#8A9DA8' : '#AAA', marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  {d.label}
-                </div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: isToday ? '#8A9DA8' : '#888', letterSpacing: '-0.01em' }}>{MON[d.month]} {d.date}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: isToday ? '#8A9DA8' : '#AAA', marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{d.label}</div>
               </>
             ) : (
               <>
@@ -437,9 +438,7 @@ export default function TimeGrid() {
   return (
     <div className="app-container">
 
-      {/* ── Nav ── */}
       {isDesktop ? (
-        /* Desktop: meetime logo + activity name + name input + submit */
         <div style={{ height: 64, borderBottom: '1px solid #F0F0F0', flexShrink: 0, display: 'flex', alignItems: 'center', background: '#fff' }}>
           <div style={{ width: '100%', padding: '0 32px', display: 'flex', alignItems: 'center', gap: 14 }}>
             <span onClick={() => navigate('/')} style={{ fontSize: 24, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>meetime</span>
@@ -457,7 +456,6 @@ export default function TimeGrid() {
           </div>
         </div>
       ) : (
-        /* Mobile nav */
         <>
           <div className="app-nav">
             <span onClick={() => navigate('/')} style={{ fontSize: 18, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em', cursor: 'pointer', fontFamily: 'inherit' }}>meetime</span>
@@ -479,29 +477,17 @@ export default function TimeGrid() {
           </div>
           {totalPages > 1 && (
             <div style={{ display: 'flex', alignItems: 'center', background: '#FAFAFA', borderBottom: '1px solid #F0F0F0', flexShrink: 0, padding: '0 4px' }}>
-              <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{
-                background: 'none', border: 'none', fontSize: 28, fontFamily: 'inherit',
-                color: page > 0 ? FREE_COLOR : '#DDD', padding: '8px 12px', minWidth: 44,
-                cursor: page > 0 ? 'pointer' : 'default',
-              }}>‹</button>
-              <span style={{ flex: 1, textAlign: 'center', fontSize: 15, fontWeight: 600, color: '#888' }}>
-                {pageNavLabel(pageDays)}
-              </span>
-              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{
-                background: 'none', border: 'none', fontSize: 28, fontFamily: 'inherit',
-                color: page < totalPages - 1 ? FREE_COLOR : '#DDD', padding: '8px 12px', minWidth: 44,
-                cursor: page < totalPages - 1 ? 'pointer' : 'default',
-              }}>›</button>
+              <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{ background: 'none', border: 'none', fontSize: 28, fontFamily: 'inherit', color: page > 0 ? FREE_COLOR : '#DDD', padding: '8px 12px', minWidth: 44, cursor: page > 0 ? 'pointer' : 'default' }}>‹</button>
+              <span style={{ flex: 1, textAlign: 'center', fontSize: 15, fontWeight: 600, color: '#888' }}>{pageNavLabel(pageDays)}</span>
+              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{ background: 'none', border: 'none', fontSize: 28, fontFamily: 'inherit', color: page < totalPages - 1 ? FREE_COLOR : '#DDD', padding: '8px 12px', minWidth: 44, cursor: page < totalPages - 1 ? 'pointer' : 'default' }}>›</button>
             </div>
           )}
         </>
       )}
 
-      {/* Desktop controls bar: tabs + autofill + week nav */}
       {isDesktop && (
         <div style={{ borderBottom: '1px solid #F0F0F0', flexShrink: 0, background: '#fff' }}>
           <div style={{ padding: '0 32px', display: 'flex', alignItems: 'center', height: 64, gap: 16 }}>
-            {/* Tabs */}
             <div style={{ display: 'flex', background: '#F0F0F0', borderRadius: 10, padding: 4 }}>
               {[['mine', '我的時間'], ['group', '群組時間']].map(([key, label]) => (
                 <button key={key} onClick={() => setTab(key)} style={{
@@ -513,7 +499,6 @@ export default function TimeGrid() {
                 }}>{label}</button>
               ))}
             </div>
-            {/* Autofill button */}
             {tab === 'mine' && (
               <button onClick={autofillBestTime}
                 style={{ padding: '10px 22px', borderRadius: 10, border: `2px solid ${FREE_COLOR}`, background: 'transparent', color: FREE_COLOR, fontSize: 16, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -524,81 +509,59 @@ export default function TimeGrid() {
         </div>
       )}
 
-      {/* ── Mine tab ─────────────────────────────────────────────────────────── */}
       {tab === 'mine' && (
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden', ...(isDesktop && { display: 'flex', alignItems: 'stretch' }) }}>
-
-          {/* Desktop: left arrow — flanks the grid */}
           {isDesktop && (
             <button onClick={() => setDesktopPage(p => Math.max(0, p - 1))}
-              style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34,
-                color: desktopTotalPages > 1 && desktopPage > 0 ? FREE_COLOR : '#DDD',
-                cursor: desktopTotalPages > 1 && desktopPage > 0 ? 'pointer' : 'default',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5,
-                borderRight: '1px solid #F0F0F0' }}>‹</button>
+              style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34, color: desktopTotalPages > 1 && desktopPage > 0 ? FREE_COLOR : '#DDD', cursor: desktopTotalPages > 1 && desktopPage > 0 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, borderRight: '1px solid #F0F0F0' }}>‹</button>
           )}
 
-          <div
-            ref={scrollContainerRef}
-            className="grid-scroll"
+          <div ref={scrollContainerRef} className="grid-scroll"
             style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch', ...(isDesktop ? { flex: 1, minHeight: 0 } : { height: '100%' }) }}
             onMouseDown={isDesktop ? handleContainerMouseDown : undefined}
             onMouseUp={isDesktop ? handleContainerMouseUp : handleMouseUp}
             onMouseLeave={() => { desktopSwipeRef.current = null; handleMouseUp(); if (isDesktop) setDesktopMineTooltip(null); }}
             onTouchStart={handleContainerTouchStart}
             onTouchEnd={handleContainerTouchEnd}
-            onScroll={handleGridScroll}
-          >
+            onScroll={handleGridScroll}>
             <div style={isDesktop ? { padding: '0 16px' } : undefined}>
-            {DayHeader({ onDayClick: fillDay })}
-            <div style={{ display: 'flex', userSelect: 'none', WebkitUserSelect: 'none' }}>
-              <div style={{ width: labelW, flexShrink: 0, borderRight: isDesktop ? '1px solid #E0E0E0' : 'none' }}>
-                {Array.from({ length: TOTAL }, (_, s) => (
-                  <div key={s} style={{ height: slotH, display: 'flex', alignItems: 'flex-start', justifyContent: isDesktop ? 'flex-start' : 'flex-end', paddingLeft: isDesktop ? 10 : undefined, paddingRight: isDesktop ? undefined : 5, paddingTop: isDesktop ? 4 : 2, borderTop: s % SPH === 0 ? (isDesktop ? '1px solid #CCC' : '1px solid #EBEBEB') : '1px dashed #F0F0F0' }}>
-                    {s % SPH === 0 && <span style={{ fontSize: isDesktop ? 13 : 11, fontWeight: 700, color: isDesktop ? '#888' : '#BBB', letterSpacing: isDesktop ? '0.02em' : undefined }}>{isDesktop ? fmtH(G_START + s / SPH).toUpperCase() : fmtH(G_START + s / SPH)}</span>}
-                  </div>
-                ))}
+              {DayHeader({ onDayClick: fillDay })}
+              <div style={{ display: 'flex', userSelect: 'none', WebkitUserSelect: 'none' }}>
+                <div style={{ width: labelW, flexShrink: 0, borderRight: isDesktop ? '1px solid #E0E0E0' : 'none' }}>
+                  {Array.from({ length: TOTAL }, (_, s) => (
+                    <div key={s} style={{ height: slotH, display: 'flex', alignItems: 'flex-start', justifyContent: isDesktop ? 'flex-start' : 'flex-end', paddingLeft: isDesktop ? 10 : undefined, paddingRight: isDesktop ? undefined : 5, paddingTop: isDesktop ? 4 : 2, borderTop: s % SPH === 0 ? (isDesktop ? '1px solid #CCC' : '1px solid #EBEBEB') : '1px dashed #F0F0F0' }}>
+                      {s % SPH === 0 && <span style={{ fontSize: isDesktop ? 13 : 11, fontWeight: 700, color: isDesktop ? '#888' : '#BBB', letterSpacing: isDesktop ? '0.02em' : undefined }}>{isDesktop ? fmtH(G_START + s / SPH).toUpperCase() : fmtH(G_START + s / SPH)}</span>}
+                    </div>
+                  ))}
+                </div>
+                {displayDays.map((_, i) => {
+                  const globalIdx = displayStart + i;
+                  return (
+                    <div key={globalIdx} style={{ flex: 1, minWidth: isDesktop ? 100 : undefined, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
+                      {Array.from({ length: TOTAL }, (_, slot) => {
+                        const key  = `${globalIdx}-${slot}`;
+                        const free = slots[key] === 1;
+                        return (
+                          <div key={slot} id={`sl-${globalIdx}-${slot}`} data-day={globalIdx} data-slot={slot}
+                            onMouseDown={() => handleMouseDown(globalIdx, slot)}
+                            onMouseEnter={(e) => { handleMouseEnter(globalIdx, slot); if (isDesktop) setDesktopMineTooltip({ day: globalIdx, slot, cx: e.clientX, cy: e.clientY }); }}
+                            onMouseLeave={isDesktop ? () => setDesktopMineTooltip(null) : undefined}
+                            style={{ height: slotH, background: free ? SLOT_COLOR : 'transparent', borderTop: slot % SPH === 0 ? (isDesktop ? '1px solid #CCC' : '1px solid #EBEBEB') : '1px dashed #F0F0F0', cursor: 'pointer' }} />
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+                {scrollW > 0 && <div style={{ width: scrollW, flexShrink: 0 }} />}
               </div>
-              {displayDays.map((_, i) => {
-                const globalIdx = displayStart + i;
-                return (
-                  <div key={globalIdx} style={{ flex: 1, minWidth: isDesktop ? 100 : undefined, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
-                    {Array.from({ length: TOTAL }, (_, slot) => {
-                      const key  = `${globalIdx}-${slot}`;
-                      const free = slots[key] === 1;
-                      return (
-                        <div key={slot}
-                          id={`sl-${globalIdx}-${slot}`}
-                          data-day={globalIdx} data-slot={slot}
-                          onMouseDown={() => handleMouseDown(globalIdx, slot)}
-                          onMouseEnter={(e) => {
-                            handleMouseEnter(globalIdx, slot);
-                            if (isDesktop) setDesktopMineTooltip({ day: globalIdx, slot, cx: e.clientX, cy: e.clientY });
-                          }}
-                          onMouseLeave={isDesktop ? () => setDesktopMineTooltip(null) : undefined}
-                          style={{ height: slotH, background: free ? SLOT_COLOR : 'transparent', borderTop: slot % SPH === 0 ? (isDesktop ? '1px solid #CCC' : '1px solid #EBEBEB') : '1px dashed #F0F0F0', cursor: 'pointer' }}
-                        />
-                      );
-                    })}
-                  </div>
-                );
-              })}
-              {scrollW > 0 && <div style={{ width: scrollW, flexShrink: 0 }} />}
             </div>
-            </div>{/* /desktop padding wrapper */}
-          </div>{/* /scrollContainerRef */}
+          </div>
 
-          {/* Desktop: right arrow — flanks the grid */}
           {isDesktop && (
             <button onClick={() => setDesktopPage(p => Math.min(desktopTotalPages - 1, p + 1))}
-              style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34,
-                color: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? FREE_COLOR : '#DDD',
-                cursor: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? 'pointer' : 'default',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5,
-                borderLeft: '1px solid #F0F0F0' }}>›</button>
+              style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34, color: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? FREE_COLOR : '#DDD', cursor: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, borderLeft: '1px solid #F0F0F0' }}>›</button>
           )}
 
-          {/* Custom scroll thumb — mobile only */}
           {!isDesktop && scrollThumb.h < 96 && (
             <div style={{ position: 'absolute', right: 6, top: 8, bottom: 8, width: 7, pointerEvents: 'none', zIndex: 10 }}>
               <div style={{ position: 'absolute', left: 0, right: 0, top: `${scrollThumb.top}%`, height: `${scrollThumb.h}%`, background: '#8A9DA8', borderRadius: 4, opacity: 0.55 }} />
@@ -607,97 +570,65 @@ export default function TimeGrid() {
 
           <div style={{ position: 'absolute', bottom: 0, left: isDesktop ? 52 : 0, right: isDesktop ? 52 : 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
 
-
-          {/* Desktop mine tab tooltip */}
           {isDesktop && desktopMineTooltip && (
-            <div style={{
-              position: 'fixed',
-              left: desktopMineTooltip.cx + 14,
-              top: desktopMineTooltip.cy - 18,
-              background: 'rgba(26,26,26,0.88)',
-              color: '#fff',
-              borderRadius: 8,
-              padding: '5px 11px',
-              fontSize: 13,
-              fontWeight: 600,
-              pointerEvents: 'none',
-              zIndex: 200,
-              whiteSpace: 'nowrap',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-            }}>
+            <div style={{ position: 'fixed', left: desktopMineTooltip.cx + 14, top: desktopMineTooltip.cy - 18, background: 'rgba(26,26,26,0.88)', color: '#fff', borderRadius: 8, padding: '5px 11px', fontSize: 13, fontWeight: 600, pointerEvents: 'none', zIndex: 200, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.18)' }}>
               {fmtH(G_START + desktopMineTooltip.slot / SPH)}–{fmtH(G_START + (desktopMineTooltip.slot + 1) / SPH)}
             </div>
           )}
         </div>
       )}
 
-      {/* ── Group tab ────────────────────────────────────────────────────────── */}
       {tab === 'group' && (
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden', ...(isDesktop && { display: 'flex', alignItems: 'stretch' }) }}>
-
-          {/* Desktop: left arrow */}
           {isDesktop && (
             <button onClick={() => setDesktopPage(p => Math.max(0, p - 1))}
-              style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34,
-                color: desktopTotalPages > 1 && desktopPage > 0 ? FREE_COLOR : '#DDD',
-                cursor: desktopTotalPages > 1 && desktopPage > 0 ? 'pointer' : 'default',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5,
-                borderRight: '1px solid #F0F0F0' }}>‹</button>
+              style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34, color: desktopTotalPages > 1 && desktopPage > 0 ? FREE_COLOR : '#DDD', cursor: desktopTotalPages > 1 && desktopPage > 0 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, borderRight: '1px solid #F0F0F0' }}>‹</button>
           )}
 
-          <div
-            ref={groupScrollRef}
-            className="grid-scroll"
+          <div ref={groupScrollRef} className="grid-scroll"
             style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch', ...(isDesktop ? { flex: 1, minHeight: 0 } : { height: '100%' }) }}
             onClick={!isDesktop ? () => setHoveredCell(null) : undefined}
             onTouchStart={handleContainerTouchStart}
             onTouchEnd={handleContainerTouchEnd}
-            onScroll={(e) => { setHoveredCell(null); handleGridScroll(e); }}
-          >
+            onScroll={(e) => { setHoveredCell(null); handleGridScroll(e); }}>
             <div style={isDesktop ? { padding: '0 16px' } : undefined}>
-            {DayHeader({})}
-            <div style={{ display: 'flex', userSelect: 'none' }}>
-              <div style={{ width: labelW, flexShrink: 0, borderRight: isDesktop ? '1px solid #E0E0E0' : 'none' }}>
-                {Array.from({ length: TOTAL }, (_, s) => (
-                  <div key={s} style={{ height: slotH, display: 'flex', alignItems: 'flex-start', justifyContent: isDesktop ? 'flex-start' : 'flex-end', paddingLeft: isDesktop ? 10 : undefined, paddingRight: isDesktop ? undefined : 5, paddingTop: isDesktop ? 4 : 2, borderTop: s % SPH === 0 ? (isDesktop ? '1px solid #CCC' : '1px solid #EBEBEB') : '1px dashed #F0F0F0' }}>
-                    {s % SPH === 0 && <span style={{ fontSize: isDesktop ? 13 : 11, fontWeight: 700, color: isDesktop ? '#888' : '#BBB', letterSpacing: isDesktop ? '0.02em' : undefined }}>{isDesktop ? fmtH(G_START + s / SPH).toUpperCase() : fmtH(G_START + s / SPH)}</span>}
-                  </div>
-                ))}
+              {DayHeader({})}
+              <div style={{ display: 'flex', userSelect: 'none' }}>
+                <div style={{ width: labelW, flexShrink: 0, borderRight: isDesktop ? '1px solid #E0E0E0' : 'none' }}>
+                  {Array.from({ length: TOTAL }, (_, s) => (
+                    <div key={s} style={{ height: slotH, display: 'flex', alignItems: 'flex-start', justifyContent: isDesktop ? 'flex-start' : 'flex-end', paddingLeft: isDesktop ? 10 : undefined, paddingRight: isDesktop ? undefined : 5, paddingTop: isDesktop ? 4 : 2, borderTop: s % SPH === 0 ? (isDesktop ? '1px solid #CCC' : '1px solid #EBEBEB') : '1px dashed #F0F0F0' }}>
+                      {s % SPH === 0 && <span style={{ fontSize: isDesktop ? 13 : 11, fontWeight: 700, color: isDesktop ? '#888' : '#BBB', letterSpacing: isDesktop ? '0.02em' : undefined }}>{isDesktop ? fmtH(G_START + s / SPH).toUpperCase() : fmtH(G_START + s / SPH)}</span>}
+                    </div>
+                  ))}
+                </div>
+                {displayDays.map((_, i) => {
+                  const globalIdx = displayStart + i;
+                  return (
+                    <div key={globalIdx} style={{ flex: 1, minWidth: isDesktop ? 100 : undefined, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
+                      {Array.from({ length: TOTAL }, (_, slot) => {
+                        const key   = `${globalIdx}-${slot}`;
+                        const count = visibleRespondents.filter(r => r[key] === 1).length;
+                        return (
+                          <div key={slot} data-day={globalIdx} data-slot={slot}
+                            onClick={!isDesktop ? e => showGroupCell(e, globalIdx, slot) : undefined}
+                            onMouseEnter={isDesktop ? e => showGroupCell(e, globalIdx, slot) : undefined}
+                            onMouseLeave={isDesktop ? () => setHoveredCell(null) : undefined}
+                            style={{ height: slotH, background: heatColor(count, visibleCount), borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0', cursor: 'pointer' }} />
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+                {scrollW > 0 && <div style={{ width: scrollW, flexShrink: 0 }} />}
               </div>
-              {displayDays.map((_, i) => {
-                const globalIdx = displayStart + i;
-                return (
-                  <div key={globalIdx} style={{ flex: 1, minWidth: isDesktop ? 100 : undefined, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
-                    {Array.from({ length: TOTAL }, (_, slot) => {
-                      const key   = `${globalIdx}-${slot}`;
-                      const count = visibleRespondents.filter(r => r[key] === 1).length;
-                      return (
-                        <div key={slot} data-day={globalIdx} data-slot={slot}
-                          onClick={!isDesktop ? e => showGroupCell(e, globalIdx, slot) : undefined}
-                          onMouseEnter={isDesktop ? e => showGroupCell(e, globalIdx, slot) : undefined}
-                          onMouseLeave={isDesktop ? () => setHoveredCell(null) : undefined}
-                          style={{ height: slotH, background: heatColor(count, visibleCount), borderTop: slot % SPH === 0 ? '1px solid #EBEBEB' : '1px dashed #F0F0F0', cursor: 'pointer' }} />
-                      );
-                    })}
-                  </div>
-                );
-              })}
-              {scrollW > 0 && <div style={{ width: scrollW, flexShrink: 0 }} />}
             </div>
-            </div>{/* /desktop padding wrapper */}
-          </div>{/* /groupScrollRef */}
+          </div>
 
-          {/* Desktop: right arrow */}
           {isDesktop && (
             <button onClick={() => setDesktopPage(p => Math.min(desktopTotalPages - 1, p + 1))}
-              style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34,
-                color: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? FREE_COLOR : '#DDD',
-                cursor: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? 'pointer' : 'default',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5,
-                borderLeft: '1px solid #F0F0F0' }}>›</button>
+              style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34, color: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? FREE_COLOR : '#DDD', cursor: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, borderLeft: '1px solid #F0F0F0' }}>›</button>
           )}
 
-          {/* Custom scroll thumb — mobile only */}
           {!isDesktop && scrollThumb.h < 96 && (
             <div style={{ position: 'absolute', right: 6, top: 8, bottom: 8, width: 7, pointerEvents: 'none', zIndex: 10 }}>
               <div style={{ position: 'absolute', left: 0, right: 0, top: `${scrollThumb.top}%`, height: `${scrollThumb.h}%`, background: '#8A9DA8', borderRadius: 4, opacity: 0.55 }} />
@@ -705,23 +636,15 @@ export default function TimeGrid() {
           )}
 
           <div style={{ position: 'absolute', bottom: 0, left: isDesktop ? 52 : 0, right: isDesktop ? 52 : 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
-
         </div>
       )}
 
-      {/* Bottom — hidden on desktop mine tab (no content) */}
       {(tab === 'group' || !isDesktop) && (
         <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
           {tab === 'mine' && !isDesktop && (
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-              <button onClick={autofillBestTime} style={{
-                flex: 1, padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${FREE_COLOR}`,
-                background: 'transparent', color: FREE_COLOR, fontSize: 15, fontWeight: 600,
-                fontFamily: 'inherit', cursor: 'pointer',
-              }}>填入目前最佳時段</button>
-              <button className="btn-primary" onClick={() => name.trim() ? submitResponse() : setShowNameModal(true)} style={{ flex: 1, padding: '12px' }}>
-                送出
-              </button>
+              <button onClick={autofillBestTime} style={{ flex: 1, padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${FREE_COLOR}`, background: 'transparent', color: FREE_COLOR, fontSize: 15, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>填入目前最佳時段</button>
+              <button className="btn-primary" onClick={() => name.trim() ? submitResponse() : setShowNameModal(true)} style={{ flex: 1, padding: '12px' }}>送出</button>
             </div>
           )}
           {tab === 'group' && (
@@ -731,12 +654,7 @@ export default function TimeGrid() {
                 const c = [FREE_COLOR, '#8A9DA8', '#26A69A', '#4DB6AC'][i];
                 const sel = selectedRespondents.has(i);
                 return (
-                  <div key={i} onClick={() => toggleRespondent(i)} style={{
-                    display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer',
-                    background: sel ? 'rgba(183,208,225,0.3)' : '#F5F5F5',
-                    border: `1.5px solid ${sel ? c : '#E5E5E5'}`,
-                    borderRadius: 20, padding: '6px 12px', transition: 'all 0.15s',
-                  }}>
+                  <div key={i} onClick={() => toggleRespondent(i)} style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', background: sel ? 'rgba(183,208,225,0.3)' : '#F5F5F5', border: `1.5px solid ${sel ? c : '#E5E5E5'}`, borderRadius: 20, padding: '6px 12px', transition: 'all 0.15s' }}>
                     <div style={{ width: 19, height: 19, borderRadius: 10, background: sel ? c : '#CCC', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n[0]}</div>
                     <span style={{ fontSize: 17, fontWeight: sel ? 600 : 400, color: sel ? '#333' : '#AAA' }}>{n}</span>
                   </div>
@@ -747,81 +665,56 @@ export default function TimeGrid() {
         </div>
       )}
 
-
-      {/* Group cell tooltip — fixed positioning works with viewport coords on all screen sizes */}
       {hoveredCell && tab === 'group' && (() => {
         const key     = `${hoveredCell.day}-${hoveredCell.slot}`;
         const dayInfo = allDays[hoveredCell.day];
         const time    = fmtH(G_START + hoveredCell.slot / SPH);
-        const people  = allRespondents.map((r, i) => ({
-          name: i === 0 ? (name || '你') : (groupNames[i - 1] ?? '?'),
-          free: r[key] === 1,
-        }));
+        const people  = allRespondents.map((r, i) => ({ name: i === 0 ? (name || '你') : (groupNames[i - 1] ?? '?'), free: r[key] === 1 }));
         const avail = people.filter(p => p.free);
         const busy  = people.filter(p => !p.free);
         const allFree = avail.length === people.length;
-
         const TW = 190;
         const left = Math.max(8, Math.min(hoveredCell.cx - TW / 2, window.innerWidth - TW - 8));
         const aboveY = hoveredCell.cy - 160;
         const top  = aboveY < 140 ? hoveredCell.cy + 16 : aboveY;
         return (
-          <div key="group-tip" style={{
-            position: 'fixed', left, top, width: TW,
-            background: '#fff', borderRadius: 14, padding: '12px 14px 14px',
-            boxShadow: '0 6px 28px rgba(0,0,0,0.18)', zIndex: 50,
-            pointerEvents: isDesktop ? 'none' : 'auto',
-          }}>
+          <div key="group-tip" style={{ position: 'fixed', left, top, width: TW, background: '#fff', borderRadius: 14, padding: '12px 14px 14px', boxShadow: '0 6px 28px rgba(0,0,0,0.18)', zIndex: 50, pointerEvents: isDesktop ? 'none' : 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 2 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#8A9DA8' }}>
-                {allFree ? '所有人都有空' : `${avail.length} / ${people.length} 人有空`}
-              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#8A9DA8' }}>{allFree ? '所有人都有空' : `${avail.length} / ${people.length} 人有空`}</div>
               {!isDesktop && (
-                <button onTouchEnd={e => { e.stopPropagation(); setHoveredCell(null); }}
-                  onClick={() => setHoveredCell(null)}
+                <button onTouchEnd={e => { e.stopPropagation(); setHoveredCell(null); }} onClick={() => setHoveredCell(null)}
                   style={{ background: 'none', border: 'none', fontSize: 16, color: '#CCC', cursor: 'pointer', padding: '0 0 0 8px', lineHeight: 1 }}>✕</button>
               )}
             </div>
-            <div style={{ fontSize: 13, color: '#AAA', marginBottom: 10 }}>
-              {dayInfo?.label} {dayInfo?.date} · {time}
-            </div>
+            <div style={{ fontSize: 13, color: '#AAA', marginBottom: 10 }}>{dayInfo?.label} {dayInfo?.date} · {time}</div>
             {avail.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: busy.length ? 8 : 0 }}>
-                {avail.map(({ name: n }) => (
-                  <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: FREE_COLOR, color: '#fff', fontSize: 14, fontWeight: 600 }}>{n}</div>
-                ))}
+                {avail.map(({ name: n }) => <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: FREE_COLOR, color: '#fff', fontSize: 14, fontWeight: 600 }}>{n}</div>)}
               </div>
             )}
             {busy.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                {busy.map(({ name: n }) => (
-                  <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: '#F0F0F0', color: '#AAA', fontSize: 14 }}>{n}</div>
-                ))}
+                {busy.map(({ name: n }) => <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: '#F0F0F0', color: '#AAA', fontSize: 14 }}>{n}</div>)}
               </div>
             )}
           </div>
         );
       })()}
 
-      {/* Name modal */}
       {showNameModal && (
         <div onClick={() => setShowNameModal(false)}
           style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
           <div onClick={e => e.stopPropagation()}
             style={{ width: '100%', maxWidth: 360, background: '#fff', borderRadius: 20, padding: '28px 20px 24px', position: 'relative' }}>
             <button onClick={() => setShowNameModal(false)} style={{ position: 'absolute', top: 14, right: 14, width: 28, height: 28, borderRadius: 14, border: 'none', background: '#F0F0F0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round">
-                <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
-              </svg>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round"><line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/></svg>
             </button>
             <div style={{ fontSize: 23, fontWeight: 700, color: '#8A9DA8', marginBottom: 20 }}>輸入姓名</div>
             <input autoFocus value={name} onChange={e => setName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && name.trim() && submitResponse()}
               placeholder="輸入你的名字"
               style={{ width: '100%', padding: '13px 14px', borderRadius: 12, border: '1.5px solid #E0E0E0', fontSize: 20, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', marginBottom: 14 }} />
-            <button className="btn-primary" disabled={!name.trim() || submittingResponse}
-              onClick={submitResponse}
-              style={{ padding: '13px', opacity: name.trim() && !submittingResponse ? 1 : 0.4 }}>
+            <button className="btn-primary" disabled={!name.trim() || submittingResponse} onClick={submitResponse} style={{ padding: '13px', opacity: name.trim() && !submittingResponse ? 1 : 0.4 }}>
               {submittingResponse ? '送出中…' : '送出'}
             </button>
           </div>
