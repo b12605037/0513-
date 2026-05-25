@@ -11,19 +11,11 @@ const LABEL_W = 48;
 const LABEL_W_DESKTOP = 72;
 const SCROLL_W = 44;
 const DAYS_PER_PAGE = 4;
+const DESKTOP_DAYS_PER_PAGE = 7;
 const FREE_COLOR = '#8A9DA8';
 const SLOT_COLOR = 'rgba(47,65,86,0.28)';
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const TIMEZONES = [
-  { label: 'Asia/Taipei (GMT+8)', value: 'Asia/Taipei' },
-  { label: 'Asia/Tokyo (GMT+9)', value: 'Asia/Tokyo' },
-  { label: 'Asia/Shanghai (GMT+8)', value: 'Asia/Shanghai' },
-  { label: 'America/New_York (GMT-5)', value: 'America/New_York' },
-  { label: 'America/Los_Angeles (GMT-8)', value: 'America/Los_Angeles' },
-  { label: 'Europe/London (GMT+0)', value: 'Europe/London' },
-  { label: 'Europe/Paris (GMT+1)', value: 'Europe/Paris' },
-];
 
 const fmtH = h => {
   const hr = Math.floor(h), min = Math.round((h - hr) * 60);
@@ -112,8 +104,8 @@ export default function TimeGrid() {
   const scrollW = isDesktop ? 0 : SCROLL_W;
 
   const [tab,  setTab]  = useState('mine');
-  const [timezone, setTimezone] = useState('Asia/Taipei');
   const [page, setPage] = useState(0);
+  const [desktopPage, setDesktopPage] = useState(0);
   const [slots, setSlots] = useState(() => state?.mySlots ?? initSlots(totalDays, TOTAL));
   const [showNameModal, setShowNameModal] = useState(false);
   const [name, setName] = useState(state?.myName ?? '');
@@ -136,7 +128,7 @@ export default function TimeGrid() {
   useEffect(() => {
     setShowBottomFade(true);
     setScrollThumb({ top: 0, h: 100 });
-  }, [tab, page]);
+  }, [tab, page, desktopPage]);
 
   const handleGridScroll = (e) => {
     const el = e.currentTarget;
@@ -371,11 +363,14 @@ export default function TimeGrid() {
     setHoveredCell({ day, slot, cx: e.clientX, cy: e.clientY });
   };
 
-  // Mobile: paginated; Desktop: all days
-  const pageStart    = page * DAYS_PER_PAGE;
-  const pageDays     = allDays.slice(pageStart, pageStart + DAYS_PER_PAGE);
-  const displayDays  = isDesktop ? allDays : pageDays;
-  const displayStart = isDesktop ? 0 : pageStart;
+  // Mobile: paginated 4 days; Desktop: paginated 7 days
+  const pageStart         = page * DAYS_PER_PAGE;
+  const pageDays          = allDays.slice(pageStart, pageStart + DAYS_PER_PAGE);
+  const desktopPageStart  = desktopPage * DESKTOP_DAYS_PER_PAGE;
+  const desktopPageDays   = allDays.slice(desktopPageStart, desktopPageStart + DESKTOP_DAYS_PER_PAGE);
+  const desktopTotalPages = Math.ceil(totalDays / DESKTOP_DAYS_PER_PAGE);
+  const displayDays       = isDesktop ? desktopPageDays : pageDays;
+  const displayStart      = isDesktop ? desktopPageStart : pageStart;
 
   const surveyLabel = useMemo(() => {
     if (!state?.rangeStart) return '';
@@ -433,9 +428,9 @@ export default function TimeGrid() {
             <input value={name} onChange={e => setName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && name.trim() && !submittingResponse && submitResponse()}
               placeholder="你的名字"
-              style={{ padding: '8px 14px', borderRadius: 8, border: '1.5px solid #E0E0E0', fontSize: 15, fontFamily: 'inherit', outline: 'none', width: 160, transition: 'border-color 0.15s' }} />
+              style={{ padding: '11px 18px', borderRadius: 10, border: '1.5px solid #E0E0E0', fontSize: 18, fontFamily: 'inherit', outline: 'none', width: 200, transition: 'border-color 0.15s' }} />
             <button onClick={() => name.trim() && !submittingResponse && submitResponse()}
-              style={{ padding: '9px 22px', borderRadius: 8, background: name.trim() ? '#8A9DA8' : '#D0D8DC', color: '#fff', border: 'none', fontSize: 15, fontWeight: 700, cursor: name.trim() ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap' }}>
+              style={{ padding: '11px 30px', borderRadius: 10, background: name.trim() ? '#8A9DA8' : '#D0D8DC', color: '#fff', border: 'none', fontSize: 18, fontWeight: 700, cursor: name.trim() ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'background 0.2s', whiteSpace: 'nowrap' }}>
               {submittingResponse ? '送出中…' : '送出'}
             </button>
           </div>
@@ -481,34 +476,45 @@ export default function TimeGrid() {
         </>
       )}
 
-      {/* Desktop controls bar: tabs + autofill + timezone */}
+      {/* Desktop controls bar: tabs + autofill + week nav */}
       {isDesktop && (
         <div style={{ borderBottom: '1px solid #F0F0F0', flexShrink: 0, background: '#fff' }}>
-          <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 48px', display: 'flex', alignItems: 'center', height: 52, gap: 16 }}>
-            <div style={{ display: 'flex', background: '#F0F0F0', borderRadius: 8, padding: 3 }}>
-              {[['mine', 'Your Time'], ['group', 'Group Time']].map(([key, label]) => (
+          <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 48px', display: 'flex', alignItems: 'center', height: 64, gap: 16 }}>
+            {/* Tabs */}
+            <div style={{ display: 'flex', background: '#F0F0F0', borderRadius: 10, padding: 4 }}>
+              {[['mine', '我的時間'], ['group', '群組時間']].map(([key, label]) => (
                 <button key={key} onClick={() => setTab(key)} style={{
-                  padding: '5px 16px', borderRadius: 6, border: 'none', fontFamily: 'inherit',
-                  fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.18s',
-                  background: tab === key ? '#fff' : 'transparent',
-                  color: tab === key ? FREE_COLOR : '#AAA',
-                  boxShadow: tab === key ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  padding: '10px 24px', borderRadius: 8, border: 'none', fontFamily: 'inherit',
+                  fontSize: 17, fontWeight: 700, cursor: 'pointer', transition: 'all 0.18s',
+                  background: tab === key ? FREE_COLOR : 'transparent',
+                  color: tab === key ? '#fff' : '#BBB',
+                  boxShadow: tab === key ? '0 2px 6px rgba(138,157,168,0.35)' : 'none',
                 }}>{label}</button>
               ))}
             </div>
+            {/* Autofill button */}
             {tab === 'mine' && (
               <button onClick={autofillBestTime}
-                style={{ padding: '5px 14px', borderRadius: 8, border: `1px solid ${FREE_COLOR}`, background: 'transparent', color: FREE_COLOR, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                style={{ padding: '10px 22px', borderRadius: 10, border: `2px solid ${FREE_COLOR}`, background: 'transparent', color: FREE_COLOR, fontSize: 16, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 填入最佳時段
               </button>
             )}
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 13, color: '#AAA', fontWeight: 500, whiteSpace: 'nowrap' }}>時區</span>
-              <select value={timezone} onChange={e => setTimezone(e.target.value)}
-                style={{ padding: '4px 8px', borderRadius: 6, border: '1.5px solid #E8E8E8', fontSize: 12, fontFamily: 'inherit', color: '#555', background: '#fff', cursor: 'pointer', outline: 'none' }}>
-                {TIMEZONES.map(tz => <option key={tz.value} value={tz.value}>{tz.label}</option>)}
-              </select>
-            </div>
+            {/* Week navigation */}
+            {desktopTotalPages > 1 && (
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <button onClick={() => setDesktopPage(p => Math.max(0, p - 1))} style={{
+                  background: 'none', border: 'none', fontSize: 26, color: desktopPage > 0 ? FREE_COLOR : '#DDD',
+                  padding: '4px 10px', cursor: desktopPage > 0 ? 'pointer' : 'default', lineHeight: 1,
+                }}>‹</button>
+                <span style={{ fontSize: 15, fontWeight: 600, color: '#888', minWidth: 120, textAlign: 'center' }}>
+                  {pageNavLabel(desktopPageDays)}
+                </span>
+                <button onClick={() => setDesktopPage(p => Math.min(desktopTotalPages - 1, p + 1))} style={{
+                  background: 'none', border: 'none', fontSize: 26, color: desktopPage < desktopTotalPages - 1 ? FREE_COLOR : '#DDD',
+                  padding: '4px 10px', cursor: desktopPage < desktopTotalPages - 1 ? 'pointer' : 'default', lineHeight: 1,
+                }}>›</button>
+              </div>
+            )}
           </div>
         </div>
       )}
