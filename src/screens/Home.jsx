@@ -51,7 +51,7 @@ function sameDay(a, b) {
 }
 
 // ── Duration Slider ────────────────────────────────────────────────────────────
-function DurationSlider({ value, onChange }) {
+function DurationSlider({ value, onChange, scale = 1 }) {
   const trackRef = useRef(null);
   const slot = dMinsToSlot(value);
   const pct = (slot / DURATION_TOTAL) * 100;
@@ -80,7 +80,7 @@ function DurationSlider({ value, onChange }) {
   return (
     <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0' }}>
       <div style={{ background: '#e8eef1', borderRadius: 8, padding: '12px', textAlign: 'center', marginBottom: 20 }}>
-        <div style={{ fontSize: Number(value) === 0 ? 36 : 55, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtDuration(value)}</div>
+        <div style={{ fontSize: Math.round((Number(value) === 0 ? 36 : 55) * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtDuration(value)}</div>
       </div>
       <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
         <div style={{ position: 'absolute', left: 0, width: `${pct}%`, top: 0, bottom: 0, background: '#8A9DA8', borderRadius: 3 }} />
@@ -90,7 +90,7 @@ function DurationSlider({ value, onChange }) {
         {DURATION_TICKS.map(({ label, slot: s }, i) => {
           const p = (s / DURATION_TOTAL) * 100;
           const transform = i === 0 ? 'none' : i === DURATION_TICKS.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)';
-          return <span key={label} style={{ position: 'absolute', left: `${p}%`, transform, fontSize: 19, color: '#CCC', fontWeight: 500, whiteSpace: 'nowrap' }}>{label}</span>;
+          return <span key={label} style={{ position: 'absolute', left: `${p}%`, transform, fontSize: Math.round(19 * scale), color: '#CCC', fontWeight: 500, whiteSpace: 'nowrap' }}>{label}</span>;
         })}
       </div>
     </div>
@@ -98,7 +98,7 @@ function DurationSlider({ value, onChange }) {
 }
 
 // ── Time Range Slider ──────────────────────────────────────────────────────────
-function TimeRangeSlider({ startSlot, endSlot, onChange }) {
+function TimeRangeSlider({ startSlot, endSlot, onChange, scale = 1 }) {
   const trackRef = useRef(null);
   const dragging = useRef(null);
   const slotToPct = (s) => (s / SLIDER_TOTAL) * 100;
@@ -137,11 +137,11 @@ function TimeRangeSlider({ startSlot, endSlot, onChange }) {
     <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
         <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: 46, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtSlot(startSlot)} <span style={{ fontSize: 25, fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
+          <div style={{ fontSize: Math.round(46 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtSlot(startSlot)} <span style={{ fontSize: Math.round(25 * scale), fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
         </div>
-        <div style={{ color: '#CCC', fontSize: 36 }}>→</div>
+        <div style={{ color: '#CCC', fontSize: Math.round(36 * scale) }}>→</div>
         <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: 46, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtSlot(endSlot)} <span style={{ fontSize: 25, fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
+          <div style={{ fontSize: Math.round(46 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtSlot(endSlot)} <span style={{ fontSize: Math.round(25 * scale), fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
         </div>
       </div>
       <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
@@ -149,7 +149,7 @@ function TimeRangeSlider({ startSlot, endSlot, onChange }) {
         <div onMouseDown={startDrag('start')} onTouchStart={startDrag('start')} style={{ position: 'absolute', left: `calc(${sPct}% - 11px)`, top: -8, width: 22, height: 22, borderRadius: 11, background: '#8A9DA8', border: '3px solid #fff', boxShadow: '0 1px 6px rgba(138,157,168,0.45)', cursor: 'grab', zIndex: 2, touchAction: 'none' }} />
         <div onMouseDown={startDrag('end')} onTouchStart={startDrag('end')} style={{ position: 'absolute', left: `calc(${ePct}% - 11px)`, top: -8, width: 22, height: 22, borderRadius: 11, background: '#8A9DA8', border: '3px solid #fff', boxShadow: '0 1px 6px rgba(138,157,168,0.45)', cursor: 'grab', zIndex: 2, touchAction: 'none' }} />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 19, color: '#CCC', fontWeight: 500, paddingLeft: 11, paddingRight: 11 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: Math.round(19 * scale), color: '#CCC', fontWeight: 500, paddingLeft: 11, paddingRight: 11 }}>
         {TICK_LABELS.map(t => <span key={t}>{t}</span>)}
       </div>
     </div>
@@ -157,7 +157,7 @@ function TimeRangeSlider({ startSlot, endSlot, onChange }) {
 }
 
 // ── Date Multi-select Picker ───────────────────────────────────────────────────
-function DateMultiPicker({ selectedDates, onChange, large = false }) {
+function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) {
   const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
   const mkKey  = (dt) => `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
   const fromKey = (k)  => { const [y,m,d] = k.split('-').map(Number); return new Date(y,m,d); };
@@ -263,8 +263,8 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
         {count <= 1 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: 3, background: count > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
-            <span style={{ fontSize: 22, fontWeight: 600, color: count > 0 ? '#8A9DA8' : '#F57F17' }}>{label}</span>
-            {count > 0 && <button onClick={() => onChangeRef.current([])} style={{ marginLeft: 'auto', fontSize: 22, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>}
+            <span style={{ fontSize: Math.round(22 * scale), fontWeight: 600, color: count > 0 ? '#8A9DA8' : '#F57F17' }}>{label}</span>
+            {count > 0 && <button onClick={() => onChangeRef.current([])} style={{ marginLeft: 'auto', fontSize: Math.round(22 * scale), fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>}
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
@@ -277,24 +277,24 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
                   ? `${s.getMonth()+1}/${s.getDate()}–${e.getDate()}`
                   : `${s.getMonth()+1}/${s.getDate()}–${e.getMonth()+1}/${e.getDate()}`;
                 return (
-                  <span key={i} style={{ fontSize: 19, fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 5, padding: '2px 7px' }}>
+                  <span key={i} style={{ fontSize: Math.round(19 * scale), fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 5, padding: '2px 7px' }}>
                     {label}
                   </span>
                 );
               })}
             </div>
-            <button onClick={() => onChangeRef.current([])} style={{ flexShrink: 0, fontSize: 22, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
+            <button onClick={() => onChangeRef.current([])} style={{ flexShrink: 0, fontSize: Math.round(22 * scale), fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
           </div>
         )}
       </div>
       <div style={{ padding: large ? '20px 28px 24px' : '20px 10px 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="left" size={18} /></button>
-          <span style={{ fontSize: 31, fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
+          <span style={{ fontSize: large ? 31 : Math.round(31 * scale), fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="right" size={18} /></button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', columnGap: large ? 6 : 2, marginBottom: 4 }}>
-          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 22, fontWeight: 600, color: '#91AEC4', padding: '4px 0' }}>{d}</div>)}
+          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: large ? 22 : Math.round(22 * scale), fontWeight: 600, color: '#91AEC4', padding: '4px 0' }}>{d}</div>)}
         </div>
         <div ref={calRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', rowGap: large ? 10 : 4, columnGap: large ? 6 : 2 }}>
           {Array.from({ length: firstDow }).map((_, i) => <div key={'e' + i} />)}
@@ -312,8 +312,9 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
             const prevSel = selected && displaySet.has(mkKey(new Date(viewYear, viewMonth, d - 1)));
             const nextSel = selected && displaySet.has(mkKey(new Date(viewYear, viewMonth, d + 1)));
             // Band stretches left if prev is selected (and not at row start), right if next is selected
-            const bandL = (!prevSel || isFirstInRow) ? '50%' : '-3px';
-            const bandR = (!nextSel || isLastInRow)  ? '50%' : '-3px';
+            const bandExt = large ? '-3px' : '-1px';
+            const bandL = (!prevSel || isFirstInRow) ? '50%' : bandExt;
+            const bandR = (!nextSel || isLastInRow)  ? '50%' : bandExt;
 
             return (
               <div key={d} data-dkey={disabled ? undefined : key}
@@ -333,7 +334,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
                 )}
 
                 {/* Date circle */}
-                <div style={{ width: large ? 65 : 32, height: large ? 65 : 32, borderRadius: large ? 33 : 16, margin: '2px auto 0', position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: large ? 31 : 16, fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8', transition: 'background 0.08s' }}>{d}</div>
+                <div style={{ width: large ? 65 : 32, height: large ? 65 : 32, borderRadius: large ? 33 : 16, margin: '2px auto 0', position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: large ? 31 : Math.round(16 * scale), fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8', transition: 'background 0.08s' }}>{d}</div>
               </div>
             );
           })}
@@ -472,16 +473,16 @@ export default function Home() {
   const formBlock = (
     <>
       <div className="form-field">
-        <label className="form-label">選取日期 <span style={{ color: '#E53935' }}>*</span></label>
-        <DateMultiPicker selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
-        {dateError && <div style={{ fontSize: 13, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
+        <label className="form-label" style={{ fontSize: 13 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
+        <DateMultiPicker scale={0.8} selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
+        {dateError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
       </div>
 
       <div className="form-field">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <label className="form-label" style={{ marginBottom: 0 }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
+          <label className="form-label" style={{ marginBottom: 0, fontSize: 13 }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 16, fontWeight: 500, color: '#888' }}>全天</span>
+            <span style={{ fontSize: 13, fontWeight: 500, color: '#888' }}>全天</span>
             <div onClick={() => { setAllDay(v => !v); setTimeError(''); }} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
               <div style={{ position: 'absolute', top: 2, left: allDay ? 18 : 2, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
             </div>
@@ -489,17 +490,18 @@ export default function Home() {
         </div>
         <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
           <TimeRangeSlider
+            scale={0.8}
             startSlot={allDay ? 0 : startSlot}
             endSlot={allDay ? SLIDER_TOTAL : endSlot}
             onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }}
           />
         </div>
-        {timeError && <div style={{ fontSize: 13, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
+        {timeError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
       </div>
 
       <div className="form-field">
-        <label className="form-label">活動時長（選填）</label>
-        <DurationSlider value={duration} onChange={setDuration} />
+        <label className="form-label" style={{ fontSize: 13 }}>活動時長（選填）</label>
+        <DurationSlider scale={0.8} value={duration} onChange={setDuration} />
       </div>
     </>
   );
