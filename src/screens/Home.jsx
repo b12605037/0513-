@@ -308,8 +308,8 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
               <div key={d} data-dkey={disabled ? undefined : key}
                 onMouseDown={() => !disabled && mouseDown(key)}
                 onMouseEnter={() => !disabled && mouseEnter(key)}
-                style={{ height: large ? 64 : 36, cursor: disabled ? 'default' : 'pointer' }}>
-                <div style={{ width: large ? 50 : 32, height: large ? 50 : 32, borderRadius: large ? 25 : 16, margin: '2px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: 16, fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8', transition: 'background 0.08s' }}>{d}</div>
+                style={{ height: large ? 52 : 36, cursor: disabled ? 'default' : 'pointer' }}>
+                <div style={{ width: large ? 42 : 32, height: large ? 42 : 32, borderRadius: large ? 21 : 16, margin: '2px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: large ? 18 : 16, fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8', transition: 'background 0.08s' }}>{d}</div>
               </div>
             );
           })}
@@ -324,8 +324,10 @@ export default function Home() {
   const navigate = useNavigate();
   const isDesktop = useDesktop();
   const [recentEvents, setRecentEvents] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('meetime_recent') || '[]'); }
-    catch { return []; }
+    try {
+      const raw = JSON.parse(localStorage.getItem('meetime_recent') || '[]');
+      return Array.isArray(raw) ? raw.filter(e => e && typeof e === 'object' && typeof e.name === 'string' && e.name.length > 0) : [];
+    } catch { return []; }
   });
   const handleClearHistory = () => {
     if (!window.confirm('確定要清除全部紀錄嗎？')) return;
@@ -549,84 +551,70 @@ export default function Home() {
   );
 
   return (
-    <div className="app-container" style={!isDesktop ? { background: '#fff' } : undefined}>
+    <div className="app-container" style={isDesktop ? { overflowY: 'auto', height: 'auto', minHeight: '100vh' } : { background: '#fff' }}>
 
       {isDesktop ? (
-        /* ── Desktop: 6:4 two-column ── */
+        /* ── Desktop: two-column, full page scroll ── */
         <>
           {/* Nav: logo only */}
-          <div style={{ height: 60, display: 'flex', alignItems: 'center', padding: '0 32px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
+          <div style={{ height: 60, display: 'flex', alignItems: 'center', padding: '0 60px', borderBottom: '1px solid #F0F0F0' }}>
             <span style={{ fontSize: 22, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
           </div>
 
           {/* Two-column body */}
-          <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          <div style={{ maxWidth: 1300, margin: '0 auto', padding: '40px 60px 60px', display: 'flex', gap: 48, alignItems: 'flex-start' }}>
 
-            {/* Left (60%): form + sticky submit */}
-            <div style={{ width: '60%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* Left (65%): form + submit */}
+            <div style={{ flex: 65, minWidth: 0 }}>
 
-              {/* Scrollable form fields */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '40px 60px 0' }}>
+              {/* Date picker */}
+              <div style={{ marginBottom: 32 }}>
+                <label style={{ fontSize: 16, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
+                <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
+                {dateError && <div style={{ fontSize: 14, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
+              </div>
 
-                {/* Date picker */}
-                <div style={{ marginBottom: 32 }}>
-                  <label style={{ fontSize: 16, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
-                  <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
-                  {dateError && <div style={{ fontSize: 14, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
-                </div>
-
-                {/* Time range */}
-                <div style={{ marginBottom: 32 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <label style={{ fontSize: 16, fontWeight: 700, color: '#555' }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontSize: 15, fontWeight: 500, color: '#888' }}>全天</span>
-                      <div onClick={() => { setAllDay(v => !v); setTimeError(''); }} style={{ width: 44, height: 26, borderRadius: 13, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
-                        <div style={{ position: 'absolute', top: 3, left: allDay ? 20 : 3, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
-                      </div>
+              {/* Time range */}
+              <div style={{ marginBottom: 32 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <label style={{ fontSize: 16, fontWeight: 700, color: '#555' }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 15, fontWeight: 500, color: '#888' }}>全天</span>
+                    <div onClick={() => { setAllDay(v => !v); setTimeError(''); }} style={{ width: 44, height: 26, borderRadius: 13, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+                      <div style={{ position: 'absolute', top: 3, left: allDay ? 20 : 3, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
                     </div>
                   </div>
-                  <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-                    <TimeRangeSlider startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} />
-                  </div>
-                  {timeError && <div style={{ fontSize: 14, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
                 </div>
-
-                {/* Duration */}
-                <div style={{ marginBottom: 32 }}>
-                  <label style={{ fontSize: 16, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>活動時長（選填）</label>
-                  <DurationSlider value={duration} onChange={setDuration} />
+                <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
+                  <TimeRangeSlider startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} />
                 </div>
-
+                {timeError && <div style={{ fontSize: 14, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
               </div>
 
-              {/* Submit — sticky at bottom of left column */}
-              <div style={{ padding: '16px 60px 32px', borderTop: '1px solid #F5F5F5', flexShrink: 0 }}>
-                <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 16 }}>
-                  建立活動
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                  </svg>
-                </button>
+              {/* Duration */}
+              <div style={{ marginBottom: 32 }}>
+                <label style={{ fontSize: 16, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>活動時長（選填）</label>
+                <DurationSlider value={duration} onChange={setDuration} />
               </div>
+
+              {/* Submit */}
+              <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 16 }}>
+                建立活動
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </button>
             </div>
 
-            {/* 1px vertical divider */}
-            <div style={{ width: 1, background: '#F0F0F0', flexShrink: 0 }} />
-
-            {/* Right (40%): recent events */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-
-              {/* Header */}
-              <div style={{ padding: '40px 60px 16px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 17, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
-                {recentEvents.length > 0 && (
-                  <button onClick={handleClearHistory} style={{ fontSize: 13, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
-                )}
-              </div>
-
-              {/* Scrollable list */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '0 60px 32px' }}>
+            {/* Right (35%): recent events, sticky */}
+            <div style={{ flex: 35, minWidth: 0 }}>
+              <div style={{ position: 'sticky', top: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                  <span style={{ fontSize: 17, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
+                  {recentEvents.length > 0 && (
+                    <button onClick={handleClearHistory} style={{ fontSize: 13, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
+                  )}
+                </div>
                 {recentEvents.length === 0 ? (
                   <div style={{ textAlign: 'center', color: '#CCC', fontSize: 15, padding: '32px 0' }}>尚無建立紀錄</div>
                 ) : (
@@ -636,7 +624,7 @@ export default function Home() {
                     const color = DOT_COLORS[i % DOT_COLORS.length];
                     return (
                       <div key={ev.id} onClick={() => navigate(`/view/${ev.id}`)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 16, cursor: 'pointer' }}>
+                        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 12, cursor: 'pointer' }}>
                         <div style={{ width: 9, height: 9, borderRadius: '50%', background: color, flexShrink: 0 }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 14, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
