@@ -612,7 +612,7 @@ export default function Home() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                   <span style={{ fontSize: 22, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
                   {recentEvents.length > 0 && (
-                    <button onClick={handleClearHistory} style={{ fontSize: 16, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
+                    <button onClick={handleClearHistory} style={{ fontSize: 16, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>清除紀錄</button>
                   )}
                 </div>
                 {recentEvents.length === 0 ? (
@@ -629,7 +629,7 @@ export default function Home() {
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 17, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
                         </div>
-                        <div style={{ fontSize: 16, color: '#CCC', flexShrink: 0, marginLeft: 8 }}>{timeLabel}</div>
+                        <div style={{ fontSize: 16, color: '#CCC', flexShrink: 0, marginLeft: 8, whiteSpace: 'nowrap' }}>{timeLabel}</div>
                       </div>
                     );
                   })
