@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import mixpanel from '../lib/mixpanel';
 import { IcChevron } from '../components/Icons';
 import { supabase } from '../lib/supabase';
 import { useDesktop } from '../hooks/useDesktop';
