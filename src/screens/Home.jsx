@@ -558,14 +558,14 @@ export default function Home() {
         <>
           {/* Nav: logo only */}
           <div style={{ height: 72, display: 'flex', alignItems: 'center', padding: '0 40px', borderBottom: '1px solid #F0F0F0' }}>
-            <span style={{ fontSize: 32, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
+            <span style={{ fontSize: 40, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
           </div>
 
           {/* Two-column body */}
           <div style={{ maxWidth: 1440, margin: '0 auto', padding: '40px 40px 60px', display: 'flex', gap: 32, alignItems: 'flex-start' }}>
 
-            {/* Left (80%): form + submit */}
-            <div style={{ flex: '0 0 80%', minWidth: 0, width: '80%' }}>
+            {/* Left (77%): form + submit */}
+            <div style={{ flex: '0 0 77%', minWidth: 0, width: '77%' }}>
 
               {/* Date picker */}
               <div style={{ marginBottom: 32 }}>
