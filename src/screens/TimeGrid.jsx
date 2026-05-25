@@ -606,6 +606,16 @@ export default function TimeGrid() {
 
           <div style={{ position: 'absolute', bottom: 0, left: isDesktop ? 52 : 0, right: isDesktop ? 52 : 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
 
+          {/* Desktop: "你" badge — right edge, vertically centered */}
+          {isDesktop && (
+            <div style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', zIndex: 100, pointerEvents: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 18, background: FREE_COLOR, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, boxShadow: '0 2px 10px rgba(138,157,168,0.45)' }}>
+                {(name || '你')[0].toUpperCase()}
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 700, color: FREE_COLOR, textAlign: 'center', maxWidth: 44, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name || '你'}</span>
+            </div>
+          )}
+
           {/* Desktop mine tab tooltip */}
           {isDesktop && desktopMineTooltip && (
             <div style={{
@@ -703,6 +713,16 @@ export default function TimeGrid() {
           )}
 
           <div style={{ position: 'absolute', bottom: 0, left: isDesktop ? 52 : 0, right: isDesktop ? 52 : 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
+
+          {/* Desktop: "你" badge — right edge, vertically centered */}
+          {isDesktop && (
+            <div style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', zIndex: 100, pointerEvents: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 18, background: FREE_COLOR, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, boxShadow: '0 2px 10px rgba(138,157,168,0.45)' }}>
+                {(name || '你')[0].toUpperCase()}
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 700, color: FREE_COLOR, textAlign: 'center', maxWidth: 44, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name || '你'}</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -745,22 +765,6 @@ export default function TimeGrid() {
         )}
       </div>
 
-      {/* Desktop: floating "you" badge at bottom-right */}
-      {isDesktop && (
-        <div style={{
-          position: 'fixed', bottom: 44, right: 32, zIndex: 300,
-          display: 'flex', alignItems: 'center', gap: 10,
-          background: FREE_COLOR, color: '#fff',
-          borderRadius: 28, padding: '10px 18px',
-          boxShadow: '0 4px 20px rgba(138,157,168,0.5)',
-          fontSize: 16, fontWeight: 700, pointerEvents: 'none',
-        }}>
-          <div style={{ width: 30, height: 30, borderRadius: 15, background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 800 }}>
-            {(name || '你')[0].toUpperCase()}
-          </div>
-          <span>{name || '你'}</span>
-        </div>
-      )}
 
       {/* Group cell tooltip — fixed positioning works with viewport coords on all screen sizes */}
       {hoveredCell && tab === 'group' && (() => {
@@ -802,7 +806,7 @@ export default function TimeGrid() {
             {avail.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: busy.length ? 8 : 0 }}>
                 {avail.map(({ name: n }) => (
-                  <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: '#1A1A1A', color: '#fff', fontSize: 14, fontWeight: 600 }}>{n}</div>
+                  <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: FREE_COLOR, color: '#fff', fontSize: 14, fontWeight: 600 }}>{n}</div>
                 ))}
               </div>
             )}
