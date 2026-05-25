@@ -612,7 +612,7 @@ export default function CreateEvent() {
                 <input className="form-input" value={form.name} onChange={e => up('name', e.target.value)} placeholder="例：週會、團隊討論" />
               </div>
               <div className="form-field">
-                <label className="form-label">活動時長（選填）</label>
+                <label className="form-label">預計會議時長（選填）</label>
                 <DurationSlider value={form.duration} onChange={(v) => up('duration', v)} />
               </div>
               <div className="form-field">
@@ -737,7 +737,7 @@ export default function CreateEvent() {
                   if (selectedDates.length <= 3) return selectedDates.map(d => `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}`).join('、');
                   return `${SHORT_MONTHS[rs.getMonth()]} ${rs.getDate()} – ${SHORT_MONTHS[re.getMonth()]} ${re.getDate()} (${selectedDates.length}天)`;
                 })() },
-              { label: '活動時長', value: fmtDuration(form.duration) },
+              { label: '預計會議時長', value: fmtDuration(form.duration) },
             ].map(({ label, value }) => (
               <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                 <span style={{ fontSize: 16, color: '#AAA', fontWeight: 400 }}>{label}</span>

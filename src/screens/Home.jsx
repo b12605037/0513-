@@ -496,7 +496,7 @@ export default function Home() {
       </div>
 
       <div className="form-field">
-        <label className="form-label" style={{ fontSize: 13 }}>活動時長（選填）</label>
+        <label className="form-label" style={{ fontSize: 13 }}>預計會議時長（選填）</label>
         <DurationSlider scale={0.8} value={duration} onChange={setDuration} />
       </div>
     </>
@@ -521,7 +521,7 @@ export default function Home() {
               : selectedDates.length <= 3 ? selectedDates.map(d => `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}`).join('、')
               : `${SHORT_MONTHS[selectedDates[0].getMonth()]} ${selectedDates[0].getDate()} – ${SHORT_MONTHS[selectedDates[selectedDates.length-1].getMonth()]} ${selectedDates[selectedDates.length-1].getDate()} (${selectedDates.length}天)` },
             { label: '調查時段', value: allDay ? '全天' : `${fmtSlot(startSlot)} ${fmtPeriod(startSlot)} – ${fmtSlot(endSlot)} ${fmtPeriod(endSlot)}` },
-            { label: '活動時長', value: fmtDuration(duration) },
+            { label: '預計會議時長', value: fmtDuration(duration) },
           ].map(({ label, value }) => (
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0' }}>
               <span style={{ fontSize: 18, color: '#AAA' }}>{label}</span>
@@ -640,7 +640,7 @@ export default function Home() {
             </div>
 
             <div style={{ marginBottom: 32 }}>
-              <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>活動時長（選填）</label>
+              <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>預計會議時長（選填）</label>
               <DurationSlider value={duration} onChange={setDuration} />
             </div>
 
