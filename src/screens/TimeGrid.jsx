@@ -9,7 +9,6 @@ const SLOT_H = 28;
 const SLOT_H_DESKTOP = 54;
 const LABEL_W = 48;
 const LABEL_W_DESKTOP = 72;
-const DOW_ZH_MAP = { Sun: '日', Mon: '一', Tue: '二', Wed: '三', Thu: '四', Fri: '五', Sat: '六' };
 const SCROLL_W = 44;
 const DAYS_PER_PAGE = 4;
 const DESKTOP_DAYS_PER_PAGE = 7;
@@ -142,8 +141,9 @@ export default function TimeGrid() {
   useEffect(() => { pageRef.current = page; }, [page]);
   useEffect(() => { slotsRef.current = { ...slots }; }, [slots]);
 
-  const dragRef         = useRef({ active: false, target: 0, lastKey: null });
-  const gestureRef      = useRef({ phase: 'idle', startX: 0, startY: 0, startDay: null, startSlot: null });
+  const dragRef             = useRef({ active: false, target: 0, lastKey: null });
+  const gestureRef          = useRef({ phase: 'idle', startX: 0, startY: 0, startDay: null, startSlot: null });
+  const desktopSwipeRef     = useRef(null);
   const scrollContainerRef  = useRef(null);
   const groupScrollRef      = useRef(null);
 
@@ -261,10 +261,15 @@ export default function TimeGrid() {
     if (g.phase === 'pending' && g.startDay !== null) { startDrag(g.startDay, g.startSlot); flushSlots(); }
     else if (g.phase === 'paint') { flushSlots(); }
     else if (g.phase === 'swipe') {
-      const dx  = e.changedTouches[0].clientX - g.startX;
-      const cur = pageRef.current;
-      if (dx < -50 && cur < totalPages - 1) setPage(cur + 1);
-      if (dx >  50 && cur > 0)             setPage(cur - 1);
+      const dx = e.changedTouches[0].clientX - g.startX;
+      if (isDesktop) {
+        if (dx < -50) setDesktopPage(p => Math.min(desktopTotalPages - 1, p + 1));
+        if (dx >  50) setDesktopPage(p => Math.max(0, p - 1));
+      } else {
+        const cur = pageRef.current;
+        if (dx < -50 && cur < totalPages - 1) setPage(cur + 1);
+        if (dx >  50 && cur > 0)             setPage(cur - 1);
+      }
     }
     g.phase = 'idle';
     dragRef.current.active = false;
@@ -273,6 +278,20 @@ export default function TimeGrid() {
   const handleMouseDown  = (d, s) => startDrag(d, s);
   const handleMouseEnter = (d, s) => moveDrag(d, s);
   const handleMouseUp    = () => { dragRef.current.active = false; flushSlots(); };
+
+  // Desktop: track swipe on non-cell areas (label col, day header)
+  const handleContainerMouseDown = (e) => {
+    if (!e.target.dataset.day) desktopSwipeRef.current = e.clientX;
+  };
+  const handleContainerMouseUp = (e) => {
+    if (desktopSwipeRef.current !== null && desktopTotalPages > 1) {
+      const dx = e.clientX - desktopSwipeRef.current;
+      if (dx < -50) setDesktopPage(p => Math.min(desktopTotalPages - 1, p + 1));
+      else if (dx > 50) setDesktopPage(p => Math.max(0, p - 1));
+    }
+    desktopSwipeRef.current = null;
+    handleMouseUp();
+  };
 
   const fillDay = (dayIdx) => {
     const allFilled = Array.from({ length: TOTAL }, (_, s) => slotsRef.current[`${dayIdx}-${s}`] === 1).every(Boolean);
@@ -386,27 +405,20 @@ export default function TimeGrid() {
   // ── Shared day-header — reads displayDays/displayStart/labelW/scrollW from closure
   const DayHeader = ({ onDayClick } = {}) => (
     <div style={{ display: 'flex', position: 'sticky', top: 0, background: '#fff', zIndex: 20, borderBottom: isDesktop ? '2px solid #DDD' : '1px solid #EBEBEB' }}>
-      {/* Desktop: left prev-week arrow, overlays the label spacer */}
-      {isDesktop && desktopTotalPages > 1 && (
-        <button onClick={() => setDesktopPage(p => Math.max(0, p - 1))}
-          style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: labelW, zIndex: 5,
-            background: 'none', border: 'none', fontSize: 30, color: desktopPage > 0 ? FREE_COLOR : '#DDD',
-            cursor: desktopPage > 0 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
-      )}
-      <div style={{ width: labelW, flexShrink: 0 }} />
+      <div style={{ width: labelW, flexShrink: 0, borderRight: isDesktop ? '1px solid #E0E0E0' : 'none' }} />
       {displayDays.map((d, i) => {
         const isToday = (displayStart + i) === todayIdx;
         const globalIdx = displayStart + i;
         return (
           <div key={i} onClick={() => onDayClick?.(globalIdx)}
-            style={{ flex: 1, textAlign: 'center', padding: isDesktop ? '10px 0 12px' : '5px 0 6px', cursor: onDayClick ? 'pointer' : 'default', minWidth: isDesktop ? 80 : undefined, borderLeft: isDesktop && i > 0 ? '1px solid #EBEBEB' : 'none' }}>
+            style={{ flex: 1, textAlign: 'center', padding: isDesktop ? '10px 0 12px' : '5px 0 6px', cursor: onDayClick ? 'pointer' : 'default', minWidth: isDesktop ? 100 : undefined, borderLeft: isDesktop && i > 0 ? '1px solid #EBEBEB' : 'none' }}>
             {isDesktop ? (
               <>
                 <div style={{ fontSize: 15, fontWeight: 700, color: isToday ? '#8A9DA8' : '#888', letterSpacing: '-0.01em' }}>
                   {MON[d.month]} {d.date}
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: isToday ? '#8A9DA8' : '#AAA', marginTop: 3, letterSpacing: '0.03em' }}>
-                  週{DOW_ZH_MAP[d.label]}
+                <div style={{ fontSize: 12, fontWeight: 700, color: isToday ? '#8A9DA8' : '#AAA', marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  {d.label}
                 </div>
               </>
             ) : (
@@ -418,13 +430,6 @@ export default function TimeGrid() {
           </div>
         );
       })}
-      {/* Desktop: right next-week arrow */}
-      {isDesktop && desktopTotalPages > 1 && (
-        <button onClick={() => setDesktopPage(p => Math.min(desktopTotalPages - 1, p + 1))}
-          style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 50, zIndex: 5,
-            background: 'none', border: 'none', fontSize: 30, color: desktopPage < desktopTotalPages - 1 ? FREE_COLOR : '#DDD',
-            cursor: desktopPage < desktopTotalPages - 1 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
-      )}
       {scrollW > 0 && <div style={{ width: scrollW, flexShrink: 0 }} />}
     </div>
   );
@@ -436,7 +441,7 @@ export default function TimeGrid() {
       {isDesktop ? (
         /* Desktop: activity name + name input + submit */
         <div style={{ height: 64, borderBottom: '1px solid #F0F0F0', flexShrink: 0, display: 'flex', alignItems: 'center', background: '#fff' }}>
-          <div style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '0 48px', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: '100%', padding: '0 32px', display: 'flex', alignItems: 'center', gap: 14 }}>
             <span style={{ flex: 1, fontSize: '1rem', fontWeight: 700, color: '#111', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {state?.eventName ?? '填寫時間'}
             </span>
@@ -494,7 +499,7 @@ export default function TimeGrid() {
       {/* Desktop controls bar: tabs + autofill + week nav */}
       {isDesktop && (
         <div style={{ borderBottom: '1px solid #F0F0F0', flexShrink: 0, background: '#fff' }}>
-          <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 48px', display: 'flex', alignItems: 'center', height: 64, gap: 16 }}>
+          <div style={{ padding: '0 32px', display: 'flex', alignItems: 'center', height: 64, gap: 16 }}>
             {/* Tabs */}
             <div style={{ display: 'flex', background: '#F0F0F0', borderRadius: 10, padding: 4 }}>
               {[['mine', '我的時間'], ['group', '群組時間']].map(([key, label]) => (
@@ -520,21 +525,33 @@ export default function TimeGrid() {
 
       {/* ── Mine tab ─────────────────────────────────────────────────────────── */}
       {tab === 'mine' && (
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', ...(isDesktop && { display: 'flex', alignItems: 'stretch' }) }}>
+
+          {/* Desktop: left arrow — flanks the grid */}
+          {isDesktop && (
+            <button onClick={() => setDesktopPage(p => Math.max(0, p - 1))}
+              style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34,
+                color: desktopTotalPages > 1 && desktopPage > 0 ? FREE_COLOR : '#DDD',
+                cursor: desktopTotalPages > 1 && desktopPage > 0 ? 'pointer' : 'default',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5,
+                borderRight: '1px solid #F0F0F0' }}>‹</button>
+          )}
+
           <div
             ref={scrollContainerRef}
             className="grid-scroll"
-            style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={() => { handleMouseUp(); if (isDesktop) setDesktopMineTooltip(null); }}
+            style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch', ...(isDesktop ? { flex: 1, minHeight: 0 } : { height: '100%' }) }}
+            onMouseDown={isDesktop ? handleContainerMouseDown : undefined}
+            onMouseUp={isDesktop ? handleContainerMouseUp : handleMouseUp}
+            onMouseLeave={() => { desktopSwipeRef.current = null; handleMouseUp(); if (isDesktop) setDesktopMineTooltip(null); }}
             onTouchStart={handleContainerTouchStart}
             onTouchEnd={handleContainerTouchEnd}
             onScroll={handleGridScroll}
           >
-            <div style={isDesktop ? { maxWidth: 900, margin: '0 auto', padding: '0 48px' } : undefined}>
+            <div style={isDesktop ? { padding: '0 16px' } : undefined}>
             {DayHeader({ onDayClick: fillDay })}
             <div style={{ display: 'flex', userSelect: 'none', WebkitUserSelect: 'none' }}>
-              <div style={{ width: labelW, flexShrink: 0 }}>
+              <div style={{ width: labelW, flexShrink: 0, borderRight: isDesktop ? '1px solid #E0E0E0' : 'none' }}>
                 {Array.from({ length: TOTAL }, (_, s) => (
                   <div key={s} style={{ height: slotH, display: 'flex', alignItems: 'flex-start', justifyContent: isDesktop ? 'flex-start' : 'flex-end', paddingLeft: isDesktop ? 10 : undefined, paddingRight: isDesktop ? undefined : 5, paddingTop: isDesktop ? 4 : 2, borderTop: s % SPH === 0 ? (isDesktop ? '1px solid #CCC' : '1px solid #EBEBEB') : '1px dashed #F0F0F0' }}>
                     {s % SPH === 0 && <span style={{ fontSize: isDesktop ? 13 : 11, fontWeight: 700, color: isDesktop ? '#888' : '#BBB', letterSpacing: isDesktop ? '0.02em' : undefined }}>{isDesktop ? fmtH(G_START + s / SPH).toUpperCase() : fmtH(G_START + s / SPH)}</span>}
@@ -544,7 +561,7 @@ export default function TimeGrid() {
               {displayDays.map((_, i) => {
                 const globalIdx = displayStart + i;
                 return (
-                  <div key={globalIdx} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
+                  <div key={globalIdx} style={{ flex: 1, minWidth: isDesktop ? 100 : undefined, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
                     {Array.from({ length: TOTAL }, (_, slot) => {
                       const key  = `${globalIdx}-${slot}`;
                       const free = slots[key] === 1;
@@ -567,8 +584,18 @@ export default function TimeGrid() {
               })}
               {scrollW > 0 && <div style={{ width: scrollW, flexShrink: 0 }} />}
             </div>
-            </div>{/* /desktop maxWidth wrapper */}
+            </div>{/* /desktop padding wrapper */}
           </div>{/* /scrollContainerRef */}
+
+          {/* Desktop: right arrow — flanks the grid */}
+          {isDesktop && (
+            <button onClick={() => setDesktopPage(p => Math.min(desktopTotalPages - 1, p + 1))}
+              style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34,
+                color: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? FREE_COLOR : '#DDD',
+                cursor: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? 'pointer' : 'default',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5,
+                borderLeft: '1px solid #F0F0F0' }}>›</button>
+          )}
 
           {/* Custom scroll thumb — mobile only */}
           {!isDesktop && scrollThumb.h < 96 && (
@@ -577,7 +604,7 @@ export default function TimeGrid() {
             </div>
           )}
 
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
+          <div style={{ position: 'absolute', bottom: 0, left: isDesktop ? 52 : 0, right: isDesktop ? 52 : 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
 
           {/* Desktop mine tab tooltip */}
           {isDesktop && desktopMineTooltip && (
@@ -604,18 +631,31 @@ export default function TimeGrid() {
 
       {/* ── Group tab ────────────────────────────────────────────────────────── */}
       {tab === 'group' && (
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', ...(isDesktop && { display: 'flex', alignItems: 'stretch' }) }}>
+
+          {/* Desktop: left arrow */}
+          {isDesktop && (
+            <button onClick={() => setDesktopPage(p => Math.max(0, p - 1))}
+              style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34,
+                color: desktopTotalPages > 1 && desktopPage > 0 ? FREE_COLOR : '#DDD',
+                cursor: desktopTotalPages > 1 && desktopPage > 0 ? 'pointer' : 'default',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5,
+                borderRight: '1px solid #F0F0F0' }}>‹</button>
+          )}
+
           <div
             ref={groupScrollRef}
             className="grid-scroll"
-            style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
+            style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch', ...(isDesktop ? { flex: 1, minHeight: 0 } : { height: '100%' }) }}
             onClick={!isDesktop ? () => setHoveredCell(null) : undefined}
+            onTouchStart={handleContainerTouchStart}
+            onTouchEnd={handleContainerTouchEnd}
             onScroll={(e) => { setHoveredCell(null); handleGridScroll(e); }}
           >
-            <div style={isDesktop ? { maxWidth: 900, margin: '0 auto', padding: '0 48px' } : undefined}>
+            <div style={isDesktop ? { padding: '0 16px' } : undefined}>
             {DayHeader({})}
             <div style={{ display: 'flex', userSelect: 'none' }}>
-              <div style={{ width: labelW, flexShrink: 0 }}>
+              <div style={{ width: labelW, flexShrink: 0, borderRight: isDesktop ? '1px solid #E0E0E0' : 'none' }}>
                 {Array.from({ length: TOTAL }, (_, s) => (
                   <div key={s} style={{ height: slotH, display: 'flex', alignItems: 'flex-start', justifyContent: isDesktop ? 'flex-start' : 'flex-end', paddingLeft: isDesktop ? 10 : undefined, paddingRight: isDesktop ? undefined : 5, paddingTop: isDesktop ? 4 : 2, borderTop: s % SPH === 0 ? (isDesktop ? '1px solid #CCC' : '1px solid #EBEBEB') : '1px dashed #F0F0F0' }}>
                     {s % SPH === 0 && <span style={{ fontSize: isDesktop ? 13 : 11, fontWeight: 700, color: isDesktop ? '#888' : '#BBB', letterSpacing: isDesktop ? '0.02em' : undefined }}>{isDesktop ? fmtH(G_START + s / SPH).toUpperCase() : fmtH(G_START + s / SPH)}</span>}
@@ -625,7 +665,7 @@ export default function TimeGrid() {
               {displayDays.map((_, i) => {
                 const globalIdx = displayStart + i;
                 return (
-                  <div key={globalIdx} style={{ flex: 1, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
+                  <div key={globalIdx} style={{ flex: 1, minWidth: isDesktop ? 100 : undefined, borderLeft: i > 0 ? '1px solid #EBEBEB' : 'none' }}>
                     {Array.from({ length: TOTAL }, (_, slot) => {
                       const key   = `${globalIdx}-${slot}`;
                       const count = visibleRespondents.filter(r => r[key] === 1).length;
@@ -642,8 +682,18 @@ export default function TimeGrid() {
               })}
               {scrollW > 0 && <div style={{ width: scrollW, flexShrink: 0 }} />}
             </div>
-            </div>{/* /desktop maxWidth wrapper */}
+            </div>{/* /desktop padding wrapper */}
           </div>{/* /groupScrollRef */}
+
+          {/* Desktop: right arrow */}
+          {isDesktop && (
+            <button onClick={() => setDesktopPage(p => Math.min(desktopTotalPages - 1, p + 1))}
+              style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34,
+                color: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? FREE_COLOR : '#DDD',
+                cursor: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? 'pointer' : 'default',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5,
+                borderLeft: '1px solid #F0F0F0' }}>›</button>
+          )}
 
           {/* Custom scroll thumb — mobile only */}
           {!isDesktop && scrollThumb.h < 96 && (
@@ -652,7 +702,7 @@ export default function TimeGrid() {
             </div>
           )}
 
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
+          <div style={{ position: 'absolute', bottom: 0, left: isDesktop ? 52 : 0, right: isDesktop ? 52 : 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
         </div>
       )}
 
@@ -694,6 +744,23 @@ export default function TimeGrid() {
           </div>
         )}
       </div>
+
+      {/* Desktop: floating "you" badge at bottom-right */}
+      {isDesktop && (
+        <div style={{
+          position: 'fixed', bottom: 44, right: 32, zIndex: 300,
+          display: 'flex', alignItems: 'center', gap: 10,
+          background: FREE_COLOR, color: '#fff',
+          borderRadius: 28, padding: '10px 18px',
+          boxShadow: '0 4px 20px rgba(138,157,168,0.5)',
+          fontSize: 16, fontWeight: 700, pointerEvents: 'none',
+        }}>
+          <div style={{ width: 30, height: 30, borderRadius: 15, background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 800 }}>
+            {(name || '你')[0].toUpperCase()}
+          </div>
+          <span>{name || '你'}</span>
+        </div>
+      )}
 
       {/* Group cell tooltip — fixed positioning works with viewport coords on all screen sizes */}
       {hoveredCell && tab === 'group' && (() => {
