@@ -293,7 +293,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
           <span style={{ fontSize: 31, fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="right" size={18} /></button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 4 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', columnGap: large ? 6 : 2, marginBottom: 4 }}>
           {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 22, fontWeight: 600, color: '#91AEC4', padding: '4px 0' }}>{d}</div>)}
         </div>
         <div ref={calRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', rowGap: large ? 10 : 4, columnGap: large ? 6 : 2 }}>

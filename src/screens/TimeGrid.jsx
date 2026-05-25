@@ -709,52 +709,43 @@ export default function TimeGrid() {
         </div>
       )}
 
-      {/* Bottom */}
-      <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
-        {tab === 'mine' ? (
-          <>
-            {isDesktop && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: FREE_COLOR, color: '#fff', borderRadius: 28, padding: '10px 22px', boxShadow: '0 2px 10px rgba(138,157,168,0.3)', alignSelf: 'flex-start' }}>
-                <div style={{ width: 36, height: 36, borderRadius: 18, background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, fontWeight: 800 }}>
-                  {(name || '你')[0].toUpperCase()}
-                </div>
-                <span style={{ fontSize: 19, fontWeight: 700 }}>{name || '你'}</span>
-              </div>
-            )}
-            {!isDesktop && (
-              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                <button onClick={autofillBestTime} style={{
-                  flex: 1, padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${FREE_COLOR}`,
-                  background: 'transparent', color: FREE_COLOR, fontSize: 15, fontWeight: 600,
-                  fontFamily: 'inherit', cursor: 'pointer',
-                }}>填入目前最佳時段</button>
-                <button className="btn-primary" onClick={() => name.trim() ? submitResponse() : setShowNameModal(true)} style={{ flex: 1, padding: '12px' }}>
-                  送出
-                </button>
-              </div>
-            )}
-          </>
-        ) : (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            {allRespondents.map((_, i) => {
-              const n = i === 0 ? (name || '你') : (groupNames[i - 1] ?? '?');
-              const c = [FREE_COLOR, '#8A9DA8', '#26A69A', '#4DB6AC'][i];
-              const sel = selectedRespondents.has(i);
-              return (
-                <div key={i} onClick={() => toggleRespondent(i)} style={{
-                  display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer',
-                  background: sel ? 'rgba(183,208,225,0.3)' : '#F5F5F5',
-                  border: `1.5px solid ${sel ? c : '#E5E5E5'}`,
-                  borderRadius: 20, padding: '6px 12px', transition: 'all 0.15s',
-                }}>
-                  <div style={{ width: 19, height: 19, borderRadius: 10, background: sel ? c : '#CCC', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n[0]}</div>
-                  <span style={{ fontSize: 17, fontWeight: sel ? 600 : 400, color: sel ? '#333' : '#AAA' }}>{n}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      {/* Bottom — hidden on desktop mine tab (no content) */}
+      {(tab === 'group' || !isDesktop) && (
+        <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
+          {tab === 'mine' && !isDesktop && (
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+              <button onClick={autofillBestTime} style={{
+                flex: 1, padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${FREE_COLOR}`,
+                background: 'transparent', color: FREE_COLOR, fontSize: 15, fontWeight: 600,
+                fontFamily: 'inherit', cursor: 'pointer',
+              }}>填入目前最佳時段</button>
+              <button className="btn-primary" onClick={() => name.trim() ? submitResponse() : setShowNameModal(true)} style={{ flex: 1, padding: '12px' }}>
+                送出
+              </button>
+            </div>
+          )}
+          {tab === 'group' && (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              {allRespondents.map((_, i) => {
+                const n = i === 0 ? (name || '你') : (groupNames[i - 1] ?? '?');
+                const c = [FREE_COLOR, '#8A9DA8', '#26A69A', '#4DB6AC'][i];
+                const sel = selectedRespondents.has(i);
+                return (
+                  <div key={i} onClick={() => toggleRespondent(i)} style={{
+                    display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer',
+                    background: sel ? 'rgba(183,208,225,0.3)' : '#F5F5F5',
+                    border: `1.5px solid ${sel ? c : '#E5E5E5'}`,
+                    borderRadius: 20, padding: '6px 12px', transition: 'all 0.15s',
+                  }}>
+                    <div style={{ width: 19, height: 19, borderRadius: 10, background: sel ? c : '#CCC', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n[0]}</div>
+                    <span style={{ fontSize: 17, fontWeight: sel ? 600 : 400, color: sel ? '#333' : '#AAA' }}>{n}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
 
       {/* Group cell tooltip — fixed positioning works with viewport coords on all screen sizes */}

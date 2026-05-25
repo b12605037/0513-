@@ -480,9 +480,8 @@ export default function Results() {
 
           {/* Heatmap */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            {heatmapDayHeader}
-            {/* User badge strip — between day header and grid */}
-            <div style={{ padding: '7px 16px', background: '#FAFAFA', borderBottom: '1px solid #F0F0F0', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+            {/* User badge strip — above day header */}
+            <div style={{ padding: '8px 16px', background: '#FAFAFA', borderBottom: '1px solid #F0F0F0', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: FREE_COLOR, color: '#fff', borderRadius: 28, padding: '10px 22px', boxShadow: '0 2px 8px rgba(138,157,168,0.3)' }}>
                 <div style={{ width: 36, height: 36, borderRadius: 18, background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, fontWeight: 800 }}>
                   {(state?.myName || '你')[0].toUpperCase()}
@@ -490,6 +489,7 @@ export default function Results() {
                 <span style={{ fontSize: 19, fontWeight: 700 }}>{state?.myName || '你'}</span>
               </div>
             </div>
+            {heatmapDayHeader}
             {heatmapGridBody}
           </div>
 
