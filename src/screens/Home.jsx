@@ -7,7 +7,7 @@ import { useDesktop } from '../hooks/useDesktop';
 // ── Constants ──────────────────────────────────────────────────────────────────
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const DAY_LABELS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const SLIDER_TOTAL = 48;
 const slotToMins = (slot) => slot * 30;
 const fmtSlot = (slot) => {
@@ -287,7 +287,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
           </div>
         )}
       </div>
-      <div style={{ padding: '20px 28px 24px' }}>
+      <div style={{ padding: large ? '20px 28px 24px' : '20px 10px 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="left" size={18} /></button>
           <span style={{ fontSize: 31, fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
