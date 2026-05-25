@@ -80,7 +80,7 @@ function DurationSlider({ value, onChange }) {
   return (
     <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0' }}>
       <div style={{ background: '#e8eef1', borderRadius: 8, padding: '12px', textAlign: 'center', marginBottom: 20 }}>
-        <div style={{ fontSize: Number(value) === 0 ? 30 : 46, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtDuration(value)}</div>
+        <div style={{ fontSize: Number(value) === 0 ? 36 : 55, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtDuration(value)}</div>
       </div>
       <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
         <div style={{ position: 'absolute', left: 0, width: `${pct}%`, top: 0, bottom: 0, background: '#8A9DA8', borderRadius: 3 }} />
@@ -90,7 +90,7 @@ function DurationSlider({ value, onChange }) {
         {DURATION_TICKS.map(({ label, slot: s }, i) => {
           const p = (s / DURATION_TOTAL) * 100;
           const transform = i === 0 ? 'none' : i === DURATION_TICKS.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)';
-          return <span key={label} style={{ position: 'absolute', left: `${p}%`, transform, fontSize: 16, color: '#CCC', fontWeight: 500, whiteSpace: 'nowrap' }}>{label}</span>;
+          return <span key={label} style={{ position: 'absolute', left: `${p}%`, transform, fontSize: 19, color: '#CCC', fontWeight: 500, whiteSpace: 'nowrap' }}>{label}</span>;
         })}
       </div>
     </div>
@@ -137,11 +137,11 @@ function TimeRangeSlider({ startSlot, endSlot, onChange }) {
     <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
         <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: 38, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtSlot(startSlot)} <span style={{ fontSize: 21, fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
+          <div style={{ fontSize: 46, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtSlot(startSlot)} <span style={{ fontSize: 25, fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
         </div>
-        <div style={{ color: '#CCC', fontSize: 30 }}>→</div>
+        <div style={{ color: '#CCC', fontSize: 36 }}>→</div>
         <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: 38, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtSlot(endSlot)} <span style={{ fontSize: 21, fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
+          <div style={{ fontSize: 46, fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtSlot(endSlot)} <span style={{ fontSize: 25, fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
         </div>
       </div>
       <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
@@ -149,7 +149,7 @@ function TimeRangeSlider({ startSlot, endSlot, onChange }) {
         <div onMouseDown={startDrag('start')} onTouchStart={startDrag('start')} style={{ position: 'absolute', left: `calc(${sPct}% - 11px)`, top: -8, width: 22, height: 22, borderRadius: 11, background: '#8A9DA8', border: '3px solid #fff', boxShadow: '0 1px 6px rgba(138,157,168,0.45)', cursor: 'grab', zIndex: 2, touchAction: 'none' }} />
         <div onMouseDown={startDrag('end')} onTouchStart={startDrag('end')} style={{ position: 'absolute', left: `calc(${ePct}% - 11px)`, top: -8, width: 22, height: 22, borderRadius: 11, background: '#8A9DA8', border: '3px solid #fff', boxShadow: '0 1px 6px rgba(138,157,168,0.45)', cursor: 'grab', zIndex: 2, touchAction: 'none' }} />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, color: '#CCC', fontWeight: 500, paddingLeft: 11, paddingRight: 11 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 19, color: '#CCC', fontWeight: 500, paddingLeft: 11, paddingRight: 11 }}>
         {TICK_LABELS.map(t => <span key={t}>{t}</span>)}
       </div>
     </div>
@@ -263,8 +263,8 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
         {count <= 1 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: 3, background: count > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
-            <span style={{ fontSize: 18, fontWeight: 600, color: count > 0 ? '#8A9DA8' : '#F57F17' }}>{label}</span>
-            {count > 0 && <button onClick={() => onChangeRef.current([])} style={{ marginLeft: 'auto', fontSize: 18, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>}
+            <span style={{ fontSize: 22, fontWeight: 600, color: count > 0 ? '#8A9DA8' : '#F57F17' }}>{label}</span>
+            {count > 0 && <button onClick={() => onChangeRef.current([])} style={{ marginLeft: 'auto', fontSize: 22, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>}
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
@@ -277,24 +277,24 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
                   ? `${s.getMonth()+1}/${s.getDate()}–${e.getDate()}`
                   : `${s.getMonth()+1}/${s.getDate()}–${e.getMonth()+1}/${e.getDate()}`;
                 return (
-                  <span key={i} style={{ fontSize: 16, fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 5, padding: '2px 7px' }}>
+                  <span key={i} style={{ fontSize: 19, fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 5, padding: '2px 7px' }}>
                     {label}
                   </span>
                 );
               })}
             </div>
-            <button onClick={() => onChangeRef.current([])} style={{ flexShrink: 0, fontSize: 18, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
+            <button onClick={() => onChangeRef.current([])} style={{ flexShrink: 0, fontSize: 22, fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
           </div>
         )}
       </div>
       <div style={{ padding: '12px 16px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8A9DA8' }}><IcChevron dir="left" size={16} /></button>
-          <span style={{ fontSize: 26, fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
+          <span style={{ fontSize: 31, fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8A9DA8' }}><IcChevron dir="right" size={16} /></button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 2 }}>
-          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 18, fontWeight: 600, color: '#91AEC4', padding: '3px 0' }}>{d}</div>)}
+          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 22, fontWeight: 600, color: '#91AEC4', padding: '3px 0' }}>{d}</div>)}
         </div>
         <div ref={calRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none' }}>
           {Array.from({ length: firstDow }).map((_, i) => <div key={'e' + i} />)}
@@ -308,8 +308,8 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
               <div key={d} data-dkey={disabled ? undefined : key}
                 onMouseDown={() => !disabled && mouseDown(key)}
                 onMouseEnter={() => !disabled && mouseEnter(key)}
-                style={{ height: large ? 68 : 36, cursor: disabled ? 'default' : 'pointer' }}>
-                <div style={{ width: large ? 54 : 32, height: large ? 54 : 32, borderRadius: large ? 27 : 16, margin: '2px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: large ? 26 : 16, fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8', transition: 'background 0.08s' }}>{d}</div>
+                style={{ height: large ? 82 : 36, cursor: disabled ? 'default' : 'pointer' }}>
+                <div style={{ width: large ? 65 : 32, height: large ? 65 : 32, borderRadius: large ? 33 : 16, margin: '2px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: large ? 31 : 16, fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8', transition: 'background 0.08s' }}>{d}</div>
               </div>
             );
           })}
@@ -554,88 +554,90 @@ export default function Home() {
     <div className="app-container" style={isDesktop ? { overflowY: 'auto', height: 'auto', minHeight: '100vh' } : { background: '#fff' }}>
 
       {isDesktop ? (
-        /* ── Desktop: two-column, full page scroll ── */
+        /* ── Desktop: single-column, full page scroll ── */
         <>
-          {/* Nav: logo only */}
-          <div style={{ height: 72, display: 'flex', alignItems: 'center', padding: '0 40px', borderBottom: '1px solid #F0F0F0' }}>
-            <span style={{ fontSize: 40, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
+          {/* Nav */}
+          <div style={{ height: 86, display: 'flex', alignItems: 'center', padding: '0 40px', borderBottom: '1px solid #F0F0F0' }}>
+            <span style={{ fontSize: 48, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
           </div>
 
-          {/* Two-column body */}
-          <div style={{ maxWidth: 1440, margin: '0 auto', padding: '40px 40px 60px', display: 'flex', gap: 32, alignItems: 'flex-start' }}>
+          {/* Single-column body */}
+          <div style={{ maxWidth: 960, margin: '0 auto', padding: '40px 40px 60px' }}>
 
-            {/* Left (77%): form + submit */}
-            <div style={{ flex: '0 0 77%', minWidth: 0, width: '77%' }}>
-
-              {/* Date picker */}
-              <div style={{ marginBottom: 32 }}>
-                <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
-                <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
-                {dateError && <div style={{ fontSize: 14, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
+            {/* 最近活動 — top, show 3, collapsible */}
+            <div style={{ marginBottom: 40 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <span style={{ fontSize: 26, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
+                {recentEvents.length > 0 && (
+                  <button onClick={handleClearHistory} style={{ fontSize: 19, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>清除紀錄</button>
+                )}
               </div>
-
-              {/* Time range */}
-              <div style={{ marginBottom: 32 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <label style={{ fontSize: 24, fontWeight: 700, color: '#555' }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 20, fontWeight: 500, color: '#888' }}>全天</span>
-                    <div onClick={() => { setAllDay(v => !v); setTimeError(''); }} style={{ width: 44, height: 26, borderRadius: 13, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
-                      <div style={{ position: 'absolute', top: 3, left: allDay ? 20 : 3, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
-                    </div>
-                  </div>
-                </div>
-                <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-                  <TimeRangeSlider startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} />
-                </div>
-                {timeError && <div style={{ fontSize: 14, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
-              </div>
-
-              {/* Duration */}
-              <div style={{ marginBottom: 32 }}>
-                <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>活動時長（選填）</label>
-                <DurationSlider value={duration} onChange={setDuration} />
-              </div>
-
-              {/* Submit */}
-              <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 24 }}>
-                建立活動
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                </svg>
-              </button>
-            </div>
-
-            {/* Right (30%): recent events, sticky */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ position: 'sticky', top: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <span style={{ fontSize: 22, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
-                  {recentEvents.length > 0 && (
-                    <button onClick={handleClearHistory} style={{ fontSize: 16, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>清除紀錄</button>
-                  )}
-                </div>
-                {recentEvents.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: '#CCC', fontSize: 18, padding: '32px 0' }}>尚無建立紀錄</div>
-                ) : (
-                  recentEvents.map((ev, i) => {
+              {recentEvents.length === 0 ? (
+                <div style={{ textAlign: 'center', color: '#CCC', fontSize: 22, padding: '24px 0' }}>尚無建立紀錄</div>
+              ) : (
+                <>
+                  {(showAllRecent ? recentEvents : recentEvents.slice(0, 3)).map((ev, i) => {
                     const daysAgo = Math.floor((Date.now() - ev.time) / 86400000);
                     const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
                     const color = DOT_COLORS[i % DOT_COLORS.length];
                     return (
                       <div key={ev.id} onClick={() => navigate(`/view/${ev.id}`)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 12, cursor: 'pointer' }}>
-                        <div style={{ width: 9, height: 9, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 12, cursor: 'pointer' }}>
+                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 17, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
+                          <div style={{ fontSize: 20, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
                         </div>
-                        <div style={{ fontSize: 16, color: '#CCC', flexShrink: 0, marginLeft: 8, whiteSpace: 'nowrap' }}>{timeLabel}</div>
+                        <div style={{ fontSize: 19, color: '#CCC', flexShrink: 0, marginLeft: 8, whiteSpace: 'nowrap' }}>{timeLabel}</div>
                       </div>
                     );
-                  })
-                )}
-              </div>
+                  })}
+                  {recentEvents.length > 3 && (
+                    <button onClick={() => setShowAllRecent(v => !v)}
+                      style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 19, cursor: 'pointer', fontFamily: 'inherit', padding: '6px 0', textAlign: 'center' }}>
+                      {showAllRecent ? '收起' : `顯示其他 ${recentEvents.length - 3} 筆`}
+                    </button>
+                  )}
+                </>
+              )}
             </div>
+
+            {/* Date picker */}
+            <div style={{ marginBottom: 32 }}>
+              <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
+              <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
+              {dateError && <div style={{ fontSize: 17, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
+            </div>
+
+            {/* Time range */}
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <label style={{ fontSize: 24, fontWeight: 700, color: '#555' }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 20, fontWeight: 500, color: '#888' }}>全天</span>
+                  <div onClick={() => { setAllDay(v => !v); setTimeError(''); }} style={{ width: 44, height: 26, borderRadius: 13, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+                    <div style={{ position: 'absolute', top: 3, left: allDay ? 20 : 3, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
+                  </div>
+                </div>
+              </div>
+              <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
+                <TimeRangeSlider startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} />
+              </div>
+              {timeError && <div style={{ fontSize: 17, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
+            </div>
+
+            {/* Duration */}
+            <div style={{ marginBottom: 32 }}>
+              <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>活動時長（選填）</label>
+              <DurationSlider value={duration} onChange={setDuration} />
+            </div>
+
+            {/* Submit */}
+            <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 24 }}>
+              建立活動
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
           </div>
         </>
       ) : (
