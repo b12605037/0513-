@@ -439,9 +439,10 @@ export default function TimeGrid() {
 
       {/* ── Nav ── */}
       {isDesktop ? (
-        /* Desktop: activity name + name input + submit */
+        /* Desktop: meetime logo + activity name + name input + submit */
         <div style={{ height: 64, borderBottom: '1px solid #F0F0F0', flexShrink: 0, display: 'flex', alignItems: 'center', background: '#fff' }}>
           <div style={{ width: '100%', padding: '0 32px', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <span onClick={() => navigate('/')} style={{ fontSize: 24, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>meetime</span>
             <span style={{ flex: 1, fontSize: '1rem', fontWeight: 700, color: '#111', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {state?.eventName ?? '填寫時間'}
             </span>
@@ -459,7 +460,7 @@ export default function TimeGrid() {
         /* Mobile nav */
         <>
           <div className="app-nav">
-            <span style={{ fontSize: 16, color: '#888', fontWeight: 500 }}>{surveyLabel}</span>
+            <span onClick={() => navigate('/')} style={{ fontSize: 18, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em', cursor: 'pointer', fontFamily: 'inherit' }}>meetime</span>
             <span className="nav-title">填寫我的時間</span>
             <span style={{ width: 48 }} />
           </div>
@@ -606,15 +607,6 @@ export default function TimeGrid() {
 
           <div style={{ position: 'absolute', bottom: 0, left: isDesktop ? 52 : 0, right: isDesktop ? 52 : 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
 
-          {/* Desktop: "你" badge — right edge, vertically centered */}
-          {isDesktop && (
-            <div style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', zIndex: 100, pointerEvents: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 18, background: FREE_COLOR, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, boxShadow: '0 2px 10px rgba(138,157,168,0.45)' }}>
-                {(name || '你')[0].toUpperCase()}
-              </div>
-              <span style={{ fontSize: 11, fontWeight: 700, color: FREE_COLOR, textAlign: 'center', maxWidth: 44, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name || '你'}</span>
-            </div>
-          )}
 
           {/* Desktop mine tab tooltip */}
           {isDesktop && desktopMineTooltip && (
@@ -714,15 +706,6 @@ export default function TimeGrid() {
 
           <div style={{ position: 'absolute', bottom: 0, left: isDesktop ? 52 : 0, right: isDesktop ? 52 : 0, height: 52, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.95))', pointerEvents: 'none', opacity: showBottomFade ? 1 : 0, transition: 'opacity 0.25s' }} />
 
-          {/* Desktop: "你" badge — right edge, vertically centered */}
-          {isDesktop && (
-            <div style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', zIndex: 100, pointerEvents: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 18, background: FREE_COLOR, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, boxShadow: '0 2px 10px rgba(138,157,168,0.45)' }}>
-                {(name || '你')[0].toUpperCase()}
-              </div>
-              <span style={{ fontSize: 11, fontWeight: 700, color: FREE_COLOR, textAlign: 'center', maxWidth: 44, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name || '你'}</span>
-            </div>
-          )}
         </div>
       )}
 
@@ -730,6 +713,14 @@ export default function TimeGrid() {
       <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
         {tab === 'mine' ? (
           <>
+            {isDesktop && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: FREE_COLOR, color: '#fff', borderRadius: 28, padding: '10px 22px', boxShadow: '0 2px 10px rgba(138,157,168,0.3)', alignSelf: 'flex-start' }}>
+                <div style={{ width: 36, height: 36, borderRadius: 18, background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, fontWeight: 800 }}>
+                  {(name || '你')[0].toUpperCase()}
+                </div>
+                <span style={{ fontSize: 19, fontWeight: 700 }}>{name || '你'}</span>
+              </div>
+            )}
             {!isDesktop && (
               <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                 <button onClick={autofillBestTime} style={{
@@ -744,20 +735,20 @@ export default function TimeGrid() {
             )}
           </>
         ) : (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             {allRespondents.map((_, i) => {
               const n = i === 0 ? (name || '你') : (groupNames[i - 1] ?? '?');
               const c = [FREE_COLOR, '#8A9DA8', '#26A69A', '#4DB6AC'][i];
               const sel = selectedRespondents.has(i);
               return (
                 <div key={i} onClick={() => toggleRespondent(i)} style={{
-                  display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer',
                   background: sel ? 'rgba(183,208,225,0.3)' : '#F5F5F5',
                   border: `1.5px solid ${sel ? c : '#E5E5E5'}`,
-                  borderRadius: 20, padding: '5px 10px', transition: 'all 0.15s',
+                  borderRadius: 20, padding: '6px 12px', transition: 'all 0.15s',
                 }}>
-                  <div style={{ width: 16, height: 16, borderRadius: 8, background: sel ? c : '#CCC', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n[0]}</div>
-                  <span style={{ fontSize: 14, fontWeight: sel ? 600 : 400, color: sel ? '#333' : '#AAA' }}>{n}</span>
+                  <div style={{ width: 19, height: 19, borderRadius: 10, background: sel ? c : '#CCC', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n[0]}</div>
+                  <span style={{ fontSize: 17, fontWeight: sel ? 600 : 400, color: sel ? '#333' : '#AAA' }}>{n}</span>
                 </div>
               );
             })}

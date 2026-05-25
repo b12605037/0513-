@@ -129,6 +129,7 @@ export default function Results() {
   const [selected, setSelected]           = useState(new Set());
   const [selectedSlots, setSelectedSlots] = useState(new Set());
   const [heatmapExpanded, setHeatmapExpanded] = useState(!hasDuration);
+  const [heatTooltip, setHeatTooltip]     = useState(null);
 
   useEffect(() => {
     setSelected(new Set(responses.map((_, i) => i)));
@@ -382,7 +383,10 @@ export default function Results() {
                 const key = `${gi}-${slot}`;
                 const count = visibleRespondents.filter(r => r[key] === 1).length;
                 return (
-                  <div key={slot} style={{ height: slotH, background: heatColor(count, visibleCount), borderTop: slot % SPH === 0 ? (isDesktop ? '1px solid #CCC' : '1px solid #E0E0E0') : '1px dashed #EBEBEB' }} />
+                  <div key={slot}
+                    onMouseEnter={isDesktop ? e => setHeatTooltip({ day: gi, slot, cx: e.clientX, cy: e.clientY }) : undefined}
+                    onMouseLeave={isDesktop ? () => setHeatTooltip(null) : undefined}
+                    style={{ height: slotH, background: heatColor(count, visibleCount), borderTop: slot % SPH === 0 ? (isDesktop ? '1px solid #CCC' : '1px solid #E0E0E0') : '1px dashed #EBEBEB', cursor: isDesktop ? 'crosshair' : 'default' }} />
                 );
               })}
             </div>
@@ -428,6 +432,7 @@ export default function Results() {
       {isDesktop ? (
         <div style={{ height: 64, borderBottom: '1px solid #F0F0F0', flexShrink: 0, display: 'flex', alignItems: 'center', background: '#fff' }}>
           <div style={{ padding: '0 32px', display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
+            <span onClick={() => navigate('/')} style={{ fontSize: 24, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>meetime</span>
             <span style={{ flex: 1, fontSize: 20, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {state?.eventName ?? '結果'}
             </span>
@@ -439,7 +444,7 @@ export default function Results() {
         </div>
       ) : (
         <div className="app-nav">
-          <span style={{ width: 48 }} />
+          <span onClick={() => navigate('/')} style={{ fontSize: 16, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em', cursor: 'pointer', fontFamily: 'inherit' }}>meetime</span>
           <span className="nav-title">結果</span>
           <span style={{ width: 48 }} />
         </div>
@@ -455,7 +460,7 @@ export default function Results() {
           {/* Left: best slots column (only when duration is set) */}
           {hasDuration && (
             <>
-              <div style={{ width: 380, display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0 }}>
+              <div style={{ width: 480, display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0 }}>
                 <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', padding: '10px 16px', background: '#F8F8F8' }}>
                   {slotCards}
                 </div>
@@ -476,6 +481,15 @@ export default function Results() {
           {/* Heatmap */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {heatmapDayHeader}
+            {/* User badge strip — between day header and grid */}
+            <div style={{ padding: '7px 16px', background: '#FAFAFA', borderBottom: '1px solid #F0F0F0', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: FREE_COLOR, color: '#fff', borderRadius: 28, padding: '10px 22px', boxShadow: '0 2px 8px rgba(138,157,168,0.3)' }}>
+                <div style={{ width: 36, height: 36, borderRadius: 18, background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, fontWeight: 800 }}>
+                  {(state?.myName || '你')[0].toUpperCase()}
+                </div>
+                <span style={{ fontSize: 19, fontWeight: 700 }}>{state?.myName || '你'}</span>
+              </div>
+            </div>
             {heatmapGridBody}
           </div>
 
@@ -548,6 +562,48 @@ export default function Results() {
           )}
         </>
       )}
+      {/* Heatmap hover tooltip — desktop only */}
+      {isDesktop && heatTooltip && (() => {
+        const key = `${heatTooltip.day}-${heatTooltip.slot}`;
+        const dayInfo = allDays[heatTooltip.day];
+        const time = fmtH(G_START + heatTooltip.slot / SPH);
+        const people = allRespondents.map((r, i) => ({
+          name: respondentNames[i],
+          free: r[key] === 1,
+          visible: selected.has(i),
+        })).filter(p => p.visible);
+        const avail = people.filter(p => p.free);
+        const busy  = people.filter(p => !p.free);
+        const allFree = avail.length === people.length && people.length > 0;
+        const TW = 200;
+        const left = Math.max(8, Math.min(heatTooltip.cx - TW / 2, window.innerWidth - TW - 8));
+        const aboveY = heatTooltip.cy - 170;
+        const top = aboveY < 140 ? heatTooltip.cy + 16 : aboveY;
+        return (
+          <div key="heat-tip" style={{ position: 'fixed', left, top, width: TW, background: '#fff', borderRadius: 14, padding: '12px 14px 14px', boxShadow: '0 6px 28px rgba(0,0,0,0.18)', zIndex: 300, pointerEvents: 'none' }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: FREE_COLOR, marginBottom: 2 }}>
+              {avail.length === 0 ? '沒有人有空' : allFree ? '所有人都有空' : `${avail.length} / ${people.length} 人有空`}
+            </div>
+            <div style={{ fontSize: 13, color: '#AAA', marginBottom: 10 }}>
+              {dayInfo?.label} {dayInfo?.date} · {time}
+            </div>
+            {avail.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: busy.length ? 8 : 0 }}>
+                {avail.map(({ name: n }) => (
+                  <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: FREE_COLOR, color: '#fff', fontSize: 14, fontWeight: 600 }}>{n}</div>
+                ))}
+              </div>
+            )}
+            {busy.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                {busy.map(({ name: n }) => (
+                  <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: '#F0F0F0', color: '#AAA', fontSize: 14 }}>{n}</div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }
