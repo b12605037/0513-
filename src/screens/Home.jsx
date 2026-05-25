@@ -661,21 +661,13 @@ export default function Home() {
 
       {/* Modal */}
       {showNameModal && (
-        isDesktop ? (
-          <div className="desktop-sidebar-overlay" onClick={() => nameModalPhase === 'input' && setShowNameModal(false)}>
-            <div className="desktop-sidebar-panel" onClick={e => e.stopPropagation()}>
-              {modalContent}
-            </div>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}
+          onClick={() => nameModalPhase === 'input' && setShowNameModal(false)}>
+          <div style={{ width: '100%', maxWidth: isDesktop ? 480 : 340, background: '#fff', borderRadius: 20, padding: isDesktop ? '32px 28px 24px' : '24px 20px 18px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}
+            onClick={e => e.stopPropagation()}>
+            {modalContent}
           </div>
-        ) : (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}
-            onClick={() => nameModalPhase === 'input' && setShowNameModal(false)}>
-            <div style={{ width: '100%', maxWidth: 340, background: '#fff', borderRadius: 20, padding: '24px 20px 18px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}
-              onClick={e => e.stopPropagation()}>
-              {modalContent}
-            </div>
-          </div>
-        )
+        </div>
       )}
     </div>
   );
