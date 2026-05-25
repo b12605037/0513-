@@ -259,7 +259,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
 
   return (
     <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16 }}>
-      <div style={{ padding: '10px 16px 8px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0' }}>
+      <div style={{ padding: '10px 28px 8px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0' }}>
         {count <= 1 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: 3, background: count > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
@@ -287,16 +287,16 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
           </div>
         )}
       </div>
-      <div style={{ padding: '12px 16px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8A9DA8' }}><IcChevron dir="left" size={16} /></button>
+      <div style={{ padding: '20px 28px 24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="left" size={18} /></button>
           <span style={{ fontSize: 31, fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
-          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#8A9DA8' }}><IcChevron dir="right" size={16} /></button>
+          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="right" size={18} /></button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 2 }}>
-          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 22, fontWeight: 600, color: '#91AEC4', padding: '3px 0' }}>{d}</div>)}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 4 }}>
+          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 22, fontWeight: 600, color: '#91AEC4', padding: '4px 0' }}>{d}</div>)}
         </div>
-        <div ref={calRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none' }}>
+        <div ref={calRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', rowGap: large ? 4 : 2 }}>
           {Array.from({ length: firstDow }).map((_, i) => <div key={'e' + i} />)}
           {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => {
             const dt = new Date(viewYear, viewMonth, d);
@@ -304,12 +304,36 @@ function DateMultiPicker({ selectedDates, onChange, large = false }) {
             const disabled = dt < today;
             const selected = displaySet.has(key);
             const isToday  = sameDay(dt, today);
+
+            // Range-band: check row boundaries and neighbours
+            const dow          = (d - 1 + firstDow) % 7;
+            const isFirstInRow = dow === 0;
+            const isLastInRow  = dow === 6;
+            const prevSel = selected && displaySet.has(mkKey(new Date(viewYear, viewMonth, d - 1)));
+            const nextSel = selected && displaySet.has(mkKey(new Date(viewYear, viewMonth, d + 1)));
+            // Band stretches left if prev is selected (and not at row start), right if next is selected
+            const bandL = (!prevSel || isFirstInRow) ? '50%' : '0%';
+            const bandR = (!nextSel || isLastInRow)  ? '50%' : '0%';
+
             return (
               <div key={d} data-dkey={disabled ? undefined : key}
                 onMouseDown={() => !disabled && mouseDown(key)}
                 onMouseEnter={() => !disabled && mouseEnter(key)}
-                style={{ height: large ? 82 : 36, cursor: disabled ? 'default' : 'pointer' }}>
-                <div style={{ width: large ? 65 : 32, height: large ? 65 : 32, borderRadius: large ? 33 : 16, margin: '2px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: large ? 31 : 16, fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8', transition: 'background 0.08s' }}>{d}</div>
+                style={{ height: large ? 82 : 36, cursor: disabled ? 'default' : 'pointer', position: 'relative' }}>
+
+                {/* Range highlight band */}
+                {selected && (
+                  <div style={{
+                    position: 'absolute',
+                    left: bandL, right: bandR,
+                    top: 2, height: large ? 65 : 32,
+                    background: 'rgba(138, 157, 168, 0.18)',
+                    pointerEvents: 'none',
+                  }} />
+                )}
+
+                {/* Date circle */}
+                <div style={{ width: large ? 65 : 32, height: large ? 65 : 32, borderRadius: large ? 33 : 16, margin: '2px auto 0', position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: large ? 31 : 16, fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8', transition: 'background 0.08s' }}>{d}</div>
               </div>
             );
           })}
