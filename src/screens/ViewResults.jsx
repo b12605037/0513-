@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import mixpanel from '../lib/mixpanel';
 
 export default function ViewResults() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   useEffect(() => {
     supabase
       .from('meetings')
@@ -13,7 +13,15 @@ export default function ViewResults() {
       .eq('id', id)
       .single()
       .then(({ data: m, error }) => {
-        if (error || !m) { navigate('/', { replace: true }); return; }
+        if (error || !m) {
+          navigate('/', { replace: true });
+          return;
+        }
+        // ── Mixpanel: 查看活動結果 ──
+        mixpanel.track('查看活動結果', {
+          活動id: m.id,
+          活動名稱: m.name,
+        });
         navigate('/results', {
           replace: true,
           state: {
@@ -31,7 +39,6 @@ export default function ViewResults() {
         });
       });
   }, [id, navigate]);
-
   return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#AAA', fontSize: 18 }}>
       載入中…
