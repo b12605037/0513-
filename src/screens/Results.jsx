@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useDesktop } from '../hooks/useDesktop';
+import mixpanel from '../lib/mixpanel';
 
 const SLOT_MIN = 30;
 const SPH = 60 / SLOT_MIN;
@@ -109,6 +110,11 @@ export default function Results() {
             data.reduce((acc, r) => ({ ...acc, [r.respondent_name]: r }), {})
           );
           setResponses(deduped);
+          // ── Mixpanel: 查看結果頁 ──
+          mixpanel.track('查看結果頁', {
+            活動id: state.meetingId,
+            回應人數: deduped.length,
+          });
         }
         setLoading(false);
       });
@@ -135,7 +141,6 @@ export default function Results() {
     setSelected(new Set(responses.map((_, i) => i)));
   }, [responses.length]);
 
-  // Desktop: 7 days per page; Mobile: 4 days per page
   const mobilePageStart   = page * DAYS_PER_PAGE;
   const desktopPageStart  = desktopPage * DESKTOP_DAYS_PER_PAGE;
   const desktopTotalPages = Math.ceil(totalDays / DESKTOP_DAYS_PER_PAGE);
@@ -244,8 +249,18 @@ export default function Results() {
     return { bestSlots: [], isDegrade: false };
   }, [selected, responses, slotsNeeded, totalDays, TOTAL, G_START]);
 
-  const toggleSlot = (key) =>
+  const toggleSlot = (key) => {
+    // ── Mixpanel: 選擇最佳時段 ──
+    const slot = bestSlots.find(s => s.key === key);
+    if (slot && !selectedSlots.has(key)) {
+      mixpanel.track('選擇最佳時段', {
+        活動id: state?.meetingId,
+        時段: `${slot.day.label} ${slot.day.date} ${fmtH24(G_START + slot.rawS / SPH)}`,
+        人數: slot.count,
+      });
+    }
     setSelectedSlots(prev => { const s = new Set(prev); s.has(key) ? s.delete(key) : s.add(key); return s; });
+  };
 
   const selectedList = bestSlots.filter(s => selectedSlots.has(s.key));
 
@@ -256,6 +271,11 @@ export default function Results() {
         selectedList.map(s => `• ${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + s.actualSlots) / SPH)}`).join('\n');
 
   const handleShareLine = () => {
+    // ── Mixpanel: 分享結果至LINE ──
+    mixpanel.track('分享結果至LINE', {
+      活動id: state?.meetingId,
+      選擇時段數: selectedList.length,
+    });
     window.open(`https://line.me/R/msg/text/?${encodeURIComponent(shareMessage)}`, '_blank');
   };
 
@@ -269,7 +289,6 @@ export default function Results() {
     return max;
   }), [pageDays, pageStart, visibleRespondents, TOTAL]);
 
-  // ── Slot cards (reused by desktop left col + mobile) ──────────────────────
   const slotCards = (
     <>
       {loading ? (
@@ -317,7 +336,6 @@ export default function Results() {
     </>
   );
 
-  // ── Share bar ─────────────────────────────────────────────────────────────
   const lineIcon = (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
   );
@@ -335,7 +353,6 @@ export default function Results() {
     </div>
   );
 
-  // ── Heatmap day header & grid body (shared, styled per isDesktop) ─────────
   const heatmapDayHeader = (
     <div style={{ display: 'flex', paddingLeft: labelW, background: '#fff', borderBottom: isDesktop ? '2px solid #DDD' : '1px solid #E0E0E0', flexShrink: 0 }}>
       {pageDays.map((d, i) => {
@@ -344,12 +361,8 @@ export default function Results() {
           <div key={i} style={{ flex: 1, textAlign: 'center', padding: isDesktop ? '10px 0 12px' : '8px 0', minWidth: isDesktop ? 100 : undefined, borderLeft: isDesktop && i > 0 ? '1px solid #EBEBEB' : 'none' }}>
             {isDesktop ? (
               <>
-                <div style={{ fontSize: 15, fontWeight: 700, color: isToday ? FREE_COLOR : '#888', letterSpacing: '-0.01em' }}>
-                  {MON[d.month]} {d.date}
-                </div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: isToday ? FREE_COLOR : '#AAA', marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  {d.label}
-                </div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: isToday ? FREE_COLOR : '#888', letterSpacing: '-0.01em' }}>{MON[d.month]} {d.date}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: isToday ? FREE_COLOR : '#AAA', marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{d.label}</div>
               </>
             ) : (
               <>
@@ -396,7 +409,6 @@ export default function Results() {
     </div>
   );
 
-  // ── Mobile heatmap nav bar ────────────────────────────────────────────────
   const mobileHeatmapNav = (
     <div style={{ display: 'flex', alignItems: 'center', padding: '14px 6px 10px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
       <button onClick={() => setPage(p => Math.max(0, p - 1))} style={{ background: 'none', border: 'none', fontSize: 28, color: page > 0 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page > 0 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>‹</button>
@@ -405,7 +417,6 @@ export default function Results() {
     </div>
   );
 
-  // ── Respondent chips (shared) ─────────────────────────────────────────────
   const respondentChips = (
     <div style={{ padding: isDesktop ? '10px 32px' : '8px 16px', background: '#fff', borderBottom: '1px solid #F5F5F5', flexShrink: 0 }}>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -427,14 +438,11 @@ export default function Results() {
   return (
     <div className="app-container">
 
-      {/* ── Nav ── */}
       {isDesktop ? (
         <div style={{ height: 64, borderBottom: '1px solid #F0F0F0', flexShrink: 0, display: 'flex', alignItems: 'center', background: '#fff' }}>
           <div style={{ padding: '0 32px', display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
             <span onClick={() => navigate('/')} style={{ fontSize: 24, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>meetime</span>
-            <span style={{ flex: 1, fontSize: 20, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {state?.eventName ?? '結果'}
-            </span>
+            <span style={{ flex: 1, fontSize: 20, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{state?.eventName ?? '結果'}</span>
             <button onClick={() => navigate('/grid', { state })}
               style={{ padding: '11px 28px', borderRadius: 10, border: '1.5px solid #8A9DA8', background: 'transparent', color: '#8A9DA8', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
               重新填寫
@@ -449,57 +457,33 @@ export default function Results() {
         </div>
       )}
 
-      {/* ── Respondent chips ── */}
       {respondentChips}
 
       {isDesktop ? (
-        /* ── Desktop layout ── */
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-
-          {/* Left: best slots column (only when duration is set) */}
           {hasDuration && (
             <>
               <div style={{ width: 480, display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0 }}>
-                <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', padding: '10px 16px', background: '#F8F8F8' }}>
-                  {slotCards}
-                </div>
+                <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', padding: '10px 16px', background: '#F8F8F8' }}>{slotCards}</div>
                 {shareBar}
               </div>
               <div style={{ width: 1, background: '#E0E4E8', flexShrink: 0 }} />
             </>
           )}
-
-          {/* Left arrow */}
           <button onClick={() => setDesktopPage(p => Math.max(0, p - 1))}
-            style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34,
-              color: desktopTotalPages > 1 && desktopPage > 0 ? FREE_COLOR : '#DDD',
-              cursor: desktopTotalPages > 1 && desktopPage > 0 ? 'pointer' : 'default',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              borderRight: '1px solid #F0F0F0' }}>‹</button>
-
-          {/* Heatmap */}
+            style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34, color: desktopTotalPages > 1 && desktopPage > 0 ? FREE_COLOR : '#DDD', cursor: desktopTotalPages > 1 && desktopPage > 0 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid #F0F0F0' }}>‹</button>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {heatmapDayHeader}
             {heatmapGridBody}
           </div>
-
-          {/* Right arrow */}
           <button onClick={() => setDesktopPage(p => Math.min(desktopTotalPages - 1, p + 1))}
-            style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34,
-              color: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? FREE_COLOR : '#DDD',
-              cursor: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? 'pointer' : 'default',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              borderLeft: '1px solid #F0F0F0' }}>›</button>
+            style={{ width: 52, flexShrink: 0, background: 'none', border: 'none', fontSize: 34, color: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? FREE_COLOR : '#DDD', cursor: desktopTotalPages > 1 && desktopPage < desktopTotalPages - 1 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid #F0F0F0' }}>›</button>
         </div>
       ) : (
-        /* ── Mobile layout ── */
         <>
           {hasDuration && (
-            <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', padding: '10px 16px', background: '#F8F8F8' }}>
-              {slotCards}
-            </div>
+            <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', padding: '10px 16px', background: '#F8F8F8' }}>{slotCards}</div>
           )}
-
           {!hasDuration && (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               {mobileHeatmapNav}
@@ -507,9 +491,7 @@ export default function Results() {
               {heatmapGridBody}
             </div>
           )}
-
           {hasDuration && shareBar}
-
           {hasDuration && (
             <div style={{ background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
               <button onClick={() => setHeatmapExpanded(true)} style={{ width: '100%', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -521,19 +503,13 @@ export default function Results() {
                   ))}
                 </div>
                 <span style={{ fontSize: 14, color: '#999', fontWeight: 500, flexShrink: 0 }}>時段熱圖</span>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
-                  <polyline points="2,9 7,4 12,9"/>
-                </svg>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}><polyline points="2,9 7,4 12,9"/></svg>
               </button>
             </div>
           )}
-
           <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
-            <button onClick={() => navigate('/grid', { state })} style={{ width: '100%', padding: '13px', borderRadius: 14, border: '1.5px solid #5F84A2', background: 'transparent', color: '#5F84A2', fontSize: 19, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>
-              重新填寫
-            </button>
+            <button onClick={() => navigate('/grid', { state })} style={{ width: '100%', padding: '13px', borderRadius: 14, border: '1.5px solid #5F84A2', background: 'transparent', color: '#5F84A2', fontSize: 19, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>重新填寫</button>
           </div>
-
           {hasDuration && heatmapExpanded && (
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '82%', background: '#fff', zIndex: 100, borderRadius: '20px 20px 0 0', boxShadow: '0 -4px 24px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', alignItems: 'center', padding: '14px 6px 10px', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
@@ -541,9 +517,7 @@ export default function Results() {
                 <span style={{ flex: 1, textAlign: 'center', fontSize: 19, fontWeight: 700, color: '#111' }}>{pageNavLabel(pageDays)}</span>
                 <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} style={{ background: 'none', border: 'none', fontSize: 28, color: page < totalPages - 1 ? '#5F84A2' : '#DDD', padding: '0 10px', cursor: page < totalPages - 1 ? 'pointer' : 'default', fontFamily: 'inherit', lineHeight: 1 }}>›</button>
                 <button onClick={() => setHeatmapExpanded(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 12px 4px 0', display: 'flex', alignItems: 'center' }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round">
-                    <polyline points="2,5 7,10 12,5"/>
-                  </svg>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round"><polyline points="2,5 7,10 12,5"/></svg>
                 </button>
               </div>
               {heatmapDayHeader}
@@ -552,16 +526,12 @@ export default function Results() {
           )}
         </>
       )}
-      {/* Heatmap hover tooltip — desktop only */}
+
       {isDesktop && heatTooltip && (() => {
         const key = `${heatTooltip.day}-${heatTooltip.slot}`;
         const dayInfo = allDays[heatTooltip.day];
         const time = fmtH(G_START + heatTooltip.slot / SPH);
-        const people = allRespondents.map((r, i) => ({
-          name: respondentNames[i],
-          free: r[key] === 1,
-          visible: selected.has(i),
-        })).filter(p => p.visible);
+        const people = allRespondents.map((r, i) => ({ name: respondentNames[i], free: r[key] === 1, visible: selected.has(i) })).filter(p => p.visible);
         const avail = people.filter(p => p.free);
         const busy  = people.filter(p => !p.free);
         const allFree = avail.length === people.length && people.length > 0;
@@ -571,24 +541,16 @@ export default function Results() {
         const top = aboveY < 140 ? heatTooltip.cy + 16 : aboveY;
         return (
           <div key="heat-tip" style={{ position: 'fixed', left, top, width: TW, background: '#fff', borderRadius: 14, padding: '12px 14px 14px', boxShadow: '0 6px 28px rgba(0,0,0,0.18)', zIndex: 300, pointerEvents: 'none' }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: FREE_COLOR, marginBottom: 2 }}>
-              {avail.length === 0 ? '沒有人有空' : allFree ? '所有人都有空' : `${avail.length} / ${people.length} 人有空`}
-            </div>
-            <div style={{ fontSize: 13, color: '#AAA', marginBottom: 10 }}>
-              {dayInfo?.label} {dayInfo?.date} · {time}
-            </div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: FREE_COLOR, marginBottom: 2 }}>{avail.length === 0 ? '沒有人有空' : allFree ? '所有人都有空' : `${avail.length} / ${people.length} 人有空`}</div>
+            <div style={{ fontSize: 13, color: '#AAA', marginBottom: 10 }}>{dayInfo?.label} {dayInfo?.date} · {time}</div>
             {avail.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: busy.length ? 8 : 0 }}>
-                {avail.map(({ name: n }) => (
-                  <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: FREE_COLOR, color: '#fff', fontSize: 14, fontWeight: 600 }}>{n}</div>
-                ))}
+                {avail.map(({ name: n }) => <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: FREE_COLOR, color: '#fff', fontSize: 14, fontWeight: 600 }}>{n}</div>)}
               </div>
             )}
             {busy.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                {busy.map(({ name: n }) => (
-                  <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: '#F0F0F0', color: '#AAA', fontSize: 14 }}>{n}</div>
-                ))}
+                {busy.map(({ name: n }) => <div key={n} style={{ padding: '4px 10px', borderRadius: 20, background: '#F0F0F0', color: '#AAA', fontSize: 14 }}>{n}</div>)}
               </div>
             )}
           </div>
