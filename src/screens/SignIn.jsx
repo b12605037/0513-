@@ -1,14 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { IcClock, IcUsers, IcGoogle } from '../components/Icons';
 import { useAuth } from '../context/AuthContext';
+import mixpanel from '../lib/mixpanel';
 
 export default function SignIn() {
   const navigate = useNavigate();
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // ── Mixpanel: 頁面瀏覽 ──
+  useEffect(() => {
+    mixpanel.track('頁面瀏覽', { 頁面: '登入' });
+  }, []);
 
   const handleGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -37,7 +43,6 @@ export default function SignIn() {
     <div className="app-container">
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 24px 40px' }}>
 
-        {/* Invite card */}
         <div style={{ background: 'linear-gradient(135deg,#8A9DA8,#8A9DA8)', borderRadius: 20, padding: 24, marginTop: 24, marginBottom: 28, color: '#fff', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', right: -20, top: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
           <div style={{ position: 'absolute', right: 30, bottom: -30, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
@@ -58,12 +63,14 @@ export default function SignIn() {
           </div>
         </div>
 
-        {/* Primary action */}
-        <button className="btn-primary" onClick={() => navigate('/grid')} style={{ marginBottom: 16 }}>
+        {/* ── Mixpanel: 直接填寫_點擊 ── */}
+        <button className="btn-primary" onClick={() => {
+          mixpanel.track('直接填寫_點擊');
+          navigate('/grid');
+        }} style={{ marginBottom: 16 }}>
           填寫我的可用時間
         </button>
 
-        {/* Optional Google Calendar */}
         <div style={{ background: '#F8FFFE', border: '1.5px solid #E0F5F2', borderRadius: 14, padding: '16px 18px' }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: '#111', marginBottom: 4 }}>
             自動偵測空閒時段
@@ -72,7 +79,12 @@ export default function SignIn() {
           <div style={{ fontSize: 15, color: '#888', lineHeight: 1.5, marginBottom: 14 }}>
             連結 Google 日曆，自動標記你的空閒時段。
           </div>
-          <button className="btn-google" onClick={() => { setLoading(true); handleGoogle(); }} style={{ width: '100%' }} disabled={loading}>
+          {/* ── Mixpanel: Google登入_點擊 ── */}
+          <button className="btn-google" onClick={() => {
+            mixpanel.track('Google登入_點擊');
+            setLoading(true);
+            handleGoogle();
+          }} style={{ width: '100%' }} disabled={loading}>
             {loading
               ? <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
               : <><IcGoogle /> 以 Google 帳號繼續</>
