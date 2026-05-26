@@ -460,7 +460,7 @@ export default function Home() {
   const formBlock = (
     <>
       <div className="form-field">
-        <label className="form-label" style={{ fontSize: 13 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
+        <label className="form-label" style={{ fontSize: 16 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
         <DateMultiPicker scale={0.8} selectedDates={selectedDates} onChange={(v) => {
           setSelectedDates(v);
           if (v.length > 0) {
@@ -473,7 +473,7 @@ export default function Home() {
       </div>
       <div className="form-field">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <label className="form-label" style={{ marginBottom: 0, fontSize: 13 }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
+          <label className="form-label" style={{ marginBottom: 0, fontSize: 16 }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 13, fontWeight: 500, color: '#888' }}>全天</span>
             <div onClick={() => {
@@ -493,7 +493,7 @@ export default function Home() {
         {timeError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
       </div>
       <div className="form-field">
-        <label className="form-label" style={{ fontSize: 13 }}>活動時長（選填）</label>
+        <label className="form-label" style={{ fontSize: 16 }}>預計活動時長（選填）</label>
         <DurationSlider scale={0.8} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 時長: v, 有設定時長: v > 0 })} />
       </div>
     </>
@@ -611,7 +611,7 @@ export default function Home() {
               {timeError && <div style={{ fontSize: 17, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
             </div>
             <div style={{ marginBottom: 32 }}>
-              <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>活動時長（選填）</label>
+              <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>預計活動時長（選填）</label>
               <DurationSlider value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 時長: v, 有設定時長: v > 0 })} />
             </div>
             <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 24 }}>
