@@ -320,6 +320,16 @@ export default function Home() {
     mixpanel.track('頁面瀏覽', { 頁面: '首頁' });
   }, []);
 
+  const dateSelectedRef = useRef(false);
+  const timeSetRef = useRef(false);
+  const bothTrackedRef = useRef(false);
+  const checkAndTrackBoth = () => {
+    if (dateSelectedRef.current && timeSetRef.current && !bothTrackedRef.current) {
+      bothTrackedRef.current = true;
+      mixpanel.track('選取日期和調查時段');
+    }
+  };
+
   const [recentEvents, setRecentEvents] = useState(() => {
     try {
       const raw = JSON.parse(localStorage.getItem('meetime_recent') || '[]');
@@ -454,7 +464,7 @@ export default function Home() {
         <label className="form-label" style={{ fontSize: 16 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
         <DateMultiPicker scale={0.8} selectedDates={selectedDates} onChange={(v) => {
           setSelectedDates(v);
-          if (v.length > 0) { setDateError(''); mixpanel.track('選取日期和調查時段'); }
+          if (v.length > 0) { setDateError(''); dateSelectedRef.current = true; checkAndTrackBoth(); }
         }} />
         {dateError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
       </div>
@@ -469,13 +479,14 @@ export default function Home() {
               setTimeError('');
               // ── Mixpanel: 全天切換 ──
               mixpanel.track('全天切換', { 切換為: next ? '全天' : '自訂時段' });
+              timeSetRef.current = true; checkAndTrackBoth();
             }} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
               <div style={{ position: 'absolute', top: 2, left: allDay ? 18 : 2, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
             </div>
           </div>
         </div>
         <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-          <TimeRangeSlider scale={0.8} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => mixpanel.track('選取日期和調查時段')} />
+          <TimeRangeSlider scale={0.8} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => { timeSetRef.current = true; checkAndTrackBoth(); }} />
         </div>
         {timeError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
       </div>
@@ -579,7 +590,7 @@ export default function Home() {
             </div>
             <div style={{ marginBottom: 32 }}>
               <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
-              <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) { setDateError(''); mixpanel.track('選取日期和調查時段'); } }} />
+              <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) { setDateError(''); dateSelectedRef.current = true; checkAndTrackBoth(); } }} />
               {dateError && <div style={{ fontSize: 17, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
             </div>
             <div style={{ marginBottom: 32 }}>
@@ -593,7 +604,7 @@ export default function Home() {
                 </div>
               </div>
               <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-                <TimeRangeSlider startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => mixpanel.track('選取日期和調查時段')} />
+                <TimeRangeSlider startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => { timeSetRef.current = true; checkAndTrackBoth(); }} />
               </div>
               {timeError && <div style={{ fontSize: 17, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
             </div>
