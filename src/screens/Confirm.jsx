@@ -1,16 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IcCalendar, IcClock, IcUsers, IcCheck, IcBell, IcMail } from '../components/Icons';
+import mixpanel from '../lib/mixpanel';
 
 export default function Confirm() {
   const navigate = useNavigate();
   const [phase, setPhase] = useState('confirm');
   const [sheet, setSheet] = useState(true);
 
+  // ── Mixpanel: 確認預約_開啟 ──
+  useEffect(() => {
+    mixpanel.track('確認預約_開啟');
+  }, []);
+
   const doConfirm = () => {
+    // ── Mixpanel: 確認預約_送出 ──
+    mixpanel.track('確認預約_送出');
     setSheet(false);
     setPhase('booking');
-    setTimeout(() => setPhase('success'), 2000);
+    setTimeout(() => {
+      setPhase('success');
+      // ── Mixpanel: 預約成功 ──
+      mixpanel.track('預約成功');
+    }, 2000);
   };
 
   return (
