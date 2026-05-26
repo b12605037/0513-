@@ -152,8 +152,10 @@ export default function Results() {
   const labelW = isDesktop ? LABEL_W_DESKTOP : LABEL_W;
 
   const toggleRespondent = (i) => {
-    // ── Mixpanel: 切換個人和群組 ──
-    mixpanel.track('切換個人和群組', { 活動id: state?.meetingId });
+    if (!selected.has(i)) {
+      // ── Mixpanel: 切換個人和群組（切換回群組時）──
+      mixpanel.track('切換個人和群組', { 活動id: state?.meetingId });
+    }
     setSelected(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s; });
   };
 
@@ -257,11 +259,7 @@ export default function Results() {
     const slot = bestSlots.find(s => s.key === key);
     if (slot && !selectedSlots.has(key)) {
       // ── Mixpanel: 點擊填入最佳時段 ──
-      mixpanel.track('點擊填入最佳時段', {
-        活動id: state?.meetingId,
-        時段: `${slot.day.label} ${slot.day.date} ${fmtH24(G_START + slot.rawS / SPH)}`,
-        人數: slot.count,
-      });
+      mixpanel.track('點擊填入最佳時段', { 活動id: state?.meetingId });
     }
     setSelectedSlots(prev => { const s = new Set(prev); s.has(key) ? s.delete(key) : s.add(key); return s; });
   };
