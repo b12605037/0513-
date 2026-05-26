@@ -382,7 +382,7 @@ export default function Home() {
   const handleConfirmName = () => {
     if (!meetingName.trim() || saving) return;
     // ── Mixpanel: 輸入活動名稱 ──
-    mixpanel.track('輸入活動名稱', { 活動名稱: meetingName.trim() });
+    mixpanel.track('輸入活動名稱');
     const id = Math.random().toString(36).slice(2, 10);
     const rs = selectedDates[0] ?? null;
     const re = selectedDates[selectedDates.length - 1] ?? null;
@@ -492,7 +492,7 @@ export default function Home() {
       </div>
       <div className="form-field">
         <label className="form-label" style={{ fontSize: 16 }}>預計活動時長（選填）</label>
-        <DurationSlider scale={0.8} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 時長: v, 有設定時長: v > 0 })} />
+        <DurationSlider scale={0.8} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 有設定時長: v > 0 })} />
       </div>
     </>
   );
@@ -610,7 +610,7 @@ export default function Home() {
             </div>
             <div style={{ marginBottom: 32 }}>
               <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>預計活動時長（選填）</label>
-              <DurationSlider value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 時長: v, 有設定時長: v > 0 })} />
+              <DurationSlider value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 有設定時長: v > 0 })} />
             </div>
             <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 24 }}>
               建立活動
