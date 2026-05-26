@@ -393,11 +393,16 @@ export default function Home() {
       localStorage.setItem('meetime_recent', JSON.stringify(next));
       setRecentEvents(next);
     } catch {}
-    // ── Mixpanel: 活動建立 ──
-    mixpanel.track('活動建立', {
+    // ── Mixpanel: 選取日期和調查時段 ──
+    mixpanel.track('選取日期和調查時段', {
       活動名稱: meetingName.trim(),
       日期數量: selectedDates.length,
       時段: allDay ? '全天' : `${fmtSlot(startSlot)}-${fmtSlot(endSlot)}`,
+    });
+    // ── Mixpanel: 活動時長 ──
+    mixpanel.track('活動時長', {
+      活動名稱: meetingName.trim(),
+      時長: duration,
       有設定時長: duration > 0,
     });
     setGeneratedId(id);
