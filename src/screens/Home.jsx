@@ -51,7 +51,7 @@ function sameDay(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-function DurationSlider({ value, onChange, scale = 1 }) {
+function DurationSlider({ value, onChange, onChangeEnd, scale = 1 }) {
   const trackRef = useRef(null);
   const slot = dMinsToSlot(value);
   const pct = (slot / DURATION_TOTAL) * 100;
@@ -64,12 +64,14 @@ function DurationSlider({ value, onChange, scale = 1 }) {
   };
   const startDrag = (e) => {
     e.preventDefault();
-    const move = (ev) => onChange(dSlotToMins(getSlot(ev)));
+    let lastSlot = getSlot(e);
+    const move = (ev) => { lastSlot = getSlot(ev); onChange(dSlotToMins(lastSlot)); };
     const up = () => {
       window.removeEventListener('mousemove', move);
       window.removeEventListener('mouseup', up);
       window.removeEventListener('touchmove', move);
       window.removeEventListener('touchend', up);
+      onChangeEnd?.(dSlotToMins(lastSlot));
     };
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', up);
@@ -368,6 +370,8 @@ export default function Home() {
 
   const handleConfirmName = async () => {
     if (!meetingName.trim() || saving) return;
+    // ── Mixpanel: 輸入活動名稱 ──
+    mixpanel.track('輸入活動名稱', { 活動名稱: meetingName.trim() });
     setSaving(true);
     setSaveError('');
     const id = Math.random().toString(36).slice(2, 10);
@@ -398,12 +402,6 @@ export default function Home() {
       活動名稱: meetingName.trim(),
       日期數量: selectedDates.length,
       時段: allDay ? '全天' : `${fmtSlot(startSlot)}-${fmtSlot(endSlot)}`,
-    });
-    // ── Mixpanel: 活動時長 ──
-    mixpanel.track('活動時長', {
-      活動名稱: meetingName.trim(),
-      時長: duration,
-      有設定時長: duration > 0,
     });
     setGeneratedId(id);
     setNameModalPhase('link');
@@ -496,7 +494,7 @@ export default function Home() {
       </div>
       <div className="form-field">
         <label className="form-label" style={{ fontSize: 13 }}>活動時長（選填）</label>
-        <DurationSlider scale={0.8} value={duration} onChange={setDuration} />
+        <DurationSlider scale={0.8} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 時長: v, 有設定時長: v > 0 })} />
       </div>
     </>
   );
@@ -614,7 +612,7 @@ export default function Home() {
             </div>
             <div style={{ marginBottom: 32 }}>
               <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>活動時長（選填）</label>
-              <DurationSlider value={duration} onChange={setDuration} />
+              <DurationSlider value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 時長: v, 有設定時長: v > 0 })} />
             </div>
             <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 24 }}>
               建立活動
