@@ -99,7 +99,7 @@ function DurationSlider({ value, onChange, onChangeEnd, scale = 1 }) {
   );
 }
 
-function TimeRangeSlider({ startSlot, endSlot, onChange, scale = 1 }) {
+function TimeRangeSlider({ startSlot, endSlot, onChange, onChangeEnd, scale = 1 }) {
   const trackRef = useRef(null);
   const dragging = useRef(null);
   const slotToPct = (s) => (s / SLIDER_TOTAL) * 100;
@@ -126,6 +126,7 @@ function TimeRangeSlider({ startSlot, endSlot, onChange, scale = 1 }) {
       window.removeEventListener('mouseup', up);
       window.removeEventListener('touchmove', move);
       window.removeEventListener('touchend', up);
+      onChangeEnd?.();
     };
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', up);
@@ -368,16 +369,17 @@ export default function Home() {
     setShowNameModal(true);
   };
 
-  const handleConfirmName = async () => {
+  const handleConfirmName = () => {
     if (!meetingName.trim() || saving) return;
     // ── Mixpanel: 輸入活動名稱 ──
     mixpanel.track('輸入活動名稱', { 活動名稱: meetingName.trim() });
-    setSaving(true);
-    setSaveError('');
     const id = Math.random().toString(36).slice(2, 10);
     const rs = selectedDates[0] ?? null;
     const re = selectedDates[selectedDates.length - 1] ?? null;
-    const { error } = await supabase.from('meetings').insert({
+    // 樂觀更新：先顯示連結，insert 在背景執行
+    setGeneratedId(id);
+    setNameModalPhase('link');
+    supabase.from('meetings').insert({
       id,
       name:        meetingName.trim(),
       range_start: rs?.getTime() ?? null,
@@ -388,23 +390,12 @@ export default function Home() {
       all_day:     allDay,
       duration,
     });
-    setSaving(false);
-    if (error) { setSaveError(error.message); return; }
     try {
       const prev = JSON.parse(localStorage.getItem('meetime_recent') || '[]');
       prev.unshift({ id, name: meetingName.trim(), time: Date.now() });
-      const next = prev.slice(0, 10);
-      localStorage.setItem('meetime_recent', JSON.stringify(next));
-      setRecentEvents(next);
+      localStorage.setItem('meetime_recent', JSON.stringify(prev.slice(0, 10)));
+      setRecentEvents(prev.slice(0, 10));
     } catch {}
-    // ── Mixpanel: 選取日期和調查時段 ──
-    mixpanel.track('選取日期和調查時段', {
-      活動名稱: meetingName.trim(),
-      日期數量: selectedDates.length,
-      時段: allDay ? '全天' : `${fmtSlot(startSlot)}-${fmtSlot(endSlot)}`,
-    });
-    setGeneratedId(id);
-    setNameModalPhase('link');
   };
 
   const handleCopyLink = () => {
@@ -463,7 +454,7 @@ export default function Home() {
         <label className="form-label" style={{ fontSize: 16 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
         <DateMultiPicker scale={0.8} selectedDates={selectedDates} onChange={(v) => {
           setSelectedDates(v);
-          if (v.length > 0) { setDateError(''); }
+          if (v.length > 0) { setDateError(''); mixpanel.track('選取日期和調查時段'); }
         }} />
         {dateError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
       </div>
@@ -484,7 +475,7 @@ export default function Home() {
           </div>
         </div>
         <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-          <TimeRangeSlider scale={0.8} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} />
+          <TimeRangeSlider scale={0.8} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => mixpanel.track('選取日期和調查時段')} />
         </div>
         {timeError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
       </div>
@@ -542,7 +533,7 @@ export default function Home() {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
           傳送至 LINE
         </button>
-        <button onClick={() => { setShowNameModal(false); navigate('/grid', { state: { meetingId: generatedId, eventName: meetingName.trim(), rangeStart: selectedDates[0]?.getTime() ?? null, rangeEnd: selectedDates[selectedDates.length-1]?.getTime() ?? null, dateList: selectedDates.map(d => d.getTime()), startSlot, endSlot, allDay, duration } }); }}
+        <button onClick={() => { mixpanel.track('填寫我的時間'); setShowNameModal(false); navigate('/grid', { state: { meetingId: generatedId, eventName: meetingName.trim(), rangeStart: selectedDates[0]?.getTime() ?? null, rangeEnd: selectedDates[selectedDates.length-1]?.getTime() ?? null, dateList: selectedDates.map(d => d.getTime()), startSlot, endSlot, allDay, duration } }); }}
           style={{ width: '100%', padding: '16px', borderRadius: 14, border: '1.5px solid #8A9DA8', background: 'transparent', color: '#8A9DA8', fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
           填寫我的時間
         </button>
@@ -588,7 +579,7 @@ export default function Home() {
             </div>
             <div style={{ marginBottom: 32 }}>
               <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
-              <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) { setDateError(''); } }} />
+              <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) { setDateError(''); mixpanel.track('選取日期和調查時段'); } }} />
               {dateError && <div style={{ fontSize: 17, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
             </div>
             <div style={{ marginBottom: 32 }}>
@@ -602,7 +593,7 @@ export default function Home() {
                 </div>
               </div>
               <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-                <TimeRangeSlider startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} />
+                <TimeRangeSlider startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => mixpanel.track('選取日期和調查時段')} />
               </div>
               {timeError && <div style={{ fontSize: 17, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
             </div>
