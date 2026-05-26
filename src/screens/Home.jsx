@@ -329,7 +329,7 @@ export default function Home() {
   const handleClearHistory = () => {
     if (!window.confirm('確定要清除全部紀錄嗎？')) return;
     // ── Mixpanel: 清除紀錄 ──
-    mixpanel.track('清除紀錄', { 筆數: recentEvents.length });
+    mixpanel.track('清除紀錄');
     localStorage.removeItem('meetime_recent');
     setRecentEvents([]);
   };
@@ -410,7 +410,7 @@ export default function Home() {
   const handleCopyLink = () => {
     navigator.clipboard.writeText(`https://meetime-sigma.vercel.app/join/${generatedId}`).then(() => {
       // ── Mixpanel: 邀請連結複製 ──
-      mixpanel.track('邀請連結複製', { 活動id: generatedId });
+      mixpanel.track('邀請連結複製');
       setLinkCopied(true);
       setTimeout(() => setLinkCopied(false), 1800);
     });
@@ -435,7 +435,7 @@ export default function Home() {
             return (
               <div key={ev.id} onClick={() => {
                 // ── Mixpanel: 點擊最近活動 ──
-                mixpanel.track('點擊最近活動', { 活動id: ev.id, 活動名稱: ev.name });
+                mixpanel.track('點擊最近活動');
                 navigate(`/view/${ev.id}`);
               }}
                 style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 10, cursor: 'pointer' }}>
@@ -463,11 +463,7 @@ export default function Home() {
         <label className="form-label" style={{ fontSize: 16 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
         <DateMultiPicker scale={0.8} selectedDates={selectedDates} onChange={(v) => {
           setSelectedDates(v);
-          if (v.length > 0) {
-            setDateError('');
-            // ── Mixpanel: 日期選取完成 ──
-            mixpanel.track('日期選取完成', { 日期數量: v.length });
-          }
+          if (v.length > 0) { setDateError(''); }
         }} />
         {dateError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
       </div>
@@ -540,7 +536,7 @@ export default function Home() {
         </div>
         <button onClick={() => {
           // ── Mixpanel: 分享至LINE ──
-          mixpanel.track('分享至LINE', { 來源: 'home', 活動id: generatedId });
+          mixpanel.track('分享至LINE');
           window.open(`https://line.me/R/msg/text/${encodeURIComponent(`https://meetime-sigma.vercel.app/join/${generatedId}`)}`);
         }} style={{ width: '100%', padding: '18px', borderRadius: 14, border: 'none', background: '#8FA99A', color: '#fff', fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
@@ -576,7 +572,7 @@ export default function Home() {
                     const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
                     const color = DOT_COLORS[i % DOT_COLORS.length];
                     return (
-                      <div key={ev.id} onClick={() => { mixpanel.track('點擊最近活動', { 活動id: ev.id, 活動名稱: ev.name }); navigate(`/view/${ev.id}`); }}
+                      <div key={ev.id} onClick={() => { mixpanel.track('點擊最近活動'); navigate(`/view/${ev.id}`); }}
                         style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 12, cursor: 'pointer' }}>
                         <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -592,7 +588,7 @@ export default function Home() {
             </div>
             <div style={{ marginBottom: 32 }}>
               <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
-              <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) { setDateError(''); mixpanel.track('日期選取完成', { 日期數量: v.length }); } }} />
+              <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) { setDateError(''); } }} />
               {dateError && <div style={{ fontSize: 17, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
             </div>
             <div style={{ marginBottom: 32 }}>
