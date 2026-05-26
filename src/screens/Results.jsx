@@ -105,7 +105,7 @@ export default function Results() {
     supabase.from('responses').select('respondent_name,slots')
       .eq('meeting_id', state.meetingId)
       .then(({ data }) => {
-        if (data) {
+        if (data && data.length > 0) {
           const deduped = Object.values(
             data.reduce((acc, r) => ({ ...acc, [r.respondent_name]: r }), {})
           );
@@ -114,6 +114,13 @@ export default function Results() {
           mixpanel.track('查看結果頁', {
             活動id: state.meetingId,
             回應人數: deduped.length,
+          });
+        } else if (state?.myName && state?.mySlots) {
+          // DB 尚無資料但剛從 TimeGrid 送出，先顯示自己的回應
+          setResponses([{ respondent_name: state.myName, slots: state.mySlots }]);
+          mixpanel.track('查看結果頁', {
+            活動id: state.meetingId,
+            回應人數: 1,
           });
         }
         setLoading(false);
