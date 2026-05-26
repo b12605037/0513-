@@ -51,7 +51,6 @@ function sameDay(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-// ── Duration Slider ────────────────────────────────────────────────────────────
 function DurationSlider({ value, onChange, scale = 1 }) {
   const trackRef = useRef(null);
   const slot = dMinsToSlot(value);
@@ -98,7 +97,6 @@ function DurationSlider({ value, onChange, scale = 1 }) {
   );
 }
 
-// ── Time Range Slider ──────────────────────────────────────────────────────────
 function TimeRangeSlider({ startSlot, endSlot, onChange, scale = 1 }) {
   const trackRef = useRef(null);
   const dragging = useRef(null);
@@ -157,12 +155,10 @@ function TimeRangeSlider({ startSlot, endSlot, onChange, scale = 1 }) {
   );
 }
 
-// ── Date Multi-select Picker ───────────────────────────────────────────────────
 function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) {
   const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
   const mkKey  = (dt) => `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
   const fromKey = (k)  => { const [y,m,d] = k.split('-').map(Number); return new Date(y,m,d); };
-
   const [viewYear,  setViewYear]  = useState(() => selectedDates?.[0]?.getFullYear() ?? today.getFullYear());
   const [viewMonth, setViewMonth] = useState(() => selectedDates?.[0]?.getMonth()    ?? today.getMonth());
   const [displaySet, setDisplaySet] = useState(() => {
@@ -174,7 +170,6 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) 
   const displaySetRef = useRef(displaySet);
   const onChangeRef   = useRef(onChange);
   const calRef        = useRef(null);
-
   useEffect(() => { displaySetRef.current = displaySet; }, [displaySet]);
   useEffect(() => { onChangeRef.current   = onChange;   }, [onChange]);
   useEffect(() => {
@@ -182,7 +177,6 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) 
     const s = new Set(); selectedDates?.forEach(d => s.add(mkKey(d)));
     setDisplaySet(s);
   }, [selectedDates]);
-
   useEffect(() => {
     const el = calRef.current;
     if (!el) return;
@@ -214,7 +208,6 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) 
     el.addEventListener('touchmove',  onMove,  { passive: false });
     return () => { el.removeEventListener('touchstart', onStart); el.removeEventListener('touchmove', onMove); };
   }, [today]);
-
   useEffect(() => {
     const commit = () => {
       if (!dragging.current) return;
@@ -226,7 +219,6 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) 
     window.addEventListener('mouseup',  commit);
     return () => { window.removeEventListener('touchend', commit); window.removeEventListener('mouseup', commit); document.body.style.overflow = ''; };
   }, []);
-
   const mouseDown = (key) => {
     const dt = fromKey(key); if (dt < today) return;
     dragging.current = true;
@@ -241,23 +233,18 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) 
     workSet.current[dragMode.current === 'select' ? 'add' : 'delete'](key);
     setDisplaySet(new Set(workSet.current));
   };
-
   const prevMonth = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); } else setViewMonth(m => m - 1); };
   const nextMonth = () => { if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); } else setViewMonth(m => m + 1); };
-
   const firstDow    = new Date(viewYear, viewMonth, 1).getDay();
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const count = displaySet.size;
   const label = count === 0 ? '點擊或滑動選取日期'
     : (() => { const d = fromKey([...displaySet][0]); return `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; })();
-  const sortedDates = count > 1
-    ? Array.from(displaySet).map(fromKey).sort((a, b) => a - b)
-    : [];
+  const sortedDates = count > 1 ? Array.from(displaySet).map(fromKey).sort((a, b) => a - b) : [];
   const dateRanges = sortedDates.reduce((acc, d) => {
     if (!acc.length || (d - acc[acc.length - 1][1]) / 86400000 !== 1) return [...acc, [d, d]];
     return [...acc.slice(0, -1), [acc[acc.length - 1][0], d]];
   }, []);
-
   return (
     <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16 }}>
       <div style={{ padding: '10px 28px 8px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0' }}>
@@ -272,16 +259,8 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) 
             <div style={{ width: 6, height: 6, borderRadius: 3, background: '#8A9DA8', flexShrink: 0, marginTop: 6 }} />
             <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '4px 6px' }}>
               {dateRanges.map(([s, e], i) => {
-                const label = s.getTime() === e.getTime()
-                  ? `${s.getMonth()+1}/${s.getDate()}`
-                  : s.getMonth() === e.getMonth()
-                  ? `${s.getMonth()+1}/${s.getDate()}–${e.getDate()}`
-                  : `${s.getMonth()+1}/${s.getDate()}–${e.getMonth()+1}/${e.getDate()}`;
-                return (
-                  <span key={i} style={{ fontSize: Math.round(19 * scale), fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 5, padding: '2px 7px' }}>
-                    {label}
-                  </span>
-                );
+                const label = s.getTime() === e.getTime() ? `${s.getMonth()+1}/${s.getDate()}` : s.getMonth() === e.getMonth() ? `${s.getMonth()+1}/${s.getDate()}–${e.getDate()}` : `${s.getMonth()+1}/${s.getDate()}–${e.getMonth()+1}/${e.getDate()}`;
+                return <span key={i} style={{ fontSize: Math.round(19 * scale), fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 5, padding: '2px 7px' }}>{label}</span>;
               })}
             </div>
             <button onClick={() => onChangeRef.current([])} style={{ flexShrink: 0, fontSize: Math.round(22 * scale), fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
@@ -305,7 +284,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) 
             const disabled = dt < today;
             const selected = displaySet.has(key);
             const isToday  = sameDay(dt, today);
-            const dow          = (d - 1 + firstDow) % 7;
+            const dow = (d - 1 + firstDow) % 7;
             const isFirstInRow = dow === 0;
             const isLastInRow  = dow === 6;
             const prevSel = selected && displaySet.has(mkKey(new Date(viewYear, viewMonth, d - 1)));
@@ -318,9 +297,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) 
                 onMouseDown={() => !disabled && mouseDown(key)}
                 onMouseEnter={() => !disabled && mouseEnter(key)}
                 style={{ height: large ? 82 : 36, cursor: disabled ? 'default' : 'pointer', position: 'relative' }}>
-                {selected && (
-                  <div style={{ position: 'absolute', left: bandL, right: bandR, top: 2, height: large ? 65 : 32, background: 'rgba(138, 157, 168, 0.18)', pointerEvents: 'none' }} />
-                )}
+                {selected && <div style={{ position: 'absolute', left: bandL, right: bandR, top: 2, height: large ? 65 : 32, background: 'rgba(138, 157, 168, 0.18)', pointerEvents: 'none' }} />}
                 <div style={{ width: large ? 65 : 32, height: large ? 65 : 32, borderRadius: large ? 33 : 16, margin: '2px auto 0', position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: large ? 31 : Math.round(16 * scale), fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8', transition: 'background 0.08s' }}>{d}</div>
               </div>
             );
@@ -331,21 +308,30 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) 
   );
 }
 
-// ── Main ───────────────────────────────────────────────────────────────────────
 export default function Home() {
   const navigate = useNavigate();
   const isDesktop = useDesktop();
+
+  // ── Mixpanel: 頁面瀏覽 ──
+  useEffect(() => {
+    mixpanel.track('頁面瀏覽', { 頁面: '首頁' });
+  }, []);
+
   const [recentEvents, setRecentEvents] = useState(() => {
     try {
       const raw = JSON.parse(localStorage.getItem('meetime_recent') || '[]');
       return Array.isArray(raw) ? raw.filter(e => e && typeof e === 'object' && typeof e.name === 'string' && e.name.length > 0) : [];
     } catch { return []; }
   });
+
   const handleClearHistory = () => {
     if (!window.confirm('確定要清除全部紀錄嗎？')) return;
+    // ── Mixpanel: 清除紀錄 ──
+    mixpanel.track('清除紀錄', { 筆數: recentEvents.length });
     localStorage.removeItem('meetime_recent');
     setRecentEvents([]);
   };
+
   const [selectedDates, setSelectedDates] = useState([]);
   const [startSlot, setStartSlot] = useState(18);
   const [endSlot, setEndSlot] = useState(36);
@@ -427,8 +413,6 @@ export default function Home() {
     });
   };
 
-  // ── Shared JSX blocks ──────────────────────────────────────────────────────
-
   const recentEventsBlock = (
     <>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -446,7 +430,11 @@ export default function Home() {
             const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
             const color = DOT_COLORS[i % DOT_COLORS.length];
             return (
-              <div key={ev.id} onClick={() => navigate(`/view/${ev.id}`)}
+              <div key={ev.id} onClick={() => {
+                // ── Mixpanel: 點擊最近活動 ──
+                mixpanel.track('點擊最近活動', { 活動id: ev.id, 活動名稱: ev.name });
+                navigate(`/view/${ev.id}`);
+              }}
                 style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 10, cursor: 'pointer' }}>
                 <div style={{ width: 10, height: 10, borderRadius: 5, background: color, flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -469,34 +457,40 @@ export default function Home() {
   const formBlock = (
     <>
       <div className="form-field">
-        <label className="form-label" style={{ fontSize: 19.5 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
-        <DateMultiPicker scale={0.8} selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
+        <label className="form-label" style={{ fontSize: 13 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
+        <DateMultiPicker scale={0.8} selectedDates={selectedDates} onChange={(v) => {
+          setSelectedDates(v);
+          if (v.length > 0) {
+            setDateError('');
+            // ── Mixpanel: 日期選取完成 ──
+            mixpanel.track('日期選取完成', { 日期數量: v.length });
+          }
+        }} />
         {dateError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
       </div>
-
       <div className="form-field">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <label className="form-label" style={{ marginBottom: 0, fontSize: 19.5 }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
+          <label className="form-label" style={{ marginBottom: 0, fontSize: 13 }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 13, fontWeight: 500, color: '#888' }}>全天</span>
-            <div onClick={() => { setAllDay(v => !v); setTimeError(''); }} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+            <div onClick={() => {
+              const next = !allDay;
+              setAllDay(next);
+              setTimeError('');
+              // ── Mixpanel: 全天切換 ──
+              mixpanel.track('全天切換', { 切換為: next ? '全天' : '自訂時段' });
+            }} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
               <div style={{ position: 'absolute', top: 2, left: allDay ? 18 : 2, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
             </div>
           </div>
         </div>
         <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-          <TimeRangeSlider
-            scale={0.8}
-            startSlot={allDay ? 0 : startSlot}
-            endSlot={allDay ? SLIDER_TOTAL : endSlot}
-            onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }}
-          />
+          <TimeRangeSlider scale={0.8} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} />
         </div>
         {timeError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
       </div>
-
       <div className="form-field">
-        <label className="form-label" style={{ fontSize: 19.5 }}>預計會議時長（選填）</label>
+        <label className="form-label" style={{ fontSize: 13 }}>活動時長（選填）</label>
         <DurationSlider scale={0.8} value={duration} onChange={setDuration} />
       </div>
     </>
@@ -506,22 +500,12 @@ export default function Home() {
     <>
       {nameModalPhase === 'input' ? (<>
         <div style={{ fontSize: 30, fontWeight: 800, color: '#111', letterSpacing: '-0.02em', marginBottom: 20 }}>活動名稱</div>
-        <input
-          autoFocus
-          className="form-input"
-          value={meetingName}
-          onChange={e => setMeetingName(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') handleConfirmName(); }}
-          style={{ marginBottom: 20, fontSize: 20 }}
-        />
+        <input autoFocus className="form-input" value={meetingName} onChange={e => setMeetingName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleConfirmName(); }} style={{ marginBottom: 20, fontSize: 20 }} />
         <div style={{ background: '#F8F9FA', borderRadius: 14, padding: '16px 18px', marginBottom: 20 }}>
           {[
-            { label: '調查日期', value: selectedDates.length === 0 ? '未設定'
-              : selectedDates.length === 1 ? `${SHORT_MONTHS[selectedDates[0].getMonth()]} ${selectedDates[0].getDate()}`
-              : selectedDates.length <= 3 ? selectedDates.map(d => `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}`).join('、')
-              : `${SHORT_MONTHS[selectedDates[0].getMonth()]} ${selectedDates[0].getDate()} – ${SHORT_MONTHS[selectedDates[selectedDates.length-1].getMonth()]} ${selectedDates[selectedDates.length-1].getDate()} (${selectedDates.length}天)` },
+            { label: '調查日期', value: selectedDates.length === 0 ? '未設定' : selectedDates.length === 1 ? `${SHORT_MONTHS[selectedDates[0].getMonth()]} ${selectedDates[0].getDate()}` : selectedDates.length <= 3 ? selectedDates.map(d => `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}`).join('、') : `${SHORT_MONTHS[selectedDates[0].getMonth()]} ${selectedDates[0].getDate()} – ${SHORT_MONTHS[selectedDates[selectedDates.length-1].getMonth()]} ${selectedDates[selectedDates.length-1].getDate()} (${selectedDates.length}天)` },
             { label: '調查時段', value: allDay ? '全天' : `${fmtSlot(startSlot)} ${fmtPeriod(startSlot)} – ${fmtSlot(endSlot)} ${fmtPeriod(endSlot)}` },
-            { label: '預計會議時長', value: fmtDuration(duration) },
+            { label: '活動時長', value: fmtDuration(duration) },
           ].map(({ label, value }) => (
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0' }}>
               <span style={{ fontSize: 18, color: '#AAA' }}>{label}</span>
@@ -543,7 +527,6 @@ export default function Home() {
           </div>
           <div style={{ fontSize: 27, fontWeight: 800, color: '#111', letterSpacing: '-0.02em' }}>邀請連結已建立</div>
         </div>
-
         <div style={{ background: '#E8EEF1', borderRadius: 14, padding: '14px 12px 14px 18px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
           <div style={{ flex: 1, fontSize: 17, color: '#5F84A2', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             meetime-sigma.vercel.app/join/{generatedId}
@@ -552,15 +535,12 @@ export default function Home() {
             {linkCopied ? '已複製 ✓' : '複製'}
           </button>
         </div>
-
         <button onClick={() => {
           // ── Mixpanel: 分享至LINE ──
           mixpanel.track('分享至LINE', { 來源: 'home', 活動id: generatedId });
           window.open(`https://line.me/R/msg/text/${encodeURIComponent(`https://meetime-sigma.vercel.app/join/${generatedId}`)}`);
         }} style={{ width: '100%', padding: '18px', borderRadius: 14, border: 'none', background: '#8FA99A', color: '#fff', fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
-            <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
-          </svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
           傳送至 LINE
         </button>
         <button onClick={() => { setShowNameModal(false); navigate('/grid', { state: { meetingId: generatedId, eventName: meetingName.trim(), rangeStart: selectedDates[0]?.getTime() ?? null, rangeEnd: selectedDates[selectedDates.length-1]?.getTime() ?? null, dateList: selectedDates.map(d => d.getTime()), startSlot, endSlot, allDay, duration } }); }}
@@ -573,20 +553,16 @@ export default function Home() {
 
   return (
     <div className="app-container" style={isDesktop ? { overflowY: 'auto', height: 'auto', minHeight: '100vh' } : { background: '#fff' }}>
-
       {isDesktop ? (
         <>
           <div style={{ height: 86, display: 'flex', alignItems: 'center', padding: '0 40px', borderBottom: '1px solid #F0F0F0' }}>
             <span style={{ fontSize: 48, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
           </div>
-
           <div style={{ maxWidth: 1400, margin: '0 auto', padding: '40px 48px 60px' }}>
             <div style={{ marginBottom: 40 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <span style={{ fontSize: 26, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
-                {recentEvents.length > 0 && (
-                  <button onClick={handleClearHistory} style={{ fontSize: 19, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>清除紀錄</button>
-                )}
+                {recentEvents.length > 0 && <button onClick={handleClearHistory} style={{ fontSize: 19, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>清除紀錄</button>}
               </div>
               {recentEvents.length === 0 ? (
                 <div style={{ textAlign: 'center', color: '#CCC', fontSize: 22, padding: '24px 0' }}>尚無建立紀錄</div>
@@ -597,7 +573,7 @@ export default function Home() {
                     const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
                     const color = DOT_COLORS[i % DOT_COLORS.length];
                     return (
-                      <div key={ev.id} onClick={() => navigate(`/view/${ev.id}`)}
+                      <div key={ev.id} onClick={() => { mixpanel.track('點擊最近活動', { 活動id: ev.id, 活動名稱: ev.name }); navigate(`/view/${ev.id}`); }}
                         style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 12, cursor: 'pointer' }}>
                         <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -607,28 +583,21 @@ export default function Home() {
                       </div>
                     );
                   })}
-                  {recentEvents.length > 3 && (
-                    <button onClick={() => setShowAllRecent(v => !v)}
-                      style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 19, cursor: 'pointer', fontFamily: 'inherit', padding: '6px 0', textAlign: 'center' }}>
-                      {showAllRecent ? '收起' : `顯示其他 ${recentEvents.length - 3} 筆`}
-                    </button>
-                  )}
+                  {recentEvents.length > 3 && <button onClick={() => setShowAllRecent(v => !v)} style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 19, cursor: 'pointer', fontFamily: 'inherit', padding: '6px 0', textAlign: 'center' }}>{showAllRecent ? '收起' : `顯示其他 ${recentEvents.length - 3} 筆`}</button>}
                 </>
               )}
             </div>
-
             <div style={{ marginBottom: 32 }}>
               <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
-              <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) setDateError(''); }} />
+              <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) { setDateError(''); mixpanel.track('日期選取完成', { 日期數量: v.length }); } }} />
               {dateError && <div style={{ fontSize: 17, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
             </div>
-
             <div style={{ marginBottom: 32 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <label style={{ fontSize: 24, fontWeight: 700, color: '#555' }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ fontSize: 20, fontWeight: 500, color: '#888' }}>全天</span>
-                  <div onClick={() => { setAllDay(v => !v); setTimeError(''); }} style={{ width: 44, height: 26, borderRadius: 13, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+                  <div onClick={() => { const next = !allDay; setAllDay(next); setTimeError(''); mixpanel.track('全天切換', { 切換為: next ? '全天' : '自訂時段' }); }} style={{ width: 44, height: 26, borderRadius: 13, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
                     <div style={{ position: 'absolute', top: 3, left: allDay ? 20 : 3, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
                   </div>
                 </div>
@@ -638,17 +607,13 @@ export default function Home() {
               </div>
               {timeError && <div style={{ fontSize: 17, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
             </div>
-
             <div style={{ marginBottom: 32 }}>
-              <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>預計會議時長（選填）</label>
+              <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>活動時長（選填）</label>
               <DurationSlider value={duration} onChange={setDuration} />
             </div>
-
             <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 24 }}>
               建立活動
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-              </svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
           </div>
         </>
@@ -663,15 +628,12 @@ export default function Home() {
             <div style={{ padding: '4px 16px 40px' }}>
               <button className="btn-primary" onClick={openNameModal}>
                 送出
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                </svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               </button>
             </div>
           </div>
         </>
       )}
-
       {showNameModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}
           onClick={() => nameModalPhase === 'input' && setShowNameModal(false)}>
