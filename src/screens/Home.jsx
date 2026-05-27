@@ -379,17 +379,14 @@ export default function Home() {
     setShowNameModal(true);
   };
 
-  const handleConfirmName = () => {
+  const handleConfirmName = async () => {
     if (!meetingName.trim() || saving) return;
     // ── Mixpanel: 輸入活動名稱 ──
     mixpanel.track('輸入活動名稱');
     const id = Math.random().toString(36).slice(2, 10);
     const rs = selectedDates[0] ?? null;
     const re = selectedDates[selectedDates.length - 1] ?? null;
-    // 樂觀更新：先顯示連結，insert 在背景執行
-    setGeneratedId(id);
-    setNameModalPhase('link');
-    supabase.from('meetings').insert({
+    const payload = {
       id,
       name:        meetingName.trim(),
       range_start: rs?.getTime() ?? null,
@@ -399,7 +396,16 @@ export default function Home() {
       end_slot:    endSlot,
       all_day:     allDay,
       duration,
-    });
+    };
+    // 樂觀更新：先顯示連結，insert 在背景執行
+    setGeneratedId(id);
+    setNameModalPhase('link');
+    const { error } = await supabase.from('meetings').insert(payload);
+    if (error) {
+      // date_list 欄位不存在時的 fallback
+      const { date_list, ...payloadWithout } = payload;
+      await supabase.from('meetings').insert(payloadWithout);
+    }
     try {
       const prev = JSON.parse(localStorage.getItem('meetime_recent') || '[]');
       prev.unshift({ id, name: meetingName.trim(), time: Date.now() });
