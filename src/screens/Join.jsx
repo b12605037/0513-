@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import mixpanel from '../lib/mixpanel';
@@ -6,6 +6,8 @@ import mixpanel from '../lib/mixpanel';
 export default function Join() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [notFound, setNotFound] = useState(false);
+
   useEffect(() => {
     supabase
       .from('meetings')
@@ -16,7 +18,7 @@ export default function Join() {
         if (error || !m) {
           // ── Mixpanel: 加入活動失敗 ──
           mixpanel.track('加入活動失敗', { 活動id: id });
-          navigate('/', { replace: true });
+          setNotFound(true);
           return;
         }
         // ── Mixpanel: 加入活動 ──
@@ -41,6 +43,14 @@ export default function Join() {
         });
       });
   }, [id, navigate]);
+  if (notFound) return (
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '0 32px', textAlign: 'center' }}>
+      <div style={{ fontSize: 22, fontWeight: 700, color: '#555' }}>連結無效或已過期</div>
+      <div style={{ fontSize: 16, color: '#AAA' }}>請向活動發起人索取新的邀請連結</div>
+      <button onClick={() => navigate('/')} style={{ marginTop: 16, padding: '12px 28px', borderRadius: 12, border: 'none', background: '#8A9DA8', color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>回首頁</button>
+    </div>
+  );
+
   return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#AAA', fontSize: 18 }}>
       載入中…

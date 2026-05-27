@@ -397,14 +397,17 @@ export default function Home() {
       all_day:     allDay,
       duration,
     };
-    // 樂觀更新：先顯示連結，insert 在背景執行
     setGeneratedId(id);
     setNameModalPhase('link');
-    const { error } = await supabase.from('meetings').insert(payload);
+    let { error } = await supabase.from('meetings').insert(payload);
     if (error) {
-      // date_list 欄位不存在時的 fallback
       const { date_list, ...payloadWithout } = payload;
-      await supabase.from('meetings').insert(payloadWithout);
+      ({ error } = await supabase.from('meetings').insert(payloadWithout));
+    }
+    if (error) {
+      setSaveError('建立失敗，請再試一次');
+      setNameModalPhase('input');
+      return;
     }
     try {
       const prev = JSON.parse(localStorage.getItem('meetime_recent') || '[]');
