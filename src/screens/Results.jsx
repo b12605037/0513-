@@ -13,9 +13,10 @@ const LABEL_W_DESKTOP = 72;
 const DAYS_PER_PAGE = 4;
 const DESKTOP_DAYS_PER_PAGE = 7;
 const FREE_COLOR = '#8A9DA8';
-const DOW    = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const DOW_ZH = ['週日','週一','週二','週三','週四','週五','週六'];
-const DOW_IDX = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
+const DOW      = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DOW_ZH   = ['週日','週一','週二','週三','週四','週五','週六'];
+const DOW_PAREN= ['（日）','（一）','（二）','（三）','（四）','（五）','（六）'];
+const DOW_IDX  = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const fmtH24 = h => {
@@ -39,18 +40,22 @@ const fmtDur = (slots) => {
   if (mins < 60) return `${mins} 分鐘`;
   return `${mins / 60} 小時`;
 };
+const toGCalDT = (year, month, date, h) => {
+  const hr = Math.floor(h) % 24, min = Math.round((h - Math.floor(h)) * 60);
+  return `${year}${String(month + 1).padStart(2,'0')}${String(Number(date)).padStart(2,'0')}T${String(hr).padStart(2,'0')}${String(min).padStart(2,'0')}00`;
+};
 
 function buildAllDays(rangeStartTs, rangeEndTs, dateList) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   if (dateList && dateList.length > 0) {
     return [...dateList].map(ts => new Date(ts)).sort((a,b) => a-b)
-      .map(d => ({ label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth() }));
+      .map(d => ({ label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth(), year: d.getFullYear() }));
   }
   if (!rangeStartTs) {
     const days = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(today); d.setDate(today.getDate() + i);
-      days.push({ label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth() });
+      days.push({ label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth(), year: d.getFullYear() });
     }
     return days;
   }
@@ -60,7 +65,7 @@ function buildAllDays(rangeStartTs, rangeEndTs, dateList) {
   const days = [];
   for (let i = 0; i < totalDays; i++) {
     const d = new Date(start); d.setDate(start.getDate() + i);
-    days.push({ label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth() });
+    days.push({ label: DOW[d.getDay()], date: String(d.getDate()), month: d.getMonth(), year: d.getFullYear() });
   }
   return days;
 }
@@ -273,11 +278,19 @@ export default function Results() {
 
   const selectedList = bestSlots.filter(s => selectedSlots.has(s.key));
 
-  const shareMessage = selectedList.length === 0 ? '' :
-    selectedList.length === 1
-      ? `嗨大家！會議時間確定囉\n\n📅 ${DOW_ZH[DOW_IDX[selectedList[0].day.label]]} ${selectedList[0].day.date} ${fmtH24(G_START + selectedList[0].rawS / SPH)}–${fmtH24(G_START + (selectedList[0].rawS + selectedList[0].actualSlots) / SPH)}`
-      : `嗨大家！以下是我們的會議時間 📅\n\n` +
-        selectedList.map(s => `• ${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + s.actualSlots) / SPH)}`).join('\n');
+  const shareMessage = (() => {
+    if (selectedList.length === 0) return '';
+    if (selectedList.length === 1) {
+      const s = selectedList[0];
+      const startH = G_START + s.rawS / SPH;
+      const endH = G_START + (s.rawS + s.actualSlots) / SPH;
+      const gcUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(state?.eventName ?? '')}&dates=${toGCalDT(s.day.year, s.day.month, s.day.date, startH)}/${toGCalDT(s.day.year, s.day.month, s.day.date, endH)}&details=${encodeURIComponent('透過 meetime 安排的會議')}`;
+      const timeStr = `${s.day.year}/${s.day.month + 1}/${s.day.date}${DOW_PAREN[DOW_IDX[s.day.label]]}${fmtH24(startH)} – ${fmtH24(endH)}`;
+      return `${state?.eventName ?? ''} 的最佳會議時間已確認！\n\n📅 時間：${timeStr}\n\n🗓 點擊以下連結加入 Google Calendar：\n${gcUrl}`;
+    }
+    return `嗨大家！以下是我們的會議時間 📅\n\n` +
+      selectedList.map(s => `• ${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + s.actualSlots) / SPH)}`).join('\n');
+  })();
 
   const handleShareLine = () => {
     // ── Mixpanel: 分享結果至LINE ──
