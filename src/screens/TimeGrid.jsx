@@ -499,7 +499,7 @@ export default function TimeGrid() {
             {tab === 'mine' && (
               <button onClick={autofillBestTime}
                 style={{ padding: '10px 22px', borderRadius: 10, border: `2px solid ${FREE_COLOR}`, background: 'transparent', color: FREE_COLOR, fontSize: 16, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                填入最佳時段
+                填入目前最佳時段
               </button>
             )}
           </div>
