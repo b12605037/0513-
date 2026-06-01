@@ -78,15 +78,13 @@ function pageNavLabel(pageDays) {
     : `${MON[first.month]} ${first.date} – ${MON[last.month]} ${last.date}`;
 }
 
-const HEAT_ANCHORS = [[191,204,212],[159,181,195],[138,157,168],[47,65,86]];
+const HEAT_LO = [55, 97, 60];
+const HEAT_HI = [15, 44, 24];
 function heatColor(n, total) {
   if (n === 0 || total === 0) return 'transparent';
   const t = total === 1 ? 1 : (n - 1) / (total - 1);
-  const scaled = t * (HEAT_ANCHORS.length - 1);
-  const lo = Math.min(Math.floor(scaled), HEAT_ANCHORS.length - 2);
-  const f = scaled - lo, hi = lo + 1;
-  const [r0,g0,b0] = HEAT_ANCHORS[lo], [r1,g1,b1] = HEAT_ANCHORS[hi];
-  return `rgb(${Math.round(r0+f*(r1-r0))},${Math.round(g0+f*(g1-g0))},${Math.round(b0+f*(b1-b0))})`;
+  const [r0,g0,b0] = HEAT_LO, [r1,g1,b1] = HEAT_HI;
+  return `rgb(${Math.round(r0+t*(r1-r0))},${Math.round(g0+t*(g1-g0))},${Math.round(b0+t*(b1-b0))})`;
 }
 
 export default function Results() {
