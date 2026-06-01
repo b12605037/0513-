@@ -640,7 +640,7 @@ export default function TimeGrid() {
         <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
           {tab === 'mine' && !isDesktop && (
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-              <button onClick={autofillBestTime} style={{ flex: 1, padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${FREE_COLOR}`, background: 'transparent', color: FREE_COLOR, fontSize: 15, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>填入目前最佳時段</button>
+              <button onClick={autofillBestTime} style={{ flex: 1, padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${FREE_COLOR}`, background: 'transparent', color: FREE_COLOR, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap' }}>填入目前最佳時段</button>
               <button className="btn-primary" onClick={() => name.trim() ? submitResponse() : setShowNameModal(true)} style={{ flex: 1, padding: '12px' }}>送出</button>
             </div>
           )}
