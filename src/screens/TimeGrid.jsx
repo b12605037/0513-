@@ -14,7 +14,7 @@ const SCROLL_W = 44;
 const DAYS_PER_PAGE = 4;
 const DESKTOP_DAYS_PER_PAGE = 7;
 const FREE_COLOR = '#8A9DA8';
-const SLOT_COLOR = '#478058';
+const SLOT_COLOR = '#7DC490';
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -74,8 +74,8 @@ function initSlots(totalDays, total) {
   return g;
 }
 
-const HEAT_LO = [55, 97, 60];
-const HEAT_HI = [15, 44, 24];
+const HEAT_LO = [158, 212, 170];
+const HEAT_HI = [61, 138, 84];
 function heatColor(n, total) {
   if (n === 0 || total === 0) return 'transparent';
   const t = total === 1 ? 1 : (n - 1) / (total - 1);

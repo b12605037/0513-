@@ -78,8 +78,8 @@ function pageNavLabel(pageDays) {
     : `${MON[first.month]} ${first.date} – ${MON[last.month]} ${last.date}`;
 }
 
-const HEAT_LO = [55, 97, 60];
-const HEAT_HI = [15, 44, 24];
+const HEAT_LO = [158, 212, 170];
+const HEAT_HI = [61, 138, 84];
 function heatColor(n, total) {
   if (n === 0 || total === 0) return 'transparent';
   const t = total === 1 ? 1 : (n - 1) / (total - 1);
