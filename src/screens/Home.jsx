@@ -283,11 +283,11 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: fillHeight ? 9 : 12, flexShrink: 0 }}>
           <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px', color: '#8A9DA8' }}><IcChevron dir="left" size={18} /></button>
-          <span style={{ fontSize: fillHeight ? 34 : (large ? 31 : Math.round(31 * scale)), fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
+          <span style={{ fontSize: fillHeight ? 22 : (large ? 31 : Math.round(31 * scale)), fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px', color: '#8A9DA8' }}><IcChevron dir="right" size={18} /></button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', columnGap: fillHeight ? 10 : (large ? 6 : 2), marginBottom: fillHeight ? 8 : 4, flexShrink: 0 }}>
-          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 25 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
+          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 16 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
         </div>
         <div ref={calRef} style={fillHeight ? {
           flex: 1, minHeight: 0,
@@ -329,15 +329,15 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                   background: 'rgba(138, 157, 168, 0.18)', pointerEvents: 'none',
                 }} />}
                 <div style={{
-                  width: fillHeight ? 'min(73px, 80%)' : (large ? 65 : 32),
-                  height: fillHeight ? 'min(73px, 80%)' : (large ? 65 : 32),
+                  width: fillHeight ? 'min(48px, 80%)' : (large ? 65 : 32),
+                  height: fillHeight ? 'min(48px, 80%)' : (large ? 65 : 32),
                   borderRadius: fillHeight ? '50%' : (large ? 33 : 16),
                   margin: fillHeight ? 0 : '2px auto 0',
                   position: 'relative', zIndex: 1, flexShrink: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: selected ? '#8A9DA8' : 'transparent',
                   border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none',
-                  fontSize: fillHeight ? 34 : (large ? 31 : Math.round(16 * scale)),
+                  fontSize: fillHeight ? 20 : (large ? 31 : Math.round(16 * scale)),
                   fontWeight: selected ? 700 : 400,
                   color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8',
                   transition: 'background 0.08s',
