@@ -613,7 +613,7 @@ export default function Home() {
   );
 
   return (
-    <div className="app-container" style={isDesktop ? { height: 'auto', overflowX: 'hidden', overflowY: 'auto' } : { background: '#fff' }}>
+    <div className="app-container" style={isDesktop ? { height: '100vh', overflow: 'hidden' } : { background: '#fff' }}>
       {isDesktop ? (
         <>
           {/* Navbar */}
@@ -621,9 +621,9 @@ export default function Home() {
             <span style={{ fontSize: 48, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
           </div>
           {/* Two-column layout */}
-          <div style={{ display: 'flex', gap: 96, padding: '72px 120px', maxWidth: 1920, margin: '0 auto', width: '100%', boxSizing: 'border-box', alignItems: 'flex-start' }}>
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: 96, padding: '72px 120px', maxWidth: 1920, margin: '0 auto', width: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
             {/* Left column 60% */}
-            <div style={{ flex: 55, display: 'flex', flexDirection: 'column', padding: 29 }}>
+            <div style={{ flex: 55, display: 'flex', flexDirection: 'column', padding: 29, minHeight: 0, overflow: 'hidden' }}>
               {/* Recent events */}
               <div style={{ flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
@@ -636,7 +636,7 @@ export default function Home() {
                   <div style={{ textAlign: 'center', color: '#CCC', fontSize: 20, padding: '19px 0' }}>尚無建立紀錄</div>
                 ) : (
                   <>
-                    {(showAllRecent ? recentEvents : recentEvents.slice(0, 3)).map((ev, i) => {
+                    {(showAllRecent ? recentEvents : recentEvents.slice(0, 2)).map((ev, i) => {
                       const daysAgo = Math.floor((Date.now() - ev.time) / 86400000);
                       const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
                       const color = DOT_COLORS[i % DOT_COLORS.length];
@@ -651,9 +651,9 @@ export default function Home() {
                         </div>
                       );
                     })}
-                    {recentEvents.length > 3 && (
+                    {recentEvents.length > 2 && (
                       <button onClick={() => setShowAllRecent(v => !v)} style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 18, cursor: 'pointer', fontFamily: 'inherit', padding: '5px 0', textAlign: 'center' }}>
-                        {showAllRecent ? '收起' : '顯示更多'}
+                        {showAllRecent ? '收起' : `顯示其他 ${recentEvents.length - 2} 筆`}
                       </button>
                     )}
                   </>
@@ -663,7 +663,7 @@ export default function Home() {
               <div style={{ height: 1, background: '#e0e0e0', margin: '24px 0' }} />
               {/* Calendar fills remaining height */}
               {dateError && <div style={{ fontSize: 16, color: '#E53935', marginBottom: 5, flexShrink: 0 }}>{dateError}</div>}
-              <div>
+              <div style={{ flex: 1, minHeight: 0 }}>
                 <DateMultiPicker
                   fillHeight
                   selectedDates={selectedDates}
@@ -676,7 +676,7 @@ export default function Home() {
             </div>
 
             {/* Right column 40% */}
-            <div style={{ flex: 45, display: 'flex', flexDirection: 'column', gap: 29, overflow: 'visible', padding: 29, background: '#f8f9fa', borderRadius: 14 }}>
+            <div style={{ flex: 45, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0, padding: 29, background: '#f8f9fa', borderRadius: 14 }}>
               {/* Top: time range */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
