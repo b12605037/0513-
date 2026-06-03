@@ -51,7 +51,7 @@ function sameDay(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-function DurationSlider({ value, onChange, onChangeEnd, scale = 1 }) {
+function DurationSlider({ value, onChange, onChangeEnd, scale = 1, numSize }) {
   const trackRef = useRef(null);
   const slot = dMinsToSlot(value);
   const pct = (slot / DURATION_TOTAL) * 100;
@@ -82,7 +82,7 @@ function DurationSlider({ value, onChange, onChangeEnd, scale = 1 }) {
   return (
     <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0' }}>
       <div style={{ background: '#e8eef1', borderRadius: 8, padding: '12px', textAlign: 'center', marginBottom: 20 }}>
-        <div style={{ fontSize: Math.round((Number(value) === 0 ? 36 : 55) * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtDuration(value)}</div>
+        <div style={{ fontSize: numSize ?? Math.round((Number(value) === 0 ? 36 : 55) * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtDuration(value)}</div>
       </div>
       <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
         <div style={{ position: 'absolute', left: 0, width: `${pct}%`, top: 0, bottom: 0, background: '#8A9DA8', borderRadius: 3 }} />
@@ -99,7 +99,7 @@ function DurationSlider({ value, onChange, onChangeEnd, scale = 1 }) {
   );
 }
 
-function TimeRangeSlider({ startSlot, endSlot, onChange, onChangeEnd, scale = 1 }) {
+function TimeRangeSlider({ startSlot, endSlot, onChange, onChangeEnd, scale = 1, numSize }) {
   const trackRef = useRef(null);
   const dragging = useRef(null);
   const slotToPct = (s) => (s / SLIDER_TOTAL) * 100;
@@ -139,11 +139,11 @@ function TimeRangeSlider({ startSlot, endSlot, onChange, onChangeEnd, scale = 1 
     <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
         <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: Math.round(24 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{fmtSlot(startSlot)} <span style={{ fontSize: Math.round(14 * scale), fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
+          <div style={{ fontSize: numSize ?? Math.round(24 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{fmtSlot(startSlot)} <span style={{ fontSize: Math.round(14 * scale), fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
         </div>
         <div style={{ color: '#CCC', fontSize: Math.round(20 * scale), flexShrink: 0 }}>→</div>
         <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: Math.round(24 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{fmtSlot(endSlot)} <span style={{ fontSize: Math.round(14 * scale), fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
+          <div style={{ fontSize: numSize ?? Math.round(24 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{fmtSlot(endSlot)} <span style={{ fontSize: Math.round(14 * scale), fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
         </div>
       </div>
       <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
@@ -259,7 +259,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
         {count <= 1 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: 3, background: count > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
-            <span style={{ fontSize: Math.round(22 * scale), fontWeight: 600, color: count > 0 ? '#8A9DA8' : '#F57F17' }}>{label}</span>
+            <span style={{ fontSize: fillHeight ? 13 : Math.round(22 * scale), fontWeight: 600, color: count > 0 ? '#8A9DA8' : '#F57F17' }}>{label}</span>
             {count > 0 && <button onClick={() => onChangeRef.current([])} style={{ marginLeft: 'auto', fontSize: Math.round(22 * scale), fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>}
           </div>
         ) : (
@@ -283,11 +283,11 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: fillHeight ? 6 : 12, flexShrink: 0 }}>
           <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="left" size={18} /></button>
-          <span style={{ fontSize: fillHeight ? 16 : (large ? 31 : Math.round(31 * scale)), fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
+          <span style={{ fontSize: fillHeight ? 18 : (large ? 31 : Math.round(31 * scale)), fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="right" size={18} /></button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', columnGap: large ? 6 : 2, marginBottom: fillHeight ? 2 : 4, flexShrink: 0 }}>
-          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 12 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
+          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 14 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
         </div>
         <div ref={calRef} style={fillHeight ? {
           display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gridAutoRows: 'auto',
@@ -315,7 +315,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                 onMouseDown={() => !disabled && mouseDown(key)}
                 onMouseEnter={() => !disabled && mouseEnter(key)}
                 style={fillHeight ? {
-                  aspectRatio: '1 / 1', cursor: disabled ? 'default' : 'pointer', position: 'relative',
+                  aspectRatio: '1 / 1', minHeight: 56, cursor: disabled ? 'default' : 'pointer', position: 'relative',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 } : {
                   height: large ? 82 : 36, cursor: disabled ? 'default' : 'pointer', position: 'relative',
@@ -336,7 +336,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: selected ? '#8A9DA8' : 'transparent',
                   border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none',
-                  fontSize: fillHeight ? 15 : (large ? 31 : Math.round(16 * scale)),
+                  fontSize: fillHeight ? 18 : (large ? 31 : Math.round(16 * scale)),
                   fontWeight: selected ? 700 : 400,
                   color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8',
                   transition: 'background 0.08s',
@@ -619,13 +619,13 @@ export default function Home() {
             <span style={{ fontSize: 40, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
           </div>
           {/* Two-column layout */}
-          <div style={{ display: 'flex', gap: 40, padding: '24px 60px', maxWidth: 1200, margin: '0 auto', width: '100%', boxSizing: 'border-box', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', gap: 60, padding: '48px 80px', maxWidth: 1400, margin: '0 auto', width: '100%', boxSizing: 'border-box', alignItems: 'flex-start' }}>
             {/* Left column 60% */}
             <div style={{ flex: 55, display: 'flex', flexDirection: 'column', padding: 24 }}>
               {/* Recent events */}
               <div style={{ flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <span style={{ fontSize: 20, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
                   {recentEvents.length > 0 && (
                     <button onClick={handleClearHistory} style={{ fontSize: 15, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
                   )}
@@ -643,9 +643,9 @@ export default function Home() {
                           style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 10, cursor: 'pointer' }}>
                           <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 17, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
                           </div>
-                          <div style={{ fontSize: 15, color: '#CCC', flexShrink: 0, marginLeft: 8 }}>{timeLabel}</div>
+                          <div style={{ fontSize: 14, color: '#CCC', flexShrink: 0, marginLeft: 8 }}>{timeLabel}</div>
                         </div>
                       );
                     })}
@@ -678,7 +678,7 @@ export default function Home() {
               {/* Top: time range */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <label style={{ fontSize: 18, fontWeight: 700, color: '#555' }}>
+                  <label style={{ fontSize: 16, fontWeight: 700, color: '#555' }}>
                     選取調查時段 <span style={{ color: '#E53935' }}>*</span>
                   </label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -695,20 +695,20 @@ export default function Home() {
                   </div>
                 </div>
                 <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-                  <TimeRangeSlider startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => { timeSetRef.current = true; checkAndTrackBoth(); }} />
+                  <TimeRangeSlider numSize={32} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => { timeSetRef.current = true; checkAndTrackBoth(); }} />
                 </div>
                 {timeError && <div style={{ fontSize: 13, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
               </div>
 
               {/* Middle: duration */}
               <div>
-                <label style={{ fontSize: 18, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>預計活動時長（選填）</label>
-                <DurationSlider value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 有設定時長: v > 0 })} />
+                <label style={{ fontSize: 16, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>預計活動時長（選填）</label>
+                <DurationSlider numSize={32} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 有設定時長: v > 0 })} />
               </div>
 
               {/* Bottom: submit button */}
               <div>
-                <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 22 }}>
+                <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 16, padding: 14 }}>
                   建立活動
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>
