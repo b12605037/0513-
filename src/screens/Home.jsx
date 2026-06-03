@@ -283,11 +283,11 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: fillHeight ? 6 : 12, flexShrink: 0 }}>
           <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="left" size={18} /></button>
-          <span style={{ fontSize: fillHeight ? 18 : (large ? 31 : Math.round(31 * scale)), fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
+          <span style={{ fontSize: fillHeight ? 22 : (large ? 31 : Math.round(31 * scale)), fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="right" size={18} /></button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', columnGap: large ? 6 : 2, marginBottom: fillHeight ? 2 : 4, flexShrink: 0 }}>
-          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 14 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
+          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 16 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
         </div>
         <div ref={calRef} style={fillHeight ? {
           display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gridAutoRows: 'auto',
@@ -315,7 +315,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                 onMouseDown={() => !disabled && mouseDown(key)}
                 onMouseEnter={() => !disabled && mouseEnter(key)}
                 style={fillHeight ? {
-                  aspectRatio: '1 / 1', minHeight: 56, cursor: disabled ? 'default' : 'pointer', position: 'relative',
+                  aspectRatio: '1 / 1', minHeight: 72, cursor: disabled ? 'default' : 'pointer', position: 'relative',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 } : {
                   height: large ? 82 : 36, cursor: disabled ? 'default' : 'pointer', position: 'relative',
@@ -336,7 +336,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: selected ? '#8A9DA8' : 'transparent',
                   border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none',
-                  fontSize: fillHeight ? 18 : (large ? 31 : Math.round(16 * scale)),
+                  fontSize: fillHeight ? 22 : (large ? 31 : Math.round(16 * scale)),
                   fontWeight: selected ? 700 : 400,
                   color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8',
                   transition: 'background 0.08s',
@@ -596,7 +596,7 @@ export default function Home() {
         </div>
         <button onClick={() => {
           mixpanel.track('分享至LINE');
-          const lineMsg = `${meetingName.trim()}\n填寫時間：meetime.app/join/${generatedId}`;
+          const lineMsg = `會議名稱：${meetingName.trim()}\n填寫時間：${shareUrl}`;
           window.open(`https://line.me/R/msg/text/?${encodeURIComponent(lineMsg)}`, '_blank');
         }} style={{ width: '100%', padding: '18px', borderRadius: 14, border: 'none', background: '#8FA99A', color: '#fff', fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
@@ -619,7 +619,7 @@ export default function Home() {
             <span style={{ fontSize: 40, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
           </div>
           {/* Two-column layout */}
-          <div style={{ display: 'flex', gap: 60, padding: '48px 80px', maxWidth: 1400, margin: '0 auto', width: '100%', boxSizing: 'border-box', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', gap: 80, padding: '60px 100px', maxWidth: 1600, margin: '0 auto', width: '100%', boxSizing: 'border-box', alignItems: 'flex-start' }}>
             {/* Left column 60% */}
             <div style={{ flex: 55, display: 'flex', flexDirection: 'column', padding: 24 }}>
               {/* Recent events */}
@@ -695,7 +695,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-                  <TimeRangeSlider numSize={32} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => { timeSetRef.current = true; checkAndTrackBoth(); }} />
+                  <TimeRangeSlider numSize={40} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => { timeSetRef.current = true; checkAndTrackBoth(); }} />
                 </div>
                 {timeError && <div style={{ fontSize: 13, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
               </div>
@@ -703,12 +703,12 @@ export default function Home() {
               {/* Middle: duration */}
               <div>
                 <label style={{ fontSize: 16, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>預計活動時長（選填）</label>
-                <DurationSlider numSize={32} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 有設定時長: v > 0 })} />
+                <DurationSlider numSize={40} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 有設定時長: v > 0 })} />
               </div>
 
               {/* Bottom: submit button */}
               <div>
-                <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 16, padding: 14 }}>
+                <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 18, padding: 16 }}>
                   建立活動
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>
