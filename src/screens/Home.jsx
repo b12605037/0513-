@@ -277,7 +277,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
       </div>
       <div style={fillHeight ? {
         flex: 1, minHeight: 0, overflow: 'hidden',
-        display: 'flex', flexDirection: 'column', padding: '18px 16px 13px',
+        display: 'flex', flexDirection: 'column', padding: '10px 16px 8px',
       } : {
         padding: large ? '20px 28px 24px' : 12,
       }}>
@@ -627,14 +627,14 @@ export default function Home() {
             <div style={{ flex: 85, display: 'flex', flexDirection: 'column', padding: 38, minHeight: 0 }}>
               {/* Recent events */}
               <div style={{ flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-                  <span style={{ fontSize: 25, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <span style={{ fontSize: 20, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
                   {recentEvents.length > 0 && (
-                    <button onClick={handleClearHistory} style={{ fontSize: 23, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
+                    <button onClick={handleClearHistory} style={{ fontSize: 18, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
                   )}
                 </div>
                 {recentEvents.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: '#CCC', fontSize: 26, padding: '25px 0' }}>尚無建立紀錄</div>
+                  <div style={{ textAlign: 'center', color: '#CCC', fontSize: 21, padding: '20px 0' }}>尚無建立紀錄</div>
                 ) : (
                   <>
                     {(showAllRecent ? recentEvents : recentEvents.slice(0, 2)).map((ev, i) => {
@@ -643,17 +643,17 @@ export default function Home() {
                       const color = DOT_COLORS[i % DOT_COLORS.length];
                       return (
                         <div key={ev.id} onClick={() => { mixpanel.track('點擊最近活動'); navigate(`/view/${ev.id}`); }}
-                          style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '18px 22px', background: '#fff', borderRadius: 18, border: '1.5px solid #F0F0F0', marginBottom: 16, cursor: 'pointer' }}>
-                          <div style={{ width: 16, height: 16, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                          style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', background: '#fff', borderRadius: 14, border: '1.5px solid #F0F0F0', marginBottom: 13, cursor: 'pointer' }}>
+                          <div style={{ width: 13, height: 13, borderRadius: '50%', background: color, flexShrink: 0 }} />
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 22, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
+                            <div style={{ fontSize: 18, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
                           </div>
-                          <div style={{ fontSize: 22, color: '#CCC', flexShrink: 0, marginLeft: 13 }}>{timeLabel}</div>
+                          <div style={{ fontSize: 18, color: '#CCC', flexShrink: 0, marginLeft: 10 }}>{timeLabel}</div>
                         </div>
                       );
                     })}
                     {recentEvents.length > 2 && (
-                      <button onClick={() => setShowAllRecent(v => !v)} style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 23, cursor: 'pointer', fontFamily: 'inherit', padding: '7px 0', textAlign: 'center' }}>
+                      <button onClick={() => setShowAllRecent(v => !v)} style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 18, cursor: 'pointer', fontFamily: 'inherit', padding: '6px 0', textAlign: 'center' }}>
                         {showAllRecent ? '收起' : `顯示其他 ${recentEvents.length - 2} 筆`}
                       </button>
                     )}
@@ -661,9 +661,9 @@ export default function Home() {
                 )}
               </div>
               {/* Divider */}
-              <div style={{ height: 1, background: '#e0e0e0', margin: '31px 0' }} />
+              <div style={{ height: 1, background: '#e0e0e0', margin: '20px 0' }} />
               {/* Calendar fills remaining height */}
-              {dateError && <div style={{ fontSize: 21, color: '#E53935', marginBottom: 7, flexShrink: 0 }}>{dateError}</div>}
+              {dateError && <div style={{ fontSize: 17, color: '#E53935', marginBottom: 6, flexShrink: 0 }}>{dateError}</div>}
               <div style={{ flex: 1, minHeight: 0 }}>
                 <DateMultiPicker
                   fillHeight
