@@ -158,7 +158,7 @@ function TimeRangeSlider({ startSlot, endSlot, onChange, onChangeEnd, scale = 1,
   );
 }
 
-function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fillHeight = false }) {
+function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fillHeight = false, noHeader = false }) {
   const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
   const mkKey  = (dt) => `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
   const fromKey = (k)  => { const [y,m,d] = k.split('-').map(Number); return new Date(y,m,d); };
@@ -251,33 +251,39 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
   return (
     <div style={fillHeight ? {
       height: '100%', display: 'flex', flexDirection: 'column',
-      background: '#F8FFFE', borderRadius: 12, border: '1.5px solid #e8f0f5', overflow: 'hidden',
+      background: '#ffffff', borderRadius: 12,
+      border: noHeader ? '0.5px solid #e0e0e0' : '1.5px solid #e8f0f5',
+      overflow: 'hidden',
+      padding: noHeader ? 16 : 0,
+      boxSizing: 'border-box',
     } : {
       background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16,
     }}>
-      <div style={{ padding: fillHeight ? '16px 44px 13px' : '12px', background: fillHeight ? '#F8FFFE' : '#F8FFFE', borderBottom: '1px solid #e8f0f5', flexShrink: 0 }}>
-        {count <= 1 ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 6, height: 6, borderRadius: 3, background: count > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
-            <span style={{ fontSize: fillHeight ? 21 : Math.round(22 * scale), fontWeight: 600, color: count > 0 ? '#8A9DA8' : '#F57F17' }}>{label}</span>
-            {count > 0 && <button onClick={() => onChangeRef.current([])} style={{ marginLeft: 'auto', fontSize: fillHeight ? 12 : Math.round(22 * scale), fontWeight: 600, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>}
-          </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-            <div style={{ width: 6, height: 6, borderRadius: 3, background: '#8A9DA8', flexShrink: 0, marginTop: 6 }} />
-            <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '4px 6px' }}>
-              {dateRanges.map(([s, e], i) => {
-                const label = s.getTime() === e.getTime() ? `${s.getMonth()+1}/${s.getDate()}` : s.getMonth() === e.getMonth() ? `${s.getMonth()+1}/${s.getDate()}–${e.getDate()}` : `${s.getMonth()+1}/${s.getDate()}–${e.getMonth()+1}/${e.getDate()}`;
-                return <span key={i} style={{ fontSize: fillHeight ? 30 : Math.round(19 * scale), fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 5, padding: '2px 7px' }}>{label}</span>;
-              })}
+      {!noHeader && (
+        <div style={{ padding: fillHeight ? '16px 44px 13px' : '12px', background: '#F8FFFE', borderBottom: '1px solid #e8f0f5', flexShrink: 0 }}>
+          {count <= 1 ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 6, height: 6, borderRadius: 3, background: count > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
+              <span style={{ fontSize: fillHeight ? 21 : Math.round(22 * scale), fontWeight: 600, color: count > 0 ? '#8A9DA8' : '#F57F17' }}>{label}</span>
+              {count > 0 && <button onClick={() => onChangeRef.current([])} style={{ marginLeft: 'auto', fontSize: fillHeight ? 12 : Math.round(22 * scale), fontWeight: 600, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>}
             </div>
-            <button onClick={() => onChangeRef.current([])} style={{ flexShrink: 0, fontSize: fillHeight ? 12 : Math.round(22 * scale), fontWeight: 600, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
-          </div>
-        )}
-      </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+              <div style={{ width: 6, height: 6, borderRadius: 3, background: '#8A9DA8', flexShrink: 0, marginTop: 6 }} />
+              <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '4px 6px' }}>
+                {dateRanges.map(([s, e], i) => {
+                  const label = s.getTime() === e.getTime() ? `${s.getMonth()+1}/${s.getDate()}` : s.getMonth() === e.getMonth() ? `${s.getMonth()+1}/${s.getDate()}–${e.getDate()}` : `${s.getMonth()+1}/${s.getDate()}–${e.getMonth()+1}/${e.getDate()}`;
+                  return <span key={i} style={{ fontSize: fillHeight ? 30 : Math.round(19 * scale), fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 5, padding: '2px 7px' }}>{label}</span>;
+                })}
+              </div>
+              <button onClick={() => onChangeRef.current([])} style={{ flexShrink: 0, fontSize: fillHeight ? 12 : Math.round(22 * scale), fontWeight: 600, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
+            </div>
+          )}
+        </div>
+      )}
       <div style={fillHeight ? {
         flex: 1, minHeight: 0, overflow: 'hidden',
-        display: 'flex', flexDirection: 'column', padding: '10px 16px 8px',
+        display: 'flex', flexDirection: 'column', padding: noHeader ? 0 : '10px 16px 8px',
       } : {
         padding: large ? '20px 28px 24px' : 12,
       }}>
@@ -324,19 +330,19 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                 {selected && <div style={{
                   position: 'absolute', left: bandL, right: bandR,
                   top: fillHeight ? '50%' : 2,
-                  height: fillHeight ? 44 : (large ? 65 : 32),
+                  height: fillHeight ? 36 : (large ? 65 : 32),
                   transform: fillHeight ? 'translateY(-50%)' : undefined,
-                  background: 'rgba(138, 157, 168, 0.18)', pointerEvents: 'none',
+                  background: fillHeight ? 'rgba(71, 128, 88, 0.12)' : 'rgba(138, 157, 168, 0.18)', pointerEvents: 'none',
                 }} />}
                 <div style={{
-                  width: fillHeight ? 'min(48px, 80%)' : (large ? 65 : 32),
-                  height: fillHeight ? 'min(48px, 80%)' : (large ? 65 : 32),
+                  width: fillHeight ? 36 : (large ? 65 : 32),
+                  height: fillHeight ? 36 : (large ? 65 : 32),
                   borderRadius: fillHeight ? '50%' : (large ? 33 : 16),
                   margin: fillHeight ? 0 : '2px auto 0',
                   position: 'relative', zIndex: 1, flexShrink: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: selected ? '#8A9DA8' : 'transparent',
-                  border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none',
+                  background: selected ? (fillHeight ? '#478058' : '#8A9DA8') : 'transparent',
+                  border: isToday && !selected ? `1.5px solid ${fillHeight ? '#478058' : '#8A9DA8'}` : 'none',
                   fontSize: fillHeight ? 20 : (large ? 31 : Math.round(16 * scale)),
                   fontWeight: selected ? 700 : 400,
                   color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8',
@@ -666,9 +672,26 @@ export default function Home() {
               <div style={{ height: 1, background: '#e0e0e0', margin: '20px 0' }} />
               {/* Calendar fills remaining height */}
               {dateError && <div style={{ fontSize: 17, color: '#E53935', marginBottom: 6, flexShrink: 0 }}>{dateError}</div>}
+              {/* Prompt / date summary above calendar box */}
+              <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                <div style={{ width: 6, height: 6, borderRadius: 3, background: selectedDates.length > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
+                {selectedDates.length === 0 ? (
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#F57F17' }}>點擊或滑動選取日期</span>
+                ) : (
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#8A9DA8' }}>
+                    {selectedDates.length === 1
+                      ? `${SHORT_MONTHS[selectedDates[0].getMonth()]} ${selectedDates[0].getDate()}, ${selectedDates[0].getFullYear()}`
+                      : `已選 ${selectedDates.length} 天`}
+                  </span>
+                )}
+                {selectedDates.length > 0 && (
+                  <button onClick={() => setSelectedDates([])} style={{ marginLeft: 'auto', fontSize: 12, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
+                )}
+              </div>
               <div style={{ flex: 1, minHeight: 0 }}>
                 <DateMultiPicker
                   fillHeight
+                  noHeader
                   selectedDates={selectedDates}
                   onChange={(v) => {
                     setSelectedDates(v);
