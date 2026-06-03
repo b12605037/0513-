@@ -314,7 +314,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
             const isLastInRow  = dow === 6;
             const prevSel = selected && displaySet.has(mkKey(new Date(viewYear, viewMonth, d - 1)));
             const nextSel = selected && displaySet.has(mkKey(new Date(viewYear, viewMonth, d + 1)));
-            const bandExt = large ? '-3px' : '-1px';
+            const bandExt = large ? '-3px' : (fillHeight ? '-7px' : '-1px');
             const bandL = (!prevSel || isFirstInRow) ? '50%' : bandExt;
             const bandR = (!nextSel || isLastInRow)  ? '50%' : bandExt;
             return (
@@ -674,11 +674,11 @@ export default function Home() {
               {dateError && <div style={{ fontSize: 17, color: '#E53935', marginBottom: 6, flexShrink: 0 }}>{dateError}</div>}
               {/* Prompt / date summary above calendar box */}
               <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <div style={{ width: 6, height: 6, borderRadius: 3, background: selectedDates.length > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
+                <div style={{ width: 8, height: 8, borderRadius: 4, background: selectedDates.length > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
                 {selectedDates.length === 0 ? (
-                  <span style={{ fontSize: 13, fontWeight: 600, color: '#F57F17' }}>點擊或滑動選取日期</span>
+                  <span style={{ fontSize: 17, fontWeight: 600, color: '#F57F17' }}>點擊或滑動選取日期</span>
                 ) : selectedDates.length === 1 ? (
-                  <span style={{ fontSize: 13, fontWeight: 600, color: '#8A9DA8' }}>
+                  <span style={{ fontSize: 17, fontWeight: 600, color: '#8A9DA8' }}>
                     {`${SHORT_MONTHS[selectedDates[0].getMonth()]} ${selectedDates[0].getDate()}, ${selectedDates[0].getFullYear()}`}
                   </span>
                 ) : (
@@ -695,13 +695,13 @@ export default function Home() {
                           : s.getMonth() === e.getMonth()
                             ? `${s.getMonth()+1}/${s.getDate()}–${e.getDate()}`
                             : `${s.getMonth()+1}/${s.getDate()}–${e.getMonth()+1}/${e.getDate()}`;
-                        return <span key={i} style={{ fontSize: 13, fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 4, padding: '1px 5px' }}>{lbl}</span>;
+                        return <span key={i} style={{ fontSize: 17, fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 5, padding: '2px 7px' }}>{lbl}</span>;
                       });
                     })()}
                   </div>
                 )}
                 {selectedDates.length > 0 && (
-                  <button onClick={() => setSelectedDates([])} style={{ marginLeft: 'auto', fontSize: 12, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
+                  <button onClick={() => setSelectedDates([])} style={{ marginLeft: 'auto', fontSize: 16, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
                 )}
               </div>
               <div style={{ flex: 1, minHeight: 0 }}>
