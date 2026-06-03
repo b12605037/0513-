@@ -99,7 +99,7 @@ function DurationSlider({ value, onChange, onChangeEnd, scale = 1, numSize }) {
   );
 }
 
-function TimeRangeSlider({ startSlot, endSlot, onChange, onChangeEnd, scale = 1, numSize }) {
+function TimeRangeSlider({ startSlot, endSlot, onChange, onChangeEnd, scale = 1, numSize, ampmSize }) {
   const trackRef = useRef(null);
   const dragging = useRef(null);
   const slotToPct = (s) => (s / SLIDER_TOTAL) * 100;
@@ -139,11 +139,11 @@ function TimeRangeSlider({ startSlot, endSlot, onChange, onChangeEnd, scale = 1,
     <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
         <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: numSize ?? Math.round(24 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{fmtSlot(startSlot)} <span style={{ fontSize: Math.round(14 * scale), fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
+          <div style={{ fontSize: numSize ?? Math.round(24 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{fmtSlot(startSlot)} <span style={{ fontSize: ampmSize ?? Math.round(14 * scale), fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
         </div>
         <div style={{ color: '#CCC', fontSize: Math.round(20 * scale), flexShrink: 0 }}>→</div>
         <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: numSize ?? Math.round(24 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{fmtSlot(endSlot)} <span style={{ fontSize: Math.round(14 * scale), fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
+          <div style={{ fontSize: numSize ?? Math.round(24 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{fmtSlot(endSlot)} <span style={{ fontSize: ampmSize ?? Math.round(14 * scale), fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
         </div>
       </div>
       <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
@@ -255,7 +255,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
     } : {
       background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16,
     }}>
-      <div style={{ padding: '12px 34px 10px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
+      <div style={{ padding: fillHeight ? '12px 34px 10px' : '12px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
         {count <= 1 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: 3, background: count > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
@@ -279,7 +279,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
         flex: 1, minHeight: 0, overflow: 'hidden',
         display: 'flex', flexDirection: 'column', padding: '14px 12px 10px',
       } : {
-        padding: large ? '20px 28px 24px' : '20px 10px 24px',
+        padding: large ? '20px 28px 24px' : 12,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: fillHeight ? 7 : 12, flexShrink: 0 }}>
           <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="left" size={18} /></button>
@@ -529,7 +529,7 @@ export default function Home() {
       </div>
       <div className="form-field">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <label className="form-label" style={{ marginBottom: 0, fontSize: 16 }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
+          <label className="form-label" style={{ marginBottom: 0, fontSize: 14 }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 13, fontWeight: 500, color: '#888' }}>全天</span>
             <div onClick={() => {
@@ -544,13 +544,13 @@ export default function Home() {
           </div>
         </div>
         <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-          <TimeRangeSlider scale={0.8} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => { timeSetRef.current = true; checkAndTrackBoth(); }} />
+          <TimeRangeSlider scale={0.8} numSize={28} ampmSize={12} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => { timeSetRef.current = true; checkAndTrackBoth(); }} />
         </div>
         {timeError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
       </div>
       <div className="form-field">
-        <label className="form-label" style={{ fontSize: 16 }}>預計活動時長（選填）</label>
-        <DurationSlider scale={0.8} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 有設定時長: v > 0 })} />
+        <label className="form-label" style={{ fontSize: 14 }}>預計活動時長（選填）</label>
+        <DurationSlider scale={0.8} numSize={28} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 有設定時長: v > 0 })} />
       </div>
     </>
   );
