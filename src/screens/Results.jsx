@@ -283,7 +283,7 @@ export default function Results() {
       const endH = G_START + (s.rawS + s.actualSlots) / SPH;
       const gcUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(state?.eventName ?? '')}&dates=${toGCalDT(s.day.year, s.day.month, s.day.date, startH)}/${toGCalDT(s.day.year, s.day.month, s.day.date, endH)}&details=${encodeURIComponent('透過 meetime 安排的會議')}`;
       const timeStr = `${s.day.year}/${s.day.month + 1}/${s.day.date}${DOW_PAREN[DOW_IDX[s.day.label]]}${fmtH24(startH)} – ${fmtH24(endH)}`;
-      return `${state?.eventName ?? ''}\n時間：${timeStr}\n點擊以下連結加入 Google Calendar：\n${gcUrl}`;
+      return `會議名稱：${state?.eventName ?? ''}\n時間：${timeStr}\n點擊以下連結加入 Google Calendar：\n${gcUrl}`;
     };
     return selectedList.map(buildEntry).join('\n\n');
   })();
