@@ -290,7 +290,8 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
           {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 19 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
         </div>
         <div ref={calRef} style={fillHeight ? {
-          display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gridAutoRows: 'auto',
+          flex: 1, minHeight: 0,
+          display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gridAutoRows: '1fr',
           userSelect: 'none', columnGap: 2,
         } : {
           display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', rowGap: large ? 10 : 4, columnGap: large ? 6 : 2,
@@ -315,7 +316,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                 onMouseDown={() => !disabled && mouseDown(key)}
                 onMouseEnter={() => !disabled && mouseEnter(key)}
                 style={fillHeight ? {
-                  aspectRatio: '1 / 1', minHeight: 86, cursor: disabled ? 'default' : 'pointer', position: 'relative',
+                  minHeight: 0, cursor: disabled ? 'default' : 'pointer', position: 'relative',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 } : {
                   height: large ? 82 : 36, cursor: disabled ? 'default' : 'pointer', position: 'relative',
@@ -323,7 +324,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                 {selected && <div style={{
                   position: 'absolute', left: bandL, right: bandR,
                   top: fillHeight ? '50%' : 2,
-                  height: fillHeight ? 41 : (large ? 65 : 32),
+                  height: fillHeight ? '80%' : (large ? 65 : 32),
                   transform: fillHeight ? 'translateY(-50%)' : undefined,
                   background: 'rgba(138, 157, 168, 0.18)', pointerEvents: 'none',
                 }} />}
@@ -623,7 +624,7 @@ export default function Home() {
           {/* Two-column layout */}
           <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: 96, padding: '72px 120px', maxWidth: 1920, margin: '0 auto', width: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
             {/* Left column 60% */}
-            <div style={{ flex: 55, display: 'flex', flexDirection: 'column', padding: 29, minHeight: 0, overflow: 'hidden' }}>
+            <div style={{ flex: 55, display: 'flex', flexDirection: 'column', padding: 29, minHeight: 0 }}>
               {/* Recent events */}
               <div style={{ flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
