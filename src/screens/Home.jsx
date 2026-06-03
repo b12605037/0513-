@@ -611,7 +611,7 @@ export default function Home() {
   );
 
   return (
-    <div className="app-container" style={isDesktop ? { overflowX: 'hidden' } : { background: '#fff' }}>
+    <div className="app-container" style={isDesktop ? { height: 'auto', minHeight: '100vh', overflowX: 'hidden', overflowY: 'auto' } : { background: '#fff' }}>
       {isDesktop ? (
         <>
           {/* Navbar */}
@@ -619,9 +619,9 @@ export default function Home() {
             <span style={{ fontSize: 40, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
           </div>
           {/* Two-column layout */}
-          <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: 40, padding: '24px 60px', overflow: 'hidden', maxWidth: 1200, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+          <div style={{ display: 'flex', gap: 40, padding: '24px 60px', maxWidth: 1200, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
             {/* Left column 60% */}
-            <div style={{ flex: 55, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+            <div style={{ flex: 55, display: 'flex', flexDirection: 'column', padding: 24 }}>
               {/* Recent events */}
               <div style={{ flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -658,10 +658,10 @@ export default function Home() {
                 )}
               </div>
               {/* Divider */}
-              <div style={{ height: 1, background: '#F0F0F0', margin: '16px 0', flexShrink: 0 }} />
+              <div style={{ height: 1, background: '#e0e0e0', margin: '20px 0' }} />
               {/* Calendar fills remaining height */}
               {dateError && <div style={{ fontSize: 13, color: '#E53935', marginBottom: 4, flexShrink: 0 }}>{dateError}</div>}
-              <div style={{ flex: 1, minHeight: 0 }}>
+              <div>
                 <DateMultiPicker
                   fillHeight
                   selectedDates={selectedDates}
@@ -674,7 +674,7 @@ export default function Home() {
             </div>
 
             {/* Right column 40% */}
-            <div style={{ flex: 45, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0, overflow: 'visible', padding: '0 24px' }}>
+            <div style={{ flex: 45, display: 'flex', flexDirection: 'column', gap: 24, overflow: 'visible', padding: 24, background: '#f8f9fa', borderRadius: 12 }}>
               {/* Top: time range */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
