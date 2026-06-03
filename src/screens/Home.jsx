@@ -251,16 +251,16 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
   return (
     <div style={fillHeight ? {
       height: '100%', display: 'flex', flexDirection: 'column',
-      background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden',
+      background: '#F8FFFE', borderRadius: 12, border: '1.5px solid #e8f0f5', overflow: 'hidden',
     } : {
       background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16,
     }}>
-      <div style={{ padding: fillHeight ? '16px 44px 13px' : '12px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
+      <div style={{ padding: fillHeight ? '16px 44px 13px' : '12px', background: fillHeight ? '#F8FFFE' : '#F8FFFE', borderBottom: '1px solid #e8f0f5', flexShrink: 0 }}>
         {count <= 1 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: 3, background: count > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
             <span style={{ fontSize: fillHeight ? 21 : Math.round(22 * scale), fontWeight: 600, color: count > 0 ? '#8A9DA8' : '#F57F17' }}>{label}</span>
-            {count > 0 && <button onClick={() => onChangeRef.current([])} style={{ marginLeft: 'auto', fontSize: fillHeight ? 34 : Math.round(22 * scale), fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>}
+            {count > 0 && <button onClick={() => onChangeRef.current([])} style={{ marginLeft: 'auto', fontSize: fillHeight ? 12 : Math.round(22 * scale), fontWeight: 600, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>}
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
@@ -271,7 +271,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                 return <span key={i} style={{ fontSize: fillHeight ? 30 : Math.round(19 * scale), fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 5, padding: '2px 7px' }}>{label}</span>;
               })}
             </div>
-            <button onClick={() => onChangeRef.current([])} style={{ flexShrink: 0, fontSize: fillHeight ? 34 : Math.round(22 * scale), fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
+            <button onClick={() => onChangeRef.current([])} style={{ flexShrink: 0, fontSize: fillHeight ? 12 : Math.round(22 * scale), fontWeight: 600, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
           </div>
         )}
       </div>
@@ -620,19 +620,19 @@ export default function Home() {
       {isDesktop ? (
         <>
           {/* Navbar */}
-          <div style={{ height: 86, flexShrink: 0, display: 'flex', alignItems: 'center', padding: '0 72px', borderBottom: '1px solid #F0F0F0' }}>
+          <div style={{ height: 86, flexShrink: 0, display: 'flex', alignItems: 'center', padding: '0 80px', borderBottom: '1px solid #F0F0F0' }}>
             <span style={{ fontSize: 48, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
           </div>
           {/* Two-column layout */}
-          <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: 96, padding: '72px 120px', maxWidth: 1920, margin: '0 auto', width: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 60, padding: '40px 80px', maxWidth: 1300, margin: '0 auto', width: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
             {/* Left column 60% */}
-            <div style={{ flex: 85, display: 'flex', flexDirection: 'column', padding: 38, minHeight: 0 }}>
+            <div style={{ flex: 58, display: 'flex', flexDirection: 'column', padding: 24, minHeight: 0 }}>
               {/* Recent events */}
               <div style={{ flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                   <span style={{ fontSize: 20, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
                   {recentEvents.length > 0 && (
-                    <button onClick={handleClearHistory} style={{ fontSize: 18, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
+                    <button onClick={handleClearHistory} style={{ fontSize: 12, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
                   )}
                 </div>
                 {recentEvents.length === 0 ? (
@@ -679,7 +679,7 @@ export default function Home() {
             </div>
 
             {/* Right column 40% */}
-            <div style={{ flex: 35, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0, padding: 29, background: '#f8f9fa', borderRadius: 14 }}>
+            <div style={{ flex: 42, display: 'flex', flexDirection: 'column', gap: 24, padding: 24, background: '#f8f9fa', borderRadius: 14 }}>
               {/* Top: time range */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
