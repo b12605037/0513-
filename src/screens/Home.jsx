@@ -290,7 +290,8 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
           {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 25 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
         </div>
         <div ref={calRef} style={fillHeight ? {
-          display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gridAutoRows: 'auto',
+          flex: 1, minHeight: 0,
+          display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gridAutoRows: '1fr',
           userSelect: 'none', rowGap: 10, columnGap: 10,
         } : {
           display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', rowGap: large ? 10 : 4, columnGap: large ? 6 : 2,
@@ -315,7 +316,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                 onMouseDown={() => !disabled && mouseDown(key)}
                 onMouseEnter={() => !disabled && mouseEnter(key)}
                 style={fillHeight ? {
-                  aspectRatio: '1 / 1', cursor: disabled ? 'default' : 'pointer', position: 'relative',
+                  minHeight: 0, cursor: disabled ? 'default' : 'pointer', position: 'relative',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 } : {
                   height: large ? 82 : 36, cursor: disabled ? 'default' : 'pointer', position: 'relative',
