@@ -158,7 +158,7 @@ function TimeRangeSlider({ startSlot, endSlot, onChange, onChangeEnd, scale = 1 
   );
 }
 
-function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) {
+function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fillHeight = false }) {
   const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
   const mkKey  = (dt) => `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
   const fromKey = (k)  => { const [y,m,d] = k.split('-').map(Number); return new Date(y,m,d); };
@@ -249,8 +249,13 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) 
     return [...acc.slice(0, -1), [acc[acc.length - 1][0], d]];
   }, []);
   return (
-    <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16 }}>
-      <div style={{ padding: '10px 28px 8px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0' }}>
+    <div style={fillHeight ? {
+      height: '100%', display: 'flex', flexDirection: 'column',
+      background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden',
+    } : {
+      background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16,
+    }}>
+      <div style={{ padding: '10px 28px 8px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
         {count <= 1 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: 3, background: count > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
@@ -270,16 +275,27 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) 
           </div>
         )}
       </div>
-      <div style={{ padding: large ? '20px 28px 24px' : '20px 10px 24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <div style={fillHeight ? {
+        flex: 1, minHeight: 0, overflow: 'hidden',
+        display: 'flex', flexDirection: 'column', padding: '12px 10px 8px',
+      } : {
+        padding: large ? '20px 28px 24px' : '20px 10px 24px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: fillHeight ? 6 : 12, flexShrink: 0 }}>
           <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="left" size={18} /></button>
-          <span style={{ fontSize: large ? 31 : Math.round(31 * scale), fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
+          <span style={{ fontSize: fillHeight ? 16 : (large ? 31 : Math.round(31 * scale)), fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="right" size={18} /></button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', columnGap: large ? 6 : 2, marginBottom: 4 }}>
-          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: large ? 22 : Math.round(22 * scale), fontWeight: 600, color: '#91AEC4', padding: '4px 0' }}>{d}</div>)}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', columnGap: large ? 6 : 2, marginBottom: fillHeight ? 2 : 4, flexShrink: 0 }}>
+          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 12 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
         </div>
-        <div ref={calRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', rowGap: large ? 10 : 4, columnGap: large ? 6 : 2 }}>
+        <div ref={calRef} style={fillHeight ? {
+          flex: 1, minHeight: 0,
+          display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gridAutoRows: '1fr',
+          userSelect: 'none', columnGap: 2,
+        } : {
+          display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', rowGap: large ? 10 : 4, columnGap: large ? 6 : 2,
+        }}>
           {Array.from({ length: firstDow }).map((_, i) => <div key={'e' + i} />)}
           {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => {
             const dt = new Date(viewYear, viewMonth, d);
@@ -299,9 +315,33 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1 }) 
               <div key={d} data-dkey={disabled ? undefined : key}
                 onMouseDown={() => !disabled && mouseDown(key)}
                 onMouseEnter={() => !disabled && mouseEnter(key)}
-                style={{ height: large ? 82 : 36, cursor: disabled ? 'default' : 'pointer', position: 'relative' }}>
-                {selected && <div style={{ position: 'absolute', left: bandL, right: bandR, top: 2, height: large ? 65 : 32, background: 'rgba(138, 157, 168, 0.18)', pointerEvents: 'none' }} />}
-                <div style={{ width: large ? 65 : 32, height: large ? 65 : 32, borderRadius: large ? 33 : 16, margin: '2px auto 0', position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#8A9DA8' : 'transparent', border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none', fontSize: large ? 31 : Math.round(16 * scale), fontWeight: selected ? 700 : 400, color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8', transition: 'background 0.08s' }}>{d}</div>
+                style={fillHeight ? {
+                  minHeight: 0, cursor: disabled ? 'default' : 'pointer', position: 'relative',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                } : {
+                  height: large ? 82 : 36, cursor: disabled ? 'default' : 'pointer', position: 'relative',
+                }}>
+                {selected && <div style={{
+                  position: 'absolute', left: bandL, right: bandR,
+                  top: fillHeight ? '50%' : 2,
+                  height: fillHeight ? 34 : (large ? 65 : 32),
+                  transform: fillHeight ? 'translateY(-50%)' : undefined,
+                  background: 'rgba(138, 157, 168, 0.18)', pointerEvents: 'none',
+                }} />}
+                <div style={{
+                  width: fillHeight ? 'min(36px, 80%)' : (large ? 65 : 32),
+                  height: fillHeight ? 'min(36px, 80%)' : (large ? 65 : 32),
+                  borderRadius: fillHeight ? '50%' : (large ? 33 : 16),
+                  margin: fillHeight ? 0 : '2px auto 0',
+                  position: 'relative', zIndex: 1, flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: selected ? '#8A9DA8' : 'transparent',
+                  border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none',
+                  fontSize: fillHeight ? 13 : (large ? 31 : Math.round(16 * scale)),
+                  fontWeight: selected ? 700 : 400,
+                  color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8',
+                  transition: 'background 0.08s',
+                }}>{d}</div>
               </div>
             );
           })}
@@ -339,7 +379,6 @@ export default function Home() {
 
   const handleClearHistory = () => {
     if (!window.confirm('確定要清除全部紀錄嗎？')) return;
-    // ── Mixpanel: 清除紀錄 ──
     mixpanel.track('清除紀錄');
     localStorage.removeItem('meetime_recent');
     setRecentEvents([]);
@@ -381,7 +420,6 @@ export default function Home() {
 
   const handleConfirmName = async () => {
     if (!meetingName.trim() || saving) return;
-    // ── Mixpanel: 輸入活動名稱 ──
     mixpanel.track('輸入活動名稱');
     const id = Math.random().toString(36).slice(2, 10);
     const rs = selectedDates[0] ?? null;
@@ -434,7 +472,6 @@ export default function Home() {
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareUrl).then(() => {
-      // ── Mixpanel: 邀請連結複製 ──
       mixpanel.track('邀請連結複製');
       setLinkCopied(true);
       setTimeout(() => setLinkCopied(false), 1800);
@@ -459,7 +496,6 @@ export default function Home() {
             const color = DOT_COLORS[i % DOT_COLORS.length];
             return (
               <div key={ev.id} onClick={() => {
-                // ── Mixpanel: 點擊最近活動 ──
                 mixpanel.track('點擊最近活動');
                 navigate(`/view/${ev.id}`);
               }}
@@ -501,7 +537,6 @@ export default function Home() {
               const next = !allDay;
               setAllDay(next);
               setTimeError('');
-              // ── Mixpanel: 全天切換 ──
               mixpanel.track('全天切換', { 切換為: next ? '全天' : '自訂時段' });
               timeSetRef.current = true; checkAndTrackBoth();
             }} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
@@ -561,7 +596,6 @@ export default function Home() {
           </button>
         </div>
         <button onClick={() => {
-          // ── Mixpanel: 分享至LINE ──
           mixpanel.track('分享至LINE');
           const lineMsg = `${meetingName.trim()} 邀請你填寫可用時間！\n\n點擊以下連結填寫：\n${shareUrl}`;
           window.open(`https://line.me/R/msg/text/?${encodeURIComponent(lineMsg)}`, '_blank');
@@ -578,69 +612,109 @@ export default function Home() {
   );
 
   return (
-    <div className="app-container" style={isDesktop ? { overflowY: 'auto', height: 'auto', minHeight: '100vh' } : { background: '#fff' }}>
+    <div className="app-container" style={isDesktop ? {} : { background: '#fff' }}>
       {isDesktop ? (
         <>
-          <div style={{ height: 86, display: 'flex', alignItems: 'center', padding: '0 40px', borderBottom: '1px solid #F0F0F0' }}>
-            <span style={{ fontSize: 48, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
+          {/* Navbar */}
+          <div style={{ height: 72, flexShrink: 0, display: 'flex', alignItems: 'center', padding: '0 48px', borderBottom: '1px solid #F0F0F0' }}>
+            <span style={{ fontSize: 40, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
           </div>
-          <div style={{ maxWidth: 1400, margin: '0 auto', padding: '40px 48px 60px' }}>
-            <div style={{ marginBottom: 40 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <span style={{ fontSize: 26, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
-                {recentEvents.length > 0 && <button onClick={handleClearHistory} style={{ fontSize: 19, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>清除紀錄</button>}
-              </div>
-              {recentEvents.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#CCC', fontSize: 22, padding: '24px 0' }}>尚無建立紀錄</div>
-              ) : (
-                <>
-                  {(showAllRecent ? recentEvents : recentEvents.slice(0, 3)).map((ev, i) => {
-                    const daysAgo = Math.floor((Date.now() - ev.time) / 86400000);
-                    const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
-                    const color = DOT_COLORS[i % DOT_COLORS.length];
-                    return (
-                      <div key={ev.id} onClick={() => { mixpanel.track('點擊最近活動'); navigate(`/view/${ev.id}`); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 12, cursor: 'pointer' }}>
-                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 20, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
+          {/* Two-column layout */}
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: 40, padding: '24px 48px', overflow: 'hidden' }}>
+            {/* Left column 60% */}
+            <div style={{ flex: 3, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+              {/* Recent events */}
+              <div style={{ flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <span style={{ fontSize: 20, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
+                  {recentEvents.length > 0 && (
+                    <button onClick={handleClearHistory} style={{ fontSize: 15, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
+                  )}
+                </div>
+                {recentEvents.length === 0 ? (
+                  <div style={{ textAlign: 'center', color: '#CCC', fontSize: 17, padding: '16px 0' }}>尚無建立紀錄</div>
+                ) : (
+                  <>
+                    {(showAllRecent ? recentEvents : recentEvents.slice(0, 3)).map((ev, i) => {
+                      const daysAgo = Math.floor((Date.now() - ev.time) / 86400000);
+                      const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
+                      const color = DOT_COLORS[i % DOT_COLORS.length];
+                      return (
+                        <div key={ev.id} onClick={() => { mixpanel.track('點擊最近活動'); navigate(`/view/${ev.id}`); }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 10, cursor: 'pointer' }}>
+                          <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 17, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
+                          </div>
+                          <div style={{ fontSize: 15, color: '#CCC', flexShrink: 0, marginLeft: 8 }}>{timeLabel}</div>
                         </div>
-                        <div style={{ fontSize: 19, color: '#CCC', flexShrink: 0, marginLeft: 8, whiteSpace: 'nowrap' }}>{timeLabel}</div>
-                      </div>
-                    );
-                  })}
-                  {recentEvents.length > 3 && <button onClick={() => setShowAllRecent(v => !v)} style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 19, cursor: 'pointer', fontFamily: 'inherit', padding: '6px 0', textAlign: 'center' }}>{showAllRecent ? '收起' : `顯示其他 ${recentEvents.length - 3} 筆`}</button>}
-                </>
-              )}
+                      );
+                    })}
+                    {recentEvents.length > 3 && (
+                      <button onClick={() => setShowAllRecent(v => !v)} style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', padding: '4px 0', textAlign: 'center' }}>
+                        {showAllRecent ? '收起' : '顯示更多'}
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+              {/* Divider */}
+              <div style={{ height: 1, background: '#F0F0F0', margin: '16px 0', flexShrink: 0 }} />
+              {/* Calendar fills remaining height */}
+              {dateError && <div style={{ fontSize: 13, color: '#E53935', marginBottom: 4, flexShrink: 0 }}>{dateError}</div>}
+              <div style={{ flex: 1, minHeight: 0 }}>
+                <DateMultiPicker
+                  fillHeight
+                  selectedDates={selectedDates}
+                  onChange={(v) => {
+                    setSelectedDates(v);
+                    if (v.length > 0) { setDateError(''); dateSelectedRef.current = true; checkAndTrackBoth(); }
+                  }}
+                />
+              </div>
             </div>
-            <div style={{ marginBottom: 32 }}>
-              <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
-              <DateMultiPicker large selectedDates={selectedDates} onChange={(v) => { setSelectedDates(v); if (v.length > 0) { setDateError(''); dateSelectedRef.current = true; checkAndTrackBoth(); } }} />
-              {dateError && <div style={{ fontSize: 17, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
-            </div>
-            <div style={{ marginBottom: 32 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <label style={{ fontSize: 24, fontWeight: 700, color: '#555' }}>選取調查時段 <span style={{ color: '#E53935' }}>*</span></label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 20, fontWeight: 500, color: '#888' }}>全天</span>
-                  <div onClick={() => { const next = !allDay; setAllDay(next); setTimeError(''); mixpanel.track('全天切換', { 切換為: next ? '全天' : '自訂時段' }); }} style={{ width: 44, height: 26, borderRadius: 13, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
-                    <div style={{ position: 'absolute', top: 3, left: allDay ? 20 : 3, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
+
+            {/* Right column 40% */}
+            <div style={{ flex: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0, overflow: 'hidden' }}>
+              {/* Top: time range */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <label style={{ fontSize: 18, fontWeight: 700, color: '#555' }}>
+                    選取調查時段 <span style={{ color: '#E53935' }}>*</span>
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 15, fontWeight: 500, color: '#888' }}>全天</span>
+                    <div onClick={() => {
+                      const next = !allDay;
+                      setAllDay(next);
+                      setTimeError('');
+                      mixpanel.track('全天切換', { 切換為: next ? '全天' : '自訂時段' });
+                      timeSetRef.current = true; checkAndTrackBoth();
+                    }} style={{ width: 44, height: 26, borderRadius: 13, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+                      <div style={{ position: 'absolute', top: 3, left: allDay ? 20 : 3, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
+                    </div>
                   </div>
                 </div>
+                <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
+                  <TimeRangeSlider startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => { timeSetRef.current = true; checkAndTrackBoth(); }} />
+                </div>
+                {timeError && <div style={{ fontSize: 13, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
               </div>
-              <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-                <TimeRangeSlider startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => { timeSetRef.current = true; checkAndTrackBoth(); }} />
+
+              {/* Middle: duration */}
+              <div>
+                <label style={{ fontSize: 18, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>預計活動時長（選填）</label>
+                <DurationSlider value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 有設定時長: v > 0 })} />
               </div>
-              {timeError && <div style={{ fontSize: 17, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
+
+              {/* Bottom: submit button */}
+              <div>
+                <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 22 }}>
+                  建立活動
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
             </div>
-            <div style={{ marginBottom: 32 }}>
-              <label style={{ fontSize: 24, fontWeight: 700, color: '#555', display: 'block', marginBottom: 10 }}>預計活動時長（選填）</label>
-              <DurationSlider value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 有設定時長: v > 0 })} />
-            </div>
-            <button className="btn-primary" onClick={openNameModal} style={{ fontSize: 24 }}>
-              建立活動
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            </button>
           </div>
         </>
       ) : (
