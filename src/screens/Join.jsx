@@ -9,12 +9,13 @@ export default function Join() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    const referrer = new URLSearchParams(window.location.search).get('referrer') ?? 'other';
     // Try localStorage first (works immediately for the creator on their device)
     try {
       const cached = localStorage.getItem(`meetime_event_${id}`);
       if (cached) {
         const m = JSON.parse(cached);
-        mixpanel.track('加入活動', { 活動id: m.id, 活動名稱: m.name });
+        mixpanel.track('join_view', { category: 'fill_time', event_id: m.id, referrer, timestamp: new Date().toISOString() });
         navigate('/grid', {
           replace: true,
           state: {
@@ -42,11 +43,10 @@ export default function Join() {
       .single()
       .then(({ data: m, error }) => {
         if (error || !m) {
-          mixpanel.track('加入活動失敗', { 活動id: id });
           setNotFound(true);
           return;
         }
-        mixpanel.track('加入活動', { 活動id: m.id, 活動名稱: m.name });
+        mixpanel.track('join_view', { category: 'fill_time', event_id: m.id, referrer, timestamp: new Date().toISOString() });
         // Cache for future visits
         try {
           localStorage.setItem(`meetime_event_${id}`, JSON.stringify({

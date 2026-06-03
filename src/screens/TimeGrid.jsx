@@ -115,6 +115,9 @@ export default function TimeGrid() {
   const [showBottomFade, setShowBottomFade] = useState(true);
   const [scrollThumb, setScrollThumb] = useState({ top: 0, h: 100 });
 
+  const gridStartTime = useRef(Date.now());
+  const firstSlotTracked = useRef(false);
+
   const updateThumb = (el) => {
     if (!el || el.scrollHeight <= el.clientHeight + 1) { setScrollThumb({ top: 0, h: 100 }); return; }
     const h = (el.clientHeight / el.scrollHeight) * 100;
@@ -143,6 +146,12 @@ export default function TimeGrid() {
   const desktopSwipeRef     = useRef(null);
   const scrollContainerRef  = useRef(null);
   const groupScrollRef      = useRef(null);
+
+  useEffect(() => {
+    if (!state?.meetingId) return;
+    gridStartTime.current = Date.now();
+    mixpanel.track('grid_view', { category: 'fill_time', event_id: state.meetingId, total_slots: TOTAL, timestamp: new Date().toISOString() });
+  }, []);
 
   useEffect(() => {
     if (!state?.meetingId) return;
@@ -188,6 +197,10 @@ export default function TimeGrid() {
     const [d, s] = key.split('-');
     const el = document.getElementById(`sl-${d}-${s}`);
     if (el) el.style.background = val === 1 ? SLOT_COLOR : 'transparent';
+    if (val === 1 && !firstSlotTracked.current && state?.meetingId) {
+      firstSlotTracked.current = true;
+      mixpanel.track('first_slot_selected', { category: 'fill_time', event_id: state.meetingId, timestamp: new Date().toISOString() });
+    }
   };
   const flushSlots = () => setSlots({ ...slotsRef.current });
 
@@ -357,13 +370,15 @@ export default function TimeGrid() {
       }
     }
 
-    // ── Mixpanel: 填寫時間送出 ──
     const filledCount = Object.values(slotsRef.current).filter(v => v === 1).length;
-    mixpanel.track('填寫時間送出', {
-      活動id: state?.meetingId,
-      姓名: name.trim(),
-      填寫格數: filledCount,
-    });
+    const timeSpent = Math.round((Date.now() - gridStartTime.current) / 1000);
+    const isRefill = !!state?.mySlots;
+    mixpanel.track('name_entered', { category: 'fill_time', event_id: state?.meetingId, timestamp: new Date().toISOString() });
+    if (isRefill) {
+      mixpanel.track('refill_submitted', { category: 'fill_time', event_id: state?.meetingId, slots_count: filledCount, timestamp: new Date().toISOString() });
+    } else {
+      mixpanel.track('fill_submitted', { category: 'fill_time', event_id: state?.meetingId, slots_count: filledCount, time_spent_seconds: timeSpent, timestamp: new Date().toISOString() });
+    }
 
     setSubmittingResponse(false);
     navigate('/results', {
@@ -463,7 +478,7 @@ export default function TimeGrid() {
           <div style={{ padding: '8px 16px', background: '#fff', borderBottom: '1px solid #F5F5F5', flexShrink: 0 }}>
             <div style={{ display: 'flex', background: '#F0F0F0', borderRadius: 10, padding: 3 }}>
               {[['mine', '我的'], ['group', '群組']].map(([key, label]) => (
-                <button key={key} onClick={() => setTab(key)} style={{
+                <button key={key} onClick={() => { setTab(key); mixpanel.track('tab_switched', { category: 'fill_time', event_id: state?.meetingId, to: label, timestamp: new Date().toISOString() }); }} style={{
                   flex: 1, padding: '7px 0', borderRadius: 8, border: 'none', fontFamily: 'inherit',
                   fontSize: 16, fontWeight: 600, cursor: 'pointer', transition: 'all 0.18s',
                   background: tab === key ? '#fff' : 'transparent',
@@ -488,7 +503,7 @@ export default function TimeGrid() {
           <div style={{ padding: '0 32px', display: 'flex', alignItems: 'center', height: 64, gap: 16 }}>
             <div style={{ display: 'flex', background: '#F0F0F0', borderRadius: 10, padding: 4 }}>
               {[['mine', '我的時間'], ['group', '群組時間']].map(([key, label]) => (
-                <button key={key} onClick={() => setTab(key)} style={{
+                <button key={key} onClick={() => { setTab(key); mixpanel.track('tab_switched', { category: 'fill_time', event_id: state?.meetingId, to: label, timestamp: new Date().toISOString() }); }} style={{
                   padding: '10px 24px', borderRadius: 8, border: 'none', fontFamily: 'inherit',
                   fontSize: 17, fontWeight: 700, cursor: 'pointer', transition: 'all 0.18s',
                   background: tab === key ? FREE_COLOR : 'transparent',

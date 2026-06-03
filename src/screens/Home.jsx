@@ -355,10 +355,11 @@ export default function Home() {
   const navigate = useNavigate();
   const isDesktop = useDesktop();
 
-  // ── Mixpanel: 頁面瀏覽 ──
   useEffect(() => {
-    mixpanel.track('頁面瀏覽', { 頁面: '首頁' });
+    mixpanel.track('home_view', { category: 'home', timestamp: new Date().toISOString() });
   }, []);
+
+  const slotToTimeStr = (s) => { const m = s * 30, h = Math.floor(m / 60) % 24, mn = m % 60; return `${String(h).padStart(2,'0')}:${String(mn).padStart(2,'0')}`; };
 
   const dateSelectedRef = useRef(false);
   const timeSetRef = useRef(false);
@@ -366,7 +367,6 @@ export default function Home() {
   const checkAndTrackBoth = () => {
     if (dateSelectedRef.current && timeSetRef.current && !bothTrackedRef.current) {
       bothTrackedRef.current = true;
-      mixpanel.track('選取日期和調查時段');
     }
   };
 
@@ -379,7 +379,7 @@ export default function Home() {
 
   const handleClearHistory = () => {
     if (!window.confirm('確定要清除全部紀錄嗎？')) return;
-    mixpanel.track('清除紀錄');
+    mixpanel.track('history_cleared', { category: 'home', timestamp: new Date().toISOString() });
     localStorage.removeItem('meetime_recent');
     setRecentEvents([]);
   };
@@ -410,6 +410,7 @@ export default function Home() {
     if (selectedDates.length === 0) { setDateError('請選取日期'); hasError = true; } else setDateError('');
     if (!allDay && startSlot >= endSlot) { setTimeError('請選取調查時段'); hasError = true; } else setTimeError('');
     if (hasError) return;
+    mixpanel.track('create_start', { category: 'home', timestamp: new Date().toISOString() });
     setMeetingName('');
     setNameModalPhase('input');
     setGeneratedId(null);
@@ -420,7 +421,6 @@ export default function Home() {
 
   const handleConfirmName = async () => {
     if (!meetingName.trim() || saving) return;
-    mixpanel.track('輸入活動名稱');
     const id = Math.random().toString(36).slice(2, 10);
     const rs = selectedDates[0] ?? null;
     const re = selectedDates[selectedDates.length - 1] ?? null;
@@ -447,6 +447,7 @@ export default function Home() {
       setNameModalPhase('input');
       return;
     }
+    mixpanel.track('event_created', { category: 'create_event', event_id: id, days_count: selectedDates.length, has_duration: duration > 0, timestamp: new Date().toISOString() });
     try {
       localStorage.setItem(`meetime_event_${id}`, JSON.stringify({
         id,
@@ -473,8 +474,8 @@ export default function Home() {
   const shareUrl = `${window.location.origin}/join/${generatedId}`;
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      mixpanel.track('邀請連結複製');
+    navigator.clipboard.writeText(`${shareUrl}?referrer=copy`).then(() => {
+      mixpanel.track('link_copied', { category: 'share_invite', event_id: generatedId, timestamp: new Date().toISOString() });
       setLinkCopied(true);
       setTimeout(() => setLinkCopied(false), 1800);
     });
@@ -498,7 +499,7 @@ export default function Home() {
             const color = DOT_COLORS[i % DOT_COLORS.length];
             return (
               <div key={ev.id} onClick={() => {
-                mixpanel.track('點擊最近活動');
+                mixpanel.track('recent_event_opened', { category: 'home', event_id: ev.id, timestamp: new Date().toISOString() });
                 navigate(`/view/${ev.id}`);
               }}
                 style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', marginBottom: 10, cursor: 'pointer' }}>
@@ -526,7 +527,7 @@ export default function Home() {
         <label className="form-label" style={{ fontSize: 16 }}>選取日期 <span style={{ color: '#E53935' }}>*</span></label>
         <DateMultiPicker scale={0.8} selectedDates={selectedDates} onChange={(v) => {
           setSelectedDates(v);
-          if (v.length > 0) { setDateError(''); dateSelectedRef.current = true; checkAndTrackBoth(); }
+          if (v.length > 0) { setDateError(''); if (!dateSelectedRef.current) { dateSelectedRef.current = true; mixpanel.track('date_selected', { category: 'create_event', days_count: v.length, dates: v.map(d => d.toISOString().slice(0,10)), timestamp: new Date().toISOString() }); } checkAndTrackBoth(); }
         }} />
         {dateError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{dateError}</div>}
       </div>
@@ -539,7 +540,7 @@ export default function Home() {
               const next = !allDay;
               setAllDay(next);
               setTimeError('');
-              mixpanel.track('全天切換', { 切換為: next ? '全天' : '自訂時段' });
+              mixpanel.track('time_range_set', { category: 'create_event', is_all_day: next, start: '00:00', end: '24:00', timestamp: new Date().toISOString() });
               timeSetRef.current = true; checkAndTrackBoth();
             }} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
               <div style={{ position: 'absolute', top: 2, left: allDay ? 18 : 2, width: 20, height: 20, borderRadius: 10, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
@@ -547,13 +548,13 @@ export default function Home() {
           </div>
         </div>
         <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-          <TimeRangeSlider scale={0.8} numSize={34} ampmSize={14} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => { timeSetRef.current = true; checkAndTrackBoth(); }} />
+          <TimeRangeSlider scale={0.8} numSize={34} ampmSize={14} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={(s, e) => { timeSetRef.current = true; mixpanel.track('time_range_set', { category: 'create_event', start: slotToTimeStr(s ?? startSlot), end: slotToTimeStr(e ?? endSlot), is_all_day: false, timestamp: new Date().toISOString() }); checkAndTrackBoth(); }} />
         </div>
         {timeError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
       </div>
       <div className="form-field">
         <label className="form-label" style={{ fontSize: 14 }}>預計活動時長（選填）</label>
-        <DurationSlider scale={0.8} numSize={28} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 有設定時長: v > 0 })} />
+        <DurationSlider scale={0.8} numSize={28} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('duration_set', { category: 'create_event', hours: v / 60, is_skipped: v === 0, timestamp: new Date().toISOString() })} />
       </div>
     </>
   );
@@ -599,7 +600,8 @@ export default function Home() {
         </div>
         <button onClick={() => {
           mixpanel.track('分享至LINE');
-          const lineMsg = `會議名稱：${meetingName.trim()}\n填寫時間：${shareUrl}`;
+          mixpanel.track('invite_shared_line', { category: 'share_invite', event_id: generatedId, timestamp: new Date().toISOString() });
+          const lineMsg = `會議名稱：${meetingName.trim()}\n填寫時間：${shareUrl}?referrer=line`;
           window.open(`https://line.me/R/msg/text/?${encodeURIComponent(lineMsg)}`, '_blank');
         }} style={{ width: '100%', padding: '18px', borderRadius: 14, border: 'none', background: '#8FA99A', color: '#fff', fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
@@ -642,7 +644,7 @@ export default function Home() {
                       const timeLabel = daysAgo === 0 ? '今天' : daysAgo === 1 ? '昨天' : `${daysAgo} 天前`;
                       const color = DOT_COLORS[i % DOT_COLORS.length];
                       return (
-                        <div key={ev.id} onClick={() => { mixpanel.track('點擊最近活動'); navigate(`/view/${ev.id}`); }}
+                        <div key={ev.id} onClick={() => { mixpanel.track('recent_event_opened', { category: 'home', event_id: ev.id, timestamp: new Date().toISOString() }); navigate(`/view/${ev.id}`); }}
                           style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', background: '#fff', borderRadius: 14, border: '1.5px solid #F0F0F0', marginBottom: 13, cursor: 'pointer' }}>
                           <div style={{ width: 13, height: 13, borderRadius: '50%', background: color, flexShrink: 0 }} />
                           <div style={{ flex: 1, minWidth: 0 }}>
@@ -670,7 +672,7 @@ export default function Home() {
                   selectedDates={selectedDates}
                   onChange={(v) => {
                     setSelectedDates(v);
-                    if (v.length > 0) { setDateError(''); dateSelectedRef.current = true; checkAndTrackBoth(); }
+                    if (v.length > 0) { setDateError(''); if (!dateSelectedRef.current) { dateSelectedRef.current = true; mixpanel.track('date_selected', { category: 'create_event', days_count: v.length, dates: v.map(d => d.toISOString().slice(0,10)), timestamp: new Date().toISOString() }); } checkAndTrackBoth(); }
                   }}
                 />
               </div>
@@ -690,7 +692,7 @@ export default function Home() {
                       const next = !allDay;
                       setAllDay(next);
                       setTimeError('');
-                      mixpanel.track('全天切換', { 切換為: next ? '全天' : '自訂時段' });
+                      mixpanel.track('time_range_set', { category: 'create_event', is_all_day: next, start: '00:00', end: '24:00', timestamp: new Date().toISOString() });
                       timeSetRef.current = true; checkAndTrackBoth();
                     }} style={{ width: 53, height: 31, borderRadius: 16, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
                       <div style={{ position: 'absolute', top: 4, left: allDay ? 24 : 4, width: 24, height: 24, borderRadius: 12, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s' }} />
@@ -698,7 +700,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-                  <TimeRangeSlider numSize={48} scale={1.2} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => { timeSetRef.current = true; checkAndTrackBoth(); }} />
+                  <TimeRangeSlider numSize={48} scale={1.2} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={(s, e) => { timeSetRef.current = true; mixpanel.track('time_range_set', { category: 'create_event', start: slotToTimeStr(s ?? startSlot), end: slotToTimeStr(e ?? endSlot), is_all_day: false, timestamp: new Date().toISOString() }); checkAndTrackBoth(); }} />
                 </div>
                 {timeError && <div style={{ fontSize: 16, color: '#E53935', marginTop: 7 }}>{timeError}</div>}
               </div>
@@ -706,7 +708,7 @@ export default function Home() {
               {/* Middle: duration */}
               <div>
                 <label style={{ fontSize: 19, fontWeight: 700, color: '#555', display: 'block', marginBottom: 12 }}>預計活動時長（選填）</label>
-                <DurationSlider numSize={48} scale={1.2} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('設定活動時長', { 有設定時長: v > 0 })} />
+                <DurationSlider numSize={48} scale={1.2} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('duration_set', { category: 'create_event', hours: v / 60, is_skipped: v === 0, timestamp: new Date().toISOString() })} />
               </div>
 
               {/* Bottom: submit button */}

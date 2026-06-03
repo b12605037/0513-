@@ -18,10 +18,7 @@ export default function ViewResults() {
           return;
         }
         // ── Mixpanel: 查看活動結果 ──
-        mixpanel.track('查看活動結果', {
-          活動id: m.id,
-          活動名稱: m.name,
-        });
+        mixpanel.track('result_view', { category: 'view_result', event_id: m.id, respondents_count: null, timestamp: new Date().toISOString() });
         navigate('/results', {
           replace: true,
           state: {

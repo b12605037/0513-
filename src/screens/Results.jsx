@@ -113,18 +113,11 @@ export default function Results() {
             data.reduce((acc, r) => ({ ...acc, [r.respondent_name]: r }), {})
           );
           setResponses(deduped);
-          // ── Mixpanel: 查看結果頁 ──
-          mixpanel.track('查看結果頁', {
-            活動id: state.meetingId,
-            回應人數: deduped.length,
-          });
+          mixpanel.track('result_view', { category: 'view_result', event_id: state.meetingId, respondents_count: deduped.length, timestamp: new Date().toISOString() });
         } else if (state?.myName && state?.mySlots) {
           // DB 尚無資料但剛從 TimeGrid 送出，先顯示自己的回應
           setResponses([{ respondent_name: state.myName, slots: state.mySlots }]);
-          mixpanel.track('查看結果頁', {
-            活動id: state.meetingId,
-            回應人數: 1,
-          });
+          mixpanel.track('result_view', { category: 'view_result', event_id: state.meetingId, respondents_count: 1, timestamp: new Date().toISOString() });
         }
         setLoading(false);
       });
@@ -269,7 +262,7 @@ export default function Results() {
     const slot = bestSlots.find(s => s.key === key);
     if (slot && !selectedSlots.has(key)) {
       // ── Mixpanel: 點擊填入最佳時段 ──
-      mixpanel.track('點擊填入最佳時段', { 活動id: state?.meetingId });
+      mixpanel.track('best_slot_confirmed', { category: 'view_result', event_id: state?.meetingId, timestamp: new Date().toISOString() });
     }
     setSelectedSlots(prev => { const s = new Set(prev); s.has(key) ? s.delete(key) : s.add(key); return s; });
   };
@@ -289,20 +282,7 @@ export default function Results() {
   })();
 
   const handleShareLine = () => {
-    console.log('[LINE分享] eventName:', state?.eventName);
-    console.log('[LINE分享] selectedList:', selectedList.map(s => ({
-      date: `${s.day.year}/${s.day.month + 1}/${s.day.date}`,
-      startH: G_START + s.rawS / SPH,
-      endH: G_START + (s.rawS + s.actualSlots) / SPH,
-      gcStart: toGCalDT(s.day.year, s.day.month, s.day.date, G_START + s.rawS / SPH),
-      gcEnd: toGCalDT(s.day.year, s.day.month, s.day.date, G_START + (s.rawS + s.actualSlots) / SPH),
-    })));
-    console.log('[LINE分享] message:', shareMessage);
-    // ── Mixpanel: 分享結果至LINE ──
-    mixpanel.track('分享結果至LINE', {
-      活動id: state?.meetingId,
-      選擇時段數: selectedList.length,
-    });
+    mixpanel.track('result_shared_line', { category: 'share_result', event_id: state?.meetingId, timestamp: new Date().toISOString() });
     window.open(`https://line.me/R/msg/text/?${encodeURIComponent(shareMessage)}`, '_blank');
   };
 
@@ -367,12 +347,27 @@ export default function Results() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
   );
 
+  const handleCalendarAdd = () => {
+    if (selectedList.length !== 1) return;
+    const s = selectedList[0];
+    const startH = G_START + s.rawS / SPH;
+    const endH = G_START + (s.rawS + s.actualSlots) / SPH;
+    const gcUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(state?.eventName ?? '')}&dates=${toGCalDT(s.day.year, s.day.month, s.day.date, startH)}/${toGCalDT(s.day.year, s.day.month, s.day.date, endH)}&details=${encodeURIComponent('透過 meetime 安排的會議')}`;
+    mixpanel.track('calendar_added', { category: 'share_result', event_id: state?.meetingId, timestamp: new Date().toISOString() });
+    window.open(gcUrl, '_blank');
+  };
+
   const shareBar = selectedList.length > 0 && (
     <div style={{ padding: '8px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
       <div style={{ background: '#F5F5F5', borderRadius: 12, padding: '10px 10px 10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ flex: 1, fontSize: 15, color: '#555', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
           {selectedList.map(s => `${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} · ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + s.actualSlots) / SPH)}`).join('、')}
         </div>
+        {selectedList.length === 1 && (
+          <button onClick={handleCalendarAdd} style={{ flexShrink: 0, padding: '8px 12px', borderRadius: 10, border: 'none', background: '#5F84A2', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+            + Calendar
+          </button>
+        )}
         <button onClick={handleShareLine} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 10, border: 'none', background: '#8FA99A', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
           {lineIcon} 傳送至 LINE
         </button>
@@ -470,7 +465,7 @@ export default function Results() {
           <div style={{ padding: '0 32px', display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
             <span onClick={() => navigate('/')} style={{ fontSize: 24, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>meetime</span>
             <span style={{ flex: 1, fontSize: 20, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{state?.eventName ?? '結果'}</span>
-            <button onClick={() => navigate('/grid', { state })}
+            <button onClick={() => { mixpanel.track('refill_clicked', { category: 'fill_time', event_id: state?.meetingId, timestamp: new Date().toISOString() }); navigate('/grid', { state }); }}
               style={{ padding: '11px 28px', borderRadius: 10, border: '1.5px solid #8A9DA8', background: 'transparent', color: '#8A9DA8', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
               重新填寫
             </button>
@@ -535,7 +530,7 @@ export default function Results() {
             </div>
           )}
           <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
-            <button onClick={() => navigate('/grid', { state })} style={{ width: '100%', padding: '13px', borderRadius: 14, border: '1.5px solid #5F84A2', background: 'transparent', color: '#5F84A2', fontSize: 19, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>重新填寫</button>
+            <button onClick={() => { mixpanel.track('refill_clicked', { category: 'fill_time', event_id: state?.meetingId, timestamp: new Date().toISOString() }); navigate('/grid', { state }); }} style={{ width: '100%', padding: '13px', borderRadius: 14, border: '1.5px solid #5F84A2', background: 'transparent', color: '#5F84A2', fontSize: 19, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>重新填寫</button>
           </div>
           {hasDuration && heatmapExpanded && (
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '82%', background: '#fff', zIndex: 100, borderRadius: '20px 20px 0 0', boxShadow: '0 -4px 24px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column' }}>
