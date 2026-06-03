@@ -289,6 +289,15 @@ export default function Results() {
   })();
 
   const handleShareLine = () => {
+    console.log('[LINE分享] eventName:', state?.eventName);
+    console.log('[LINE分享] selectedList:', selectedList.map(s => ({
+      date: `${s.day.year}/${s.day.month + 1}/${s.day.date}`,
+      startH: G_START + s.rawS / SPH,
+      endH: G_START + (s.rawS + s.actualSlots) / SPH,
+      gcStart: toGCalDT(s.day.year, s.day.month, s.day.date, G_START + s.rawS / SPH),
+      gcEnd: toGCalDT(s.day.year, s.day.month, s.day.date, G_START + (s.rawS + s.actualSlots) / SPH),
+    })));
+    console.log('[LINE分享] message:', shareMessage);
     // ── Mixpanel: 分享結果至LINE ──
     mixpanel.track('分享結果至LINE', {
       活動id: state?.meetingId,

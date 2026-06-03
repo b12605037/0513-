@@ -369,6 +369,7 @@ export default function TimeGrid() {
     navigate('/results', {
       state: {
         meetingId:  state?.meetingId,
+        eventName:  state?.eventName,
         myName:     name.trim(),
         mySlots:    slotsRef.current,
         duration:   state?.duration,
