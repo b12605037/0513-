@@ -611,7 +611,7 @@ export default function Home() {
   );
 
   return (
-    <div className="app-container" style={isDesktop ? { height: 'auto', minHeight: '100vh', overflowX: 'hidden', overflowY: 'auto' } : { background: '#fff' }}>
+    <div className="app-container" style={isDesktop ? { height: 'auto', overflowX: 'hidden', overflowY: 'auto' } : { background: '#fff' }}>
       {isDesktop ? (
         <>
           {/* Navbar */}
@@ -619,7 +619,7 @@ export default function Home() {
             <span style={{ fontSize: 40, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
           </div>
           {/* Two-column layout */}
-          <div style={{ display: 'flex', gap: 40, padding: '24px 60px', maxWidth: 1200, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+          <div style={{ display: 'flex', gap: 40, padding: '24px 60px', maxWidth: 1200, margin: '0 auto', width: '100%', boxSizing: 'border-box', alignItems: 'flex-start' }}>
             {/* Left column 60% */}
             <div style={{ flex: 55, display: 'flex', flexDirection: 'column', padding: 24 }}>
               {/* Recent events */}
