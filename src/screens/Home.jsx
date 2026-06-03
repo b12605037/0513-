@@ -254,7 +254,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
       background: '#ffffff', borderRadius: 12,
       border: noHeader ? '0.5px solid #e0e0e0' : '1.5px solid #e8f0f5',
       overflow: 'hidden',
-      padding: noHeader ? 16 : 0,
+      padding: noHeader ? 19 : 0,
       boxSizing: 'border-box',
     } : {
       background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16,
@@ -287,18 +287,18 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
       } : {
         padding: large ? '20px 28px 24px' : 12,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: fillHeight ? 9 : 12, flexShrink: 0 }}>
-          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px', color: '#8A9DA8' }}><IcChevron dir="left" size={18} /></button>
-          <span style={{ fontSize: fillHeight ? 22 : (large ? 31 : Math.round(31 * scale)), fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
-          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px', color: '#8A9DA8' }}><IcChevron dir="right" size={18} /></button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: fillHeight ? 11 : 12, flexShrink: 0 }}>
+          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 12px', color: '#8A9DA8' }}><IcChevron dir="left" size={18} /></button>
+          <span style={{ fontSize: fillHeight ? 26 : (large ? 31 : Math.round(31 * scale)), fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
+          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 12px', color: '#8A9DA8' }}><IcChevron dir="right" size={18} /></button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', columnGap: fillHeight ? 10 : (large ? 6 : 2), marginBottom: fillHeight ? 8 : 4, flexShrink: 0 }}>
-          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 16 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', columnGap: fillHeight ? 12 : (large ? 6 : 2), marginBottom: fillHeight ? 10 : 4, flexShrink: 0 }}>
+          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 19 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
         </div>
         <div ref={calRef} style={fillHeight ? {
           flex: 1, minHeight: 0,
           display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gridAutoRows: '1fr',
-          userSelect: 'none', rowGap: 10, columnGap: 10,
+          userSelect: 'none', rowGap: 12, columnGap: 12,
         } : {
           display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', rowGap: large ? 10 : 4, columnGap: large ? 6 : 2,
         }}>
@@ -330,20 +330,20 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                 {selected && <div style={{
                   position: 'absolute', left: bandL, right: bandR,
                   top: fillHeight ? '50%' : 2,
-                  height: fillHeight ? 36 : (large ? 65 : 32),
+                  height: fillHeight ? 43 : (large ? 65 : 32),
                   transform: fillHeight ? 'translateY(-50%)' : undefined,
-                  background: fillHeight ? 'rgba(71, 128, 88, 0.12)' : 'rgba(138, 157, 168, 0.18)', pointerEvents: 'none',
+                  background: 'rgba(138, 157, 168, 0.18)', pointerEvents: 'none',
                 }} />}
                 <div style={{
-                  width: fillHeight ? 36 : (large ? 65 : 32),
-                  height: fillHeight ? 36 : (large ? 65 : 32),
+                  width: fillHeight ? 43 : (large ? 65 : 32),
+                  height: fillHeight ? 43 : (large ? 65 : 32),
                   borderRadius: fillHeight ? '50%' : (large ? 33 : 16),
                   margin: fillHeight ? 0 : '2px auto 0',
                   position: 'relative', zIndex: 1, flexShrink: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: selected ? (fillHeight ? '#478058' : '#8A9DA8') : 'transparent',
-                  border: isToday && !selected ? `1.5px solid ${fillHeight ? '#478058' : '#8A9DA8'}` : 'none',
-                  fontSize: fillHeight ? 20 : (large ? 31 : Math.round(16 * scale)),
+                  background: selected ? '#8A9DA8' : 'transparent',
+                  border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none',
+                  fontSize: fillHeight ? 24 : (large ? 31 : Math.round(16 * scale)),
                   fontWeight: selected ? 700 : 400,
                   color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8',
                   transition: 'background 0.08s',
@@ -677,12 +677,28 @@ export default function Home() {
                 <div style={{ width: 6, height: 6, borderRadius: 3, background: selectedDates.length > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
                 {selectedDates.length === 0 ? (
                   <span style={{ fontSize: 13, fontWeight: 600, color: '#F57F17' }}>點擊或滑動選取日期</span>
-                ) : (
+                ) : selectedDates.length === 1 ? (
                   <span style={{ fontSize: 13, fontWeight: 600, color: '#8A9DA8' }}>
-                    {selectedDates.length === 1
-                      ? `${SHORT_MONTHS[selectedDates[0].getMonth()]} ${selectedDates[0].getDate()}, ${selectedDates[0].getFullYear()}`
-                      : `已選 ${selectedDates.length} 天`}
+                    {`${SHORT_MONTHS[selectedDates[0].getMonth()]} ${selectedDates[0].getDate()}, ${selectedDates[0].getFullYear()}`}
                   </span>
+                ) : (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 6px' }}>
+                    {(() => {
+                      const sorted = [...selectedDates].sort((a, b) => a - b);
+                      const ranges = sorted.reduce((acc, d) => {
+                        if (!acc.length || (d - acc[acc.length-1][1]) / 86400000 !== 1) return [...acc, [d, d]];
+                        return [...acc.slice(0,-1), [acc[acc.length-1][0], d]];
+                      }, []);
+                      return ranges.map(([s, e], i) => {
+                        const lbl = s.getTime() === e.getTime()
+                          ? `${s.getMonth()+1}/${s.getDate()}`
+                          : s.getMonth() === e.getMonth()
+                            ? `${s.getMonth()+1}/${s.getDate()}–${e.getDate()}`
+                            : `${s.getMonth()+1}/${s.getDate()}–${e.getMonth()+1}/${e.getDate()}`;
+                        return <span key={i} style={{ fontSize: 13, fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 4, padding: '1px 5px' }}>{lbl}</span>;
+                      });
+                    })()}
+                  </div>
                 )}
                 {selectedDates.length > 0 && (
                   <button onClick={() => setSelectedDates([])} style={{ marginLeft: 'auto', fontSize: 12, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
