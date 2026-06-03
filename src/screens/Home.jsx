@@ -139,11 +139,11 @@ function TimeRangeSlider({ startSlot, endSlot, onChange, onChangeEnd, scale = 1 
     <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
         <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: Math.round(46 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtSlot(startSlot)} <span style={{ fontSize: Math.round(25 * scale), fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
+          <div style={{ fontSize: Math.round(24 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{fmtSlot(startSlot)} <span style={{ fontSize: Math.round(14 * scale), fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
         </div>
-        <div style={{ color: '#CCC', fontSize: Math.round(36 * scale) }}>→</div>
+        <div style={{ color: '#CCC', fontSize: Math.round(20 * scale), flexShrink: 0 }}>→</div>
         <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: Math.round(46 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtSlot(endSlot)} <span style={{ fontSize: Math.round(25 * scale), fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
+          <div style={{ fontSize: Math.round(24 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{fmtSlot(endSlot)} <span style={{ fontSize: Math.round(14 * scale), fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
         </div>
       </div>
       <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
@@ -290,8 +290,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
           {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 12 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
         </div>
         <div ref={calRef} style={fillHeight ? {
-          flex: 1, minHeight: 0,
-          display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gridAutoRows: '1fr',
+          display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gridAutoRows: 'auto',
           userSelect: 'none', columnGap: 2,
         } : {
           display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', rowGap: large ? 10 : 4, columnGap: large ? 6 : 2,
@@ -316,7 +315,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                 onMouseDown={() => !disabled && mouseDown(key)}
                 onMouseEnter={() => !disabled && mouseEnter(key)}
                 style={fillHeight ? {
-                  minHeight: 0, cursor: disabled ? 'default' : 'pointer', position: 'relative',
+                  aspectRatio: '1 / 1', cursor: disabled ? 'default' : 'pointer', position: 'relative',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 } : {
                   height: large ? 82 : 36, cursor: disabled ? 'default' : 'pointer', position: 'relative',
@@ -337,7 +336,7 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: selected ? '#8A9DA8' : 'transparent',
                   border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none',
-                  fontSize: fillHeight ? 13 : (large ? 31 : Math.round(16 * scale)),
+                  fontSize: fillHeight ? 15 : (large ? 31 : Math.round(16 * scale)),
                   fontWeight: selected ? 700 : 400,
                   color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8',
                   transition: 'background 0.08s',
@@ -612,17 +611,17 @@ export default function Home() {
   );
 
   return (
-    <div className="app-container" style={isDesktop ? {} : { background: '#fff' }}>
+    <div className="app-container" style={isDesktop ? { overflowX: 'hidden' } : { background: '#fff' }}>
       {isDesktop ? (
         <>
           {/* Navbar */}
-          <div style={{ height: 72, flexShrink: 0, display: 'flex', alignItems: 'center', padding: '0 48px', borderBottom: '1px solid #F0F0F0' }}>
+          <div style={{ height: 72, flexShrink: 0, display: 'flex', alignItems: 'center', padding: '0 60px', borderBottom: '1px solid #F0F0F0' }}>
             <span style={{ fontSize: 40, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em' }}>meetime</span>
           </div>
           {/* Two-column layout */}
-          <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: 40, padding: '24px 48px', overflow: 'hidden' }}>
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: 40, padding: '24px 60px', overflow: 'hidden', maxWidth: 1200, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
             {/* Left column 60% */}
-            <div style={{ flex: 3, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+            <div style={{ flex: 55, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
               {/* Recent events */}
               <div style={{ flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -675,7 +674,7 @@ export default function Home() {
             </div>
 
             {/* Right column 40% */}
-            <div style={{ flex: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0, overflow: 'hidden' }}>
+            <div style={{ flex: 45, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0, overflow: 'visible', padding: '0 24px' }}>
               {/* Top: time range */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
