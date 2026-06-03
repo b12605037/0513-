@@ -278,17 +278,14 @@ export default function Results() {
 
   const shareMessage = (() => {
     if (selectedList.length === 0) return '';
-    if (selectedList.length === 1) {
-      const s = selectedList[0];
+    const buildEntry = (s) => {
       const startH = G_START + s.rawS / SPH;
       const endH = G_START + (s.rawS + s.actualSlots) / SPH;
       const gcUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(state?.eventName ?? '')}&dates=${toGCalDT(s.day.year, s.day.month, s.day.date, startH)}/${toGCalDT(s.day.year, s.day.month, s.day.date, endH)}&details=${encodeURIComponent('透過 meetime 安排的會議')}`;
       const timeStr = `${s.day.year}/${s.day.month + 1}/${s.day.date}${DOW_PAREN[DOW_IDX[s.day.label]]}${fmtH24(startH)} – ${fmtH24(endH)}`;
-      const joinUrl = state?.meetingId ? `${window.location.origin}/join/${state.meetingId}` : null;
-      return `${state?.eventName ?? ''} 的最佳會議時間已確認！\n\n📅 時間：${timeStr}\n\n🗓 點擊以下連結加入 Google Calendar：\n${gcUrl}${joinUrl ? `\n\n📋 尚未填寫的成員點此填寫：\n${joinUrl}` : ''}`;
-    }
-    return `嗨大家！以下是我們的會議時間 📅\n\n` +
-      selectedList.map(s => `• ${DOW_ZH[DOW_IDX[s.day.label]]} ${s.day.date} ${fmtH24(G_START + s.rawS / SPH)}–${fmtH24(G_START + (s.rawS + s.actualSlots) / SPH)}`).join('\n');
+      return `${state?.eventName ?? ''}\n時間：${timeStr}\n點擊以下連結加入 Google Calendar：\n${gcUrl}`;
+    };
+    return selectedList.map(buildEntry).join('\n\n');
   })();
 
   const handleShareLine = () => {
