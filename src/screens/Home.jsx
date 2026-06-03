@@ -255,12 +255,12 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
     } : {
       background: '#fff', borderRadius: 12, border: '1.5px solid #F0F0F0', overflow: 'hidden', marginBottom: 16,
     }}>
-      <div style={{ padding: fillHeight ? '12px 34px 10px' : '12px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
+      <div style={{ padding: fillHeight ? '16px 44px 13px' : '12px', background: '#F8FFFE', borderBottom: '1px solid #F0F0F0', flexShrink: 0 }}>
         {count <= 1 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: 3, background: count > 0 ? '#8A9DA8' : '#FFB300', flexShrink: 0 }} />
-            <span style={{ fontSize: fillHeight ? 16 : Math.round(22 * scale), fontWeight: 600, color: count > 0 ? '#8A9DA8' : '#F57F17' }}>{label}</span>
-            {count > 0 && <button onClick={() => onChangeRef.current([])} style={{ marginLeft: 'auto', fontSize: fillHeight ? 26 : Math.round(22 * scale), fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>}
+            <span style={{ fontSize: fillHeight ? 21 : Math.round(22 * scale), fontWeight: 600, color: count > 0 ? '#8A9DA8' : '#F57F17' }}>{label}</span>
+            {count > 0 && <button onClick={() => onChangeRef.current([])} style={{ marginLeft: 'auto', fontSize: fillHeight ? 34 : Math.round(22 * scale), fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>}
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
@@ -268,30 +268,30 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
             <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '4px 6px' }}>
               {dateRanges.map(([s, e], i) => {
                 const label = s.getTime() === e.getTime() ? `${s.getMonth()+1}/${s.getDate()}` : s.getMonth() === e.getMonth() ? `${s.getMonth()+1}/${s.getDate()}–${e.getDate()}` : `${s.getMonth()+1}/${s.getDate()}–${e.getMonth()+1}/${e.getDate()}`;
-                return <span key={i} style={{ fontSize: fillHeight ? 23 : Math.round(19 * scale), fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 5, padding: '2px 7px' }}>{label}</span>;
+                return <span key={i} style={{ fontSize: fillHeight ? 30 : Math.round(19 * scale), fontWeight: 600, color: '#8A9DA8', background: '#e8eef1', borderRadius: 5, padding: '2px 7px' }}>{label}</span>;
               })}
             </div>
-            <button onClick={() => onChangeRef.current([])} style={{ flexShrink: 0, fontSize: fillHeight ? 26 : Math.round(22 * scale), fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
+            <button onClick={() => onChangeRef.current([])} style={{ flexShrink: 0, fontSize: fillHeight ? 34 : Math.round(22 * scale), fontWeight: 600, color: '#E57373', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除</button>
           </div>
         )}
       </div>
       <div style={fillHeight ? {
         flex: 1, minHeight: 0, overflow: 'hidden',
-        display: 'flex', flexDirection: 'column', padding: '14px 12px 10px',
+        display: 'flex', flexDirection: 'column', padding: '18px 16px 13px',
       } : {
         padding: large ? '20px 28px 24px' : 12,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: fillHeight ? 7 : 12, flexShrink: 0 }}>
-          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="left" size={18} /></button>
-          <span style={{ fontSize: fillHeight ? 26 : (large ? 31 : Math.round(31 * scale)), fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
-          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="right" size={18} /></button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: fillHeight ? 9 : 12, flexShrink: 0 }}>
+          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px', color: '#8A9DA8' }}><IcChevron dir="left" size={18} /></button>
+          <span style={{ fontSize: fillHeight ? 34 : (large ? 31 : Math.round(31 * scale)), fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
+          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px', color: '#8A9DA8' }}><IcChevron dir="right" size={18} /></button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', columnGap: fillHeight ? 8 : (large ? 6 : 2), marginBottom: fillHeight ? 6 : 4, flexShrink: 0 }}>
-          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 19 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', columnGap: fillHeight ? 10 : (large ? 6 : 2), marginBottom: fillHeight ? 8 : 4, flexShrink: 0 }}>
+          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 25 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
         </div>
         <div ref={calRef} style={fillHeight ? {
           display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gridAutoRows: 'auto',
-          userSelect: 'none', rowGap: 8, columnGap: 8,
+          userSelect: 'none', rowGap: 10, columnGap: 10,
         } : {
           display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', rowGap: large ? 10 : 4, columnGap: large ? 6 : 2,
         }}>
@@ -323,20 +323,20 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                 {selected && <div style={{
                   position: 'absolute', left: bandL, right: bandR,
                   top: fillHeight ? '50%' : 2,
-                  height: fillHeight ? 34 : (large ? 65 : 32),
+                  height: fillHeight ? 44 : (large ? 65 : 32),
                   transform: fillHeight ? 'translateY(-50%)' : undefined,
                   background: 'rgba(138, 157, 168, 0.18)', pointerEvents: 'none',
                 }} />}
                 <div style={{
-                  width: fillHeight ? 'min(56px, 80%)' : (large ? 65 : 32),
-                  height: fillHeight ? 'min(56px, 80%)' : (large ? 65 : 32),
+                  width: fillHeight ? 'min(73px, 80%)' : (large ? 65 : 32),
+                  height: fillHeight ? 'min(73px, 80%)' : (large ? 65 : 32),
                   borderRadius: fillHeight ? '50%' : (large ? 33 : 16),
                   margin: fillHeight ? 0 : '2px auto 0',
                   position: 'relative', zIndex: 1, flexShrink: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: selected ? '#8A9DA8' : 'transparent',
                   border: isToday && !selected ? '1.5px solid #8A9DA8' : 'none',
-                  fontSize: fillHeight ? 26 : (large ? 31 : Math.round(16 * scale)),
+                  fontSize: fillHeight ? 34 : (large ? 31 : Math.round(16 * scale)),
                   fontWeight: selected ? 700 : 400,
                   color: selected ? '#fff' : disabled ? '#DDD' : '#8A9DA8',
                   transition: 'background 0.08s',
@@ -623,17 +623,17 @@ export default function Home() {
           {/* Two-column layout */}
           <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: 96, padding: '72px 120px', maxWidth: 1920, margin: '0 auto', width: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
             {/* Left column 60% */}
-            <div style={{ flex: 65, display: 'flex', flexDirection: 'column', padding: 29, minHeight: 0 }}>
+            <div style={{ flex: 85, display: 'flex', flexDirection: 'column', padding: 38, minHeight: 0 }}>
               {/* Recent events */}
               <div style={{ flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                  <span style={{ fontSize: 19, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+                  <span style={{ fontSize: 25, fontWeight: 700, color: '#8A9DA8' }}>最近活動</span>
                   {recentEvents.length > 0 && (
-                    <button onClick={handleClearHistory} style={{ fontSize: 18, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
+                    <button onClick={handleClearHistory} style={{ fontSize: 23, color: '#BBB', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>清除紀錄</button>
                   )}
                 </div>
                 {recentEvents.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: '#CCC', fontSize: 20, padding: '19px 0' }}>尚無建立紀錄</div>
+                  <div style={{ textAlign: 'center', color: '#CCC', fontSize: 26, padding: '25px 0' }}>尚無建立紀錄</div>
                 ) : (
                   <>
                     {(showAllRecent ? recentEvents : recentEvents.slice(0, 2)).map((ev, i) => {
@@ -642,17 +642,17 @@ export default function Home() {
                       const color = DOT_COLORS[i % DOT_COLORS.length];
                       return (
                         <div key={ev.id} onClick={() => { mixpanel.track('點擊最近活動'); navigate(`/view/${ev.id}`); }}
-                          style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 17px', background: '#fff', borderRadius: 14, border: '1.5px solid #F0F0F0', marginBottom: 12, cursor: 'pointer' }}>
-                          <div style={{ width: 12, height: 12, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                          style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '18px 22px', background: '#fff', borderRadius: 18, border: '1.5px solid #F0F0F0', marginBottom: 16, cursor: 'pointer' }}>
+                          <div style={{ width: 16, height: 16, borderRadius: '50%', background: color, flexShrink: 0 }} />
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 17, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
+                            <div style={{ fontSize: 22, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
                           </div>
-                          <div style={{ fontSize: 17, color: '#CCC', flexShrink: 0, marginLeft: 10 }}>{timeLabel}</div>
+                          <div style={{ fontSize: 22, color: '#CCC', flexShrink: 0, marginLeft: 13 }}>{timeLabel}</div>
                         </div>
                       );
                     })}
                     {recentEvents.length > 2 && (
-                      <button onClick={() => setShowAllRecent(v => !v)} style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 18, cursor: 'pointer', fontFamily: 'inherit', padding: '5px 0', textAlign: 'center' }}>
+                      <button onClick={() => setShowAllRecent(v => !v)} style={{ width: '100%', background: 'none', border: 'none', color: '#AAA', fontSize: 23, cursor: 'pointer', fontFamily: 'inherit', padding: '7px 0', textAlign: 'center' }}>
                         {showAllRecent ? '收起' : `顯示其他 ${recentEvents.length - 2} 筆`}
                       </button>
                     )}
@@ -660,9 +660,9 @@ export default function Home() {
                 )}
               </div>
               {/* Divider */}
-              <div style={{ height: 1, background: '#e0e0e0', margin: '24px 0' }} />
+              <div style={{ height: 1, background: '#e0e0e0', margin: '31px 0' }} />
               {/* Calendar fills remaining height */}
-              {dateError && <div style={{ fontSize: 16, color: '#E53935', marginBottom: 5, flexShrink: 0 }}>{dateError}</div>}
+              {dateError && <div style={{ fontSize: 21, color: '#E53935', marginBottom: 7, flexShrink: 0 }}>{dateError}</div>}
               <div style={{ flex: 1, minHeight: 0 }}>
                 <DateMultiPicker
                   fillHeight
