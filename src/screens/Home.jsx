@@ -327,11 +327,10 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                 } : {
                   height: large ? 82 : 36, cursor: disabled ? 'default' : 'pointer', position: 'relative',
                 }}>
-                {selected && <div style={{
+                {selected && !fillHeight && <div style={{
                   position: 'absolute', left: bandL, right: bandR,
-                  top: fillHeight ? '50%' : 2,
-                  height: fillHeight ? 43 : (large ? 65 : 32),
-                  transform: fillHeight ? 'translateY(-50%)' : undefined,
+                  top: 2,
+                  height: large ? 65 : 32,
                   background: 'rgba(138, 157, 168, 0.18)', pointerEvents: 'none',
                 }} />}
                 <div style={{
