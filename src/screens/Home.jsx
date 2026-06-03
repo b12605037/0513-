@@ -460,10 +460,12 @@ export default function Home() {
       }));
     } catch {}
     try {
+      const trimmedName = meetingName.trim();
       const prev = JSON.parse(localStorage.getItem('meetime_recent') || '[]');
-      prev.unshift({ id, name: meetingName.trim(), time: Date.now() });
-      localStorage.setItem('meetime_recent', JSON.stringify(prev.slice(0, 10)));
-      setRecentEvents(prev.slice(0, 10));
+      const filtered = prev.filter(e => e.name.trim() !== trimmedName);
+      const next = [{ id, name: trimmedName, time: Date.now() }, ...filtered].slice(0, 10);
+      localStorage.setItem('meetime_recent', JSON.stringify(next));
+      setRecentEvents(next);
     } catch {}
   };
 
@@ -544,7 +546,7 @@ export default function Home() {
           </div>
         </div>
         <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-          <TimeRangeSlider scale={0.8} numSize={28} ampmSize={12} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => { timeSetRef.current = true; checkAndTrackBoth(); }} />
+          <TimeRangeSlider scale={0.8} numSize={34} ampmSize={14} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={() => { timeSetRef.current = true; checkAndTrackBoth(); }} />
         </div>
         {timeError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
       </div>
