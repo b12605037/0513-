@@ -286,12 +286,12 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
           <span style={{ fontSize: fillHeight ? 26 : (large ? 31 : Math.round(31 * scale)), fontWeight: 700, color: '#8A9DA8' }}>{MONTH_NAMES[viewMonth]} {viewYear}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#8A9DA8' }}><IcChevron dir="right" size={18} /></button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', columnGap: large ? 6 : 2, marginBottom: fillHeight ? 2 : 4, flexShrink: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', columnGap: fillHeight ? 8 : (large ? 6 : 2), marginBottom: fillHeight ? 6 : 4, flexShrink: 0 }}>
           {DAY_LABELS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: fillHeight ? 19 : (large ? 22 : Math.round(22 * scale)), fontWeight: 600, color: '#91AEC4', padding: '2px 0' }}>{d}</div>)}
         </div>
         <div ref={calRef} style={fillHeight ? {
           display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gridAutoRows: 'auto',
-          userSelect: 'none', columnGap: 2,
+          userSelect: 'none', rowGap: 8, columnGap: 8,
         } : {
           display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', userSelect: 'none', rowGap: large ? 10 : 4, columnGap: large ? 6 : 2,
         }}>
@@ -328,8 +328,8 @@ function DateMultiPicker({ selectedDates, onChange, large = false, scale = 1, fi
                   background: 'rgba(138, 157, 168, 0.18)', pointerEvents: 'none',
                 }} />}
                 <div style={{
-                  width: fillHeight ? 'min(43px, 80%)' : (large ? 65 : 32),
-                  height: fillHeight ? 'min(43px, 80%)' : (large ? 65 : 32),
+                  width: fillHeight ? 'min(56px, 80%)' : (large ? 65 : 32),
+                  height: fillHeight ? 'min(56px, 80%)' : (large ? 65 : 32),
                   borderRadius: fillHeight ? '50%' : (large ? 33 : 16),
                   margin: fillHeight ? 0 : '2px auto 0',
                   position: 'relative', zIndex: 1, flexShrink: 0,
