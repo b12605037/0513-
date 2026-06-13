@@ -83,7 +83,7 @@ function DurationSlider({ value, onChange, onChangeEnd, scale = 1, numSize, maxM
   return (
     <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0', willChange: 'transform' }}>
       <div style={{ background: '#e8eef1', borderRadius: 8, padding: '12px', textAlign: 'center', marginBottom: 20, minHeight: (numSize ?? Math.round(40 * scale)) + 26 }}>
-        <div style={{ fontSize: numSize ?? Math.round(40 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>{fmtDuration(value)}</div>
+        <div style={{ fontSize: numSize ?? Math.round(40 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>{fmtDuration(slot * 30)}</div>
       </div>
       <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
         <div style={{ position: 'absolute', left: 0, width: `${pct}%`, top: 0, bottom: 0, background: '#8A9DA8', borderRadius: 3 }} />
@@ -91,14 +91,18 @@ function DurationSlider({ value, onChange, onChangeEnd, scale = 1, numSize, maxM
       </div>
       <div style={{ position: 'relative', height: 16, margin: '0 11px' }}>
         {(() => {
-          const maxH = maxSlot * 30 / 60;
+          const fmtTickMins = (m) => {
+            if (m === 0) return '0';
+            if (m < 60) return `${m}m`;
+            if (m % 60 === 0) return `${m / 60}h`;
+            return `${Math.floor(m / 60)}h${m % 60}m`;
+          };
           const ticks = [{ label: '0', slot: 0 }];
           if (maxSlot >= 4) {
             const midSlot = Math.round(maxSlot / 2);
-            const midH = midSlot * 30 / 60;
-            ticks.push({ label: Number.isInteger(midH) ? `${midH}h` : `${midSlot * 30}m`, slot: midSlot });
+            ticks.push({ label: fmtTickMins(midSlot * 30), slot: midSlot });
           }
-          ticks.push({ label: Number.isInteger(maxH) ? `${maxH}h` : `${Math.round(maxH * 60)}m`, slot: maxSlot });
+          ticks.push({ label: fmtTickMins(maxSlot * 30), slot: maxSlot });
           return ticks.map(({ label, slot: s }, i) => {
             const p = (s / maxSlot) * 100;
             const transform = i === 0 ? 'none' : i === ticks.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)';
@@ -557,6 +561,7 @@ export default function Home() {
               const next = !allDay;
               setAllDay(next);
               setTimeError('');
+              if (!next) { const maxM = (endSlot - startSlot) * 30; setDuration(d => d > maxM ? maxM : d); }
               mixpanel.track('time_range_set', { category: 'create_event', is_all_day: next, start: '00:00', end: '24:00', timestamp: new Date().toISOString() });
               timeSetRef.current = true; checkAndTrackBoth();
             }} style={{ width: 40, height: 24, borderRadius: 12, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
@@ -741,6 +746,7 @@ export default function Home() {
                       const next = !allDay;
                       setAllDay(next);
                       setTimeError('');
+                      if (!next) { const maxM = (endSlot - startSlot) * 30; setDuration(d => d > maxM ? maxM : d); }
                       mixpanel.track('time_range_set', { category: 'create_event', is_all_day: next, start: '00:00', end: '24:00', timestamp: new Date().toISOString() });
                       timeSetRef.current = true; checkAndTrackBoth();
                     }} style={{ width: 53, height: 31, borderRadius: 16, background: allDay ? '#8A9DA8' : '#E0E0E0', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
