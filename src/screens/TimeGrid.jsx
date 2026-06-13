@@ -127,7 +127,11 @@ export default function TimeGrid() {
 
   useEffect(() => {
     setShowBottomFade(true);
-    setScrollThumb({ top: 0, h: 100 });
+    requestAnimationFrame(() => {
+      const el = tab === 'mine' ? scrollContainerRef.current : groupScrollRef.current;
+      if (el) updateThumb(el);
+      else setScrollThumb({ top: 0, h: 100 });
+    });
   }, [tab, page, desktopPage]);
 
   const handleGridScroll = (e) => {
@@ -379,6 +383,14 @@ export default function TimeGrid() {
     } else {
       mixpanel.track('fill_submitted', { category: 'fill_time', event_id: state?.meetingId, slots_count: filledCount, time_spent_seconds: timeSpent, timestamp: new Date().toISOString() });
     }
+
+    try {
+      localStorage.setItem(`meetime_filled_${state?.meetingId}`, JSON.stringify({
+        name: name.trim(),
+        slots: slotsRef.current,
+        submittedAt: Date.now(),
+      }));
+    } catch {}
 
     setSubmittingResponse(false);
     navigate('/results', {

@@ -265,6 +265,10 @@ body {
 .grid-scroll { scrollbar-width: none; }
 .grid-scroll::-webkit-scrollbar { display: none; }
 
+/* ── RESPONDENT CHIP ── */
+.respondent-chip { }
+.respondent-chip:hover { transform: scale(1.06); filter: brightness(0.93); }
+
 /* ── DIVIDER ── */
 .divider { height: 8px; background: #F5F5F5; flex-shrink: 0; }
 

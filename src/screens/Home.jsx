@@ -51,16 +51,17 @@ function sameDay(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-function DurationSlider({ value, onChange, onChangeEnd, scale = 1, numSize }) {
+function DurationSlider({ value, onChange, onChangeEnd, scale = 1, numSize, maxMins = 1440 }) {
   const trackRef = useRef(null);
-  const slot = dMinsToSlot(value);
-  const pct = (slot / DURATION_TOTAL) * 100;
+  const maxSlot = Math.max(1, Math.round(maxMins / 30));
+  const slot = Math.round(Math.max(0, Math.min(maxSlot, value / 30)));
+  const pct = (slot / maxSlot) * 100;
   const getSlot = (e) => {
     const track = trackRef.current;
     if (!track) return slot;
     const rect = track.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    return Math.round(Math.max(0, Math.min(DURATION_TOTAL, ((clientX - rect.left) / rect.width) * DURATION_TOTAL)));
+    return Math.round(Math.max(0, Math.min(maxSlot, ((clientX - rect.left) / rect.width) * maxSlot)));
   };
   const startDrag = (e) => {
     e.preventDefault();
@@ -80,20 +81,30 @@ function DurationSlider({ value, onChange, onChangeEnd, scale = 1, numSize }) {
     move(e);
   };
   return (
-    <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0' }}>
-      <div style={{ background: '#e8eef1', borderRadius: 8, padding: '12px', textAlign: 'center', marginBottom: 20 }}>
-        <div style={{ fontSize: numSize ?? Math.round((Number(value) === 0 ? 36 : 55) * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em' }}>{fmtDuration(value)}</div>
+    <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0', willChange: 'transform' }}>
+      <div style={{ background: '#e8eef1', borderRadius: 8, padding: '12px', textAlign: 'center', marginBottom: 20, minHeight: (numSize ?? Math.round(40 * scale)) + 26 }}>
+        <div style={{ fontSize: numSize ?? Math.round(40 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>{fmtDuration(value)}</div>
       </div>
       <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
         <div style={{ position: 'absolute', left: 0, width: `${pct}%`, top: 0, bottom: 0, background: '#8A9DA8', borderRadius: 3 }} />
         <div onMouseDown={startDrag} onTouchStart={startDrag} style={{ position: 'absolute', left: `calc(${pct}% - 11px)`, top: -8, width: 22, height: 22, borderRadius: 11, background: '#8A9DA8', border: '3px solid #fff', boxShadow: '0 1px 6px rgba(138,157,168,0.45)', cursor: 'grab', zIndex: 2, touchAction: 'none' }} />
       </div>
       <div style={{ position: 'relative', height: 16, margin: '0 11px' }}>
-        {DURATION_TICKS.map(({ label, slot: s }, i) => {
-          const p = (s / DURATION_TOTAL) * 100;
-          const transform = i === 0 ? 'none' : i === DURATION_TICKS.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)';
-          return <span key={label} style={{ position: 'absolute', left: `${p}%`, transform, fontSize: Math.round(19 * scale), color: '#CCC', fontWeight: 500, whiteSpace: 'nowrap' }}>{label}</span>;
-        })}
+        {(() => {
+          const maxH = maxSlot * 30 / 60;
+          const ticks = [{ label: '0', slot: 0 }];
+          if (maxSlot >= 4) {
+            const midSlot = Math.round(maxSlot / 2);
+            const midH = midSlot * 30 / 60;
+            ticks.push({ label: Number.isInteger(midH) ? `${midH}h` : `${midSlot * 30}m`, slot: midSlot });
+          }
+          ticks.push({ label: Number.isInteger(maxH) ? `${maxH}h` : `${Math.round(maxH * 60)}m`, slot: maxSlot });
+          return ticks.map(({ label, slot: s }, i) => {
+            const p = (s / maxSlot) * 100;
+            const transform = i === 0 ? 'none' : i === ticks.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)';
+            return <span key={label} style={{ position: 'absolute', left: `${p}%`, transform, fontSize: Math.round(19 * scale), color: '#CCC', fontWeight: 500, whiteSpace: 'nowrap' }}>{label}</span>;
+          });
+        })()}
       </div>
     </div>
   );
@@ -136,14 +147,14 @@ function TimeRangeSlider({ startSlot, endSlot, onChange, onChangeEnd, scale = 1,
   const sPct = slotToPct(startSlot);
   const ePct = slotToPct(endSlot);
   return (
-    <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0' }}>
+    <div style={{ background: '#fff', borderRadius: 12, padding: '16px 16px 14px', border: '1.5px solid #F0F0F0', willChange: 'transform' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-        <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: numSize ?? Math.round(24 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{fmtSlot(startSlot)} <span style={{ fontSize: ampmSize ?? Math.round(14 * scale), fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
+        <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center', minWidth: 0 }}>
+          <div style={{ fontSize: numSize ?? Math.round(24 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{fmtSlot(startSlot)} <span style={{ fontSize: ampmSize ?? Math.round(14 * scale), fontWeight: 600 }}>{fmtPeriod(startSlot)}</span></div>
         </div>
         <div style={{ color: '#CCC', fontSize: Math.round(20 * scale), flexShrink: 0 }}>→</div>
-        <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: numSize ?? Math.round(24 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{fmtSlot(endSlot)} <span style={{ fontSize: ampmSize ?? Math.round(14 * scale), fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
+        <div style={{ flex: 1, background: '#e8eef1', borderRadius: 8, padding: '10px 12px', textAlign: 'center', minWidth: 0 }}>
+          <div style={{ fontSize: numSize ?? Math.round(24 * scale), fontWeight: 800, color: '#8A9DA8', letterSpacing: '-0.02em', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{fmtSlot(endSlot)} <span style={{ fontSize: ampmSize ?? Math.round(14 * scale), fontWeight: 600 }}>{fmtPeriod(endSlot)}</span></div>
         </div>
       </div>
       <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#F0F0F0', borderRadius: 3, margin: '0 11px 14px' }}>
@@ -426,6 +437,7 @@ export default function Home() {
 
   const handleConfirmName = async () => {
     if (!meetingName.trim() || saving) return;
+    setSaving(true);
     const id = Math.random().toString(36).slice(2, 10);
     const rs = selectedDates[0] ?? null;
     const re = selectedDates[selectedDates.length - 1] ?? null;
@@ -440,18 +452,18 @@ export default function Home() {
       all_day:     allDay,
       duration,
     };
-    setGeneratedId(id);
-    setNameModalPhase('link');
     let { error } = await supabase.from('meetings').insert(payload);
     if (error) {
       const { date_list, ...payloadWithout } = payload;
       ({ error } = await supabase.from('meetings').insert(payloadWithout));
     }
+    setSaving(false);
     if (error) {
-      setSaveError('建立失敗，請再試一次');
-      setNameModalPhase('input');
+      setSaveError(`建立失敗，請再試一次（${error.message ?? error.code ?? ''}）`);
       return;
     }
+    setGeneratedId(id);
+    setNameModalPhase('link');
     mixpanel.track('event_created', { category: 'create_event', event_id: id, days_count: selectedDates.length, has_duration: duration > 0, timestamp: new Date().toISOString() });
     try {
       localStorage.setItem(`meetime_event_${id}`, JSON.stringify({
@@ -553,13 +565,13 @@ export default function Home() {
           </div>
         </div>
         <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-          <TimeRangeSlider scale={0.8} numSize={34} ampmSize={14} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={(s, e) => { timeSetRef.current = true; mixpanel.track('time_range_set', { category: 'create_event', start: slotToTimeStr(s ?? startSlot), end: slotToTimeStr(e ?? endSlot), is_all_day: false, timestamp: new Date().toISOString() }); checkAndTrackBoth(); }} />
+          <TimeRangeSlider scale={0.8} numSize={34} ampmSize={14} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); const maxM = (e - s) * 30; setDuration(d => d > maxM ? maxM : d); }} onChangeEnd={(s, e) => { timeSetRef.current = true; mixpanel.track('time_range_set', { category: 'create_event', start: slotToTimeStr(s ?? startSlot), end: slotToTimeStr(e ?? endSlot), is_all_day: false, timestamp: new Date().toISOString() }); checkAndTrackBoth(); }} />
         </div>
         {timeError && <div style={{ fontSize: 11, color: '#E53935', marginTop: 6 }}>{timeError}</div>}
       </div>
       <div className="form-field">
         <label className="form-label" style={{ fontSize: 14 }}>預計活動時長（選填）</label>
-        <DurationSlider scale={0.8} numSize={28} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('duration_set', { category: 'create_event', hours: v / 60, is_skipped: v === 0, timestamp: new Date().toISOString() })} />
+        <DurationSlider scale={0.8} numSize={28} value={duration} onChange={setDuration} maxMins={allDay ? 1440 : Math.max(30, (endSlot - startSlot) * 30)} onChangeEnd={(v) => mixpanel.track('duration_set', { category: 'create_event', hours: v / 60, is_skipped: v === 0, timestamp: new Date().toISOString() })} />
       </div>
     </>
   );
@@ -605,7 +617,7 @@ export default function Home() {
         </div>
         <button onClick={() => {
           mixpanel.track('invite_shared_line', { category: 'share_invite', event_id: generatedId, timestamp: new Date().toISOString() });
-          const lineMsg = `會議名稱：${meetingName.trim()}\n填寫時間：${shareUrl}\u200C`;
+          const lineMsg = `${meetingName.trim()}\n${shareUrl}`;
           window.open(`https://line.me/R/msg/text/?${encodeURIComponent(lineMsg)}`, '_blank');
         }} style={{ width: '100%', padding: '18px', borderRadius: 14, border: 'none', background: '#8FA99A', color: '#fff', fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
@@ -737,7 +749,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div style={{ opacity: allDay ? 0.45 : 1, pointerEvents: allDay ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-                  <TimeRangeSlider numSize={48} scale={1.2} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); }} onChangeEnd={(s, e) => { timeSetRef.current = true; mixpanel.track('time_range_set', { category: 'create_event', start: slotToTimeStr(s ?? startSlot), end: slotToTimeStr(e ?? endSlot), is_all_day: false, timestamp: new Date().toISOString() }); checkAndTrackBoth(); }} />
+                  <TimeRangeSlider numSize={48} scale={1.2} startSlot={allDay ? 0 : startSlot} endSlot={allDay ? SLIDER_TOTAL : endSlot} onChange={(s, e) => { setStartSlot(s); setEndSlot(e); setTimeError(''); const maxM = (e - s) * 30; setDuration(d => d > maxM ? maxM : d); }} onChangeEnd={(s, e) => { timeSetRef.current = true; mixpanel.track('time_range_set', { category: 'create_event', start: slotToTimeStr(s ?? startSlot), end: slotToTimeStr(e ?? endSlot), is_all_day: false, timestamp: new Date().toISOString() }); checkAndTrackBoth(); }} />
                 </div>
                 {timeError && <div style={{ fontSize: 16, color: '#E53935', marginTop: 7 }}>{timeError}</div>}
               </div>
@@ -745,7 +757,7 @@ export default function Home() {
               {/* Middle: duration */}
               <div>
                 <label style={{ fontSize: 19, fontWeight: 700, color: '#555', display: 'block', marginBottom: 12 }}>預計活動時長（選填）</label>
-                <DurationSlider numSize={48} scale={1.2} value={duration} onChange={setDuration} onChangeEnd={(v) => mixpanel.track('duration_set', { category: 'create_event', hours: v / 60, is_skipped: v === 0, timestamp: new Date().toISOString() })} />
+                <DurationSlider numSize={48} scale={1.2} value={duration} onChange={setDuration} maxMins={allDay ? 1440 : Math.max(30, (endSlot - startSlot) * 30)} onChangeEnd={(v) => mixpanel.track('duration_set', { category: 'create_event', hours: v / 60, is_skipped: v === 0, timestamp: new Date().toISOString() })} />
               </div>
 
               {/* Bottom: submit button */}

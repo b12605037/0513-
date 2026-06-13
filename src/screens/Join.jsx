@@ -16,6 +16,30 @@ export default function Join() {
       if (cached) {
         const m = JSON.parse(cached);
         mixpanel.track('join_view', { category: 'fill_time', event_id: m.id, referrer, timestamp: new Date().toISOString() });
+        // If user already filled this event, go straight to results
+        try {
+          const filledRaw = localStorage.getItem(`meetime_filled_${id}`);
+          if (filledRaw) {
+            const filled = JSON.parse(filledRaw);
+            navigate('/results', {
+              replace: true,
+              state: {
+                meetingId:  m.id,
+                eventName:  m.name,
+                myName:     filled.name,
+                mySlots:    filled.slots,
+                dateList:   m.dateList,
+                startSlot:  m.startSlot,
+                endSlot:    m.endSlot,
+                allDay:     m.allDay,
+                duration:   m.duration,
+                rangeStart: m.rangeStart,
+                rangeEnd:   m.rangeEnd,
+              },
+            });
+            return;
+          }
+        } catch {}
         navigate('/grid', {
           replace: true,
           state: {
@@ -61,6 +85,30 @@ export default function Join() {
             duration:   m.duration,
             deadline:   m.deadline,
           }));
+        } catch {}
+        // If user already filled this event, go straight to results
+        try {
+          const filledRaw = localStorage.getItem(`meetime_filled_${id}`);
+          if (filledRaw) {
+            const filled = JSON.parse(filledRaw);
+            navigate('/results', {
+              replace: true,
+              state: {
+                meetingId:  m.id,
+                eventName:  m.name,
+                myName:     filled.name,
+                mySlots:    filled.slots,
+                dateList:   m.date_list,
+                startSlot:  m.start_slot,
+                endSlot:    m.end_slot,
+                allDay:     m.all_day,
+                duration:   m.duration,
+                rangeStart: m.range_start,
+                rangeEnd:   m.range_end,
+              },
+            });
+            return;
+          }
         } catch {}
         navigate('/grid', {
           replace: true,

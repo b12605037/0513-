@@ -103,6 +103,14 @@ export default function Results() {
   const [responses, setResponses]         = useState([]);
   const [loading, setLoading]             = useState(true);
 
+  const filledData = useMemo(() => {
+    if (!state?.meetingId) return null;
+    try {
+      const raw = localStorage.getItem(`meetime_filled_${state.meetingId}`);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }, [state?.meetingId]);
+
   useEffect(() => {
     if (!state?.meetingId) { setLoading(false); return; }
     supabase.from('responses').select('respondent_name,slots')
@@ -441,14 +449,24 @@ export default function Results() {
 
   const respondentChips = (
     <div style={{ padding: isDesktop ? '10px 32px' : '8px 16px', background: '#fff', borderBottom: '1px solid #F5F5F5', flexShrink: 0 }}>
+      <div style={{ fontSize: 12, color: '#AAA', fontWeight: 500, marginBottom: 6 }}>點擊成員可篩選時段</div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         {respondentNames.map((n, i) => {
           const sel = selected.has(i);
           const color = COLORS[i % 4];
           return (
-            <div key={i} onClick={() => toggleRespondent(i)} style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', background: sel ? 'rgba(183,208,225,0.3)' : '#F5F5F5', border: `1.5px solid ${sel ? color : '#E5E5E5'}`, borderRadius: 20, padding: isDesktop ? '6px 14px' : '4px 10px', transition: 'all 0.15s' }}>
-              <div style={{ width: isDesktop ? 22 : 18, height: isDesktop ? 22 : 18, borderRadius: isDesktop ? 11 : 9, background: sel ? color : '#CCC', color: '#fff', fontSize: isDesktop ? 13 : 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n[0]}</div>
-              <span style={{ fontSize: isDesktop ? 16 : 14, fontWeight: sel ? 600 : 400, color: sel ? '#333' : '#AAA' }}>{n}</span>
+            <div key={i} onClick={() => toggleRespondent(i)} className="respondent-chip"
+              style={{
+                display: 'inline-flex', alignItems: 'center', cursor: 'pointer',
+                background: sel ? color : '#fff',
+                border: `1.5px solid ${sel ? color : '#CCC'}`,
+                borderRadius: 999,
+                padding: isDesktop ? '7px 16px' : '5px 12px',
+                opacity: sel ? 1 : 0.5,
+                transition: 'all 0.15s',
+                userSelect: 'none',
+              }}>
+              <span style={{ fontSize: isDesktop ? 15 : 13, fontWeight: 600, color: sel ? '#fff' : '#777' }}>{n}</span>
             </div>
           );
         })}
@@ -465,9 +483,9 @@ export default function Results() {
           <div style={{ padding: '0 32px', display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
             <span onClick={() => navigate('/')} style={{ fontSize: 24, fontWeight: 700, color: '#8A9DA8', letterSpacing: '-0.04em', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>meetime</span>
             <span style={{ flex: 1, fontSize: 20, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{state?.eventName ?? '結果'}</span>
-            <button onClick={() => { mixpanel.track('refill_clicked', { category: 'fill_time', event_id: state?.meetingId, timestamp: new Date().toISOString() }); navigate('/grid', { state }); }}
+            <button onClick={() => { mixpanel.track('refill_clicked', { category: 'fill_time', event_id: state?.meetingId, timestamp: new Date().toISOString() }); navigate('/grid', { state: { ...state, myName: filledData?.name ?? state?.myName, mySlots: filledData?.slots ?? state?.mySlots } }); }}
               style={{ padding: '11px 28px', borderRadius: 10, border: '1.5px solid #8A9DA8', background: 'transparent', color: '#8A9DA8', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-              重新填寫
+              {filledData ? '修改我的填答' : '重新填寫'}
             </button>
           </div>
         </div>
@@ -530,7 +548,7 @@ export default function Results() {
             </div>
           )}
           <div style={{ padding: '10px 16px 16px', background: '#fff', borderTop: '1px solid #F0F0F0', flexShrink: 0 }}>
-            <button onClick={() => { mixpanel.track('refill_clicked', { category: 'fill_time', event_id: state?.meetingId, timestamp: new Date().toISOString() }); navigate('/grid', { state }); }} style={{ width: '100%', padding: '13px', borderRadius: 14, border: '1.5px solid #5F84A2', background: 'transparent', color: '#5F84A2', fontSize: 19, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>重新填寫</button>
+            <button onClick={() => { mixpanel.track('refill_clicked', { category: 'fill_time', event_id: state?.meetingId, timestamp: new Date().toISOString() }); navigate('/grid', { state: { ...state, myName: filledData?.name ?? state?.myName, mySlots: filledData?.slots ?? state?.mySlots } }); }} style={{ width: '100%', padding: '13px', borderRadius: 14, border: '1.5px solid #5F84A2', background: 'transparent', color: '#5F84A2', fontSize: 19, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>{filledData ? '修改我的填答' : '重新填寫'}</button>
           </div>
           {hasDuration && heatmapExpanded && (
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '82%', background: '#fff', zIndex: 100, borderRadius: '20px 20px 0 0', boxShadow: '0 -4px 24px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column' }}>
